@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ─────────────────────────────────────────────
+// SITE CONFIG — Single-row singleton
+// Contains all site-wide settings, hero content,
+// achievements (JSON), and journey entries (JSON)
+// ─────────────────────────────────────────────
+model SiteConfig {
+  id                 String   @id @default("singleton")
+  // Hero
+  heroTitle          String   @default("Building Intelligent Systems That Solve Real Problems.")
+  heroSubtitle       String   @default("AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.")
+  availabilityStatus String   @default("Open to opportunities")
+  // Personal
+  name               String   @default("Kishore R")
+  headline           String   @default("AI/ML & Generative AI Engineer")
+  bio                String   @default("") @db.Text
+  location           String   @default("Salem, Tamil Nadu, India")
+  contactEmail       String   @default("Kishorehp134@gmail.com")
+  phone              String?
+  avatarUrl          String?
+  resumeUrl          String?
+  aboutText          String   @default("") @db.Text
+  // SEO
+  seoTitle           String?
+  seoDescription     String?
+  ogImageUrl         String?
+  // Dynamic JSON sections
+  achievements       Json     @default("[]")
+  journeyEntries     Json     @default("[]")
+  // LeetCode (manual + cached)
+  leetcodeTotal      Int      @default(380)
+  leetcodeEasy       Int      @default(0)
+  leetcodeMedium     Int      @default(0)
+  leetcodeHard       Int      @default(0)
+  leetcodeCache      Json?    // raw submissionCalendar JSON cache
+  leetcodeCachedAt   DateTime?
+  updatedAt          DateTime @updatedAt
+
+  @@map("site_config")
+}
+
+// ─────────────────────────────────────────────
+// PROJECT
+// ─────────────────────────────────────────────
+model Project {
+  id               String    @id @default(cuid())
+  title            String
+  slug             String    @unique
+  shortDescription String
+  fullDescription  String?   @db.Text
+  problem          String?   @db.Text
+  solution         String?   @db.Text
+  architecture     String?   @db.Text
+  technologies     String[]
+  githubUrl        String?
+  liveUrl          String?
+  imageUrl         String?
+  metrics          String?
+  featured         Boolean   @default(false)
+  published        Boolean   @default(true)
+  displayOrder     Int       @default(0)
+  // GitHub cache — only display-relevant fields
+  githubStars      Int?
+  githubForks      Int?
+  githubLanguage   String?
+  githubTopics     String[]
+  githubUpdatedAt  DateTime?
+  githubCachedAt   DateTime?
+  githubSyncEnabled Boolean  @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("projects")
+}
+
+// ─────────────────────────────────────────────
+// SKILL
+// ─────────────────────────────────────────────
+model Skill {
+  id           String  @id @default(cuid())
+  name         String
+  category     String  // "AI/ML", "Programming", "Databases", "Tools"
+  iconSlug     String?
+  displayOrder Int     @default(0)
+  published    Boolean @default(true)
+
+  @@map("skills")
+}
+
+// ─────────────────────────────────────────────
+// CERTIFICATION
+// ─────────────────────────────────────────────
+model Certification {
+  id            String    @id @default(cuid())
+  title         String
+  issuer        String
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  credentialId  String?
+  credentialUrl String?
+  imageUrl      String?
+  description   String?   @db.Text
+  published     Boolean   @default(true)
+  displayOrder  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("certifications")
+}
+
+// ─────────────────────────────────────────────
+// EDUCATION
+// ─────────────────────────────────────────────
+model Education {
+  id           String    @id @default(cuid())
+  institution  String
+  degree       String
+  field        String?
+  startDate    DateTime?
+  endDate      DateTime?
+  score        String?
+  description  String?   @db.Text
+  displayOrder Int       @default(0)
+
+  @@map("education")
+}
+
+// ─────────────────────────────────────────────
+// SOCIAL LINK
+// ─────────────────────────────────────────────
+model SocialLink {
+  id           String  @id @default(cuid())
+  platform     String  // "GitHub", "LinkedIn", "LeetCode", "Email"
+  url          String
+  iconSlug     String?
+  enabled      Boolean @default(true)
+  displayOrder Int     @default(0)
+
+  @@map("social_links")
+}
+
+// ─────────────────────────────────────────────
+// CONTACT MESSAGE
+// soft-deleted via deletedAt — never hard delete
+// ─────────────────────────────────────────────
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String    @db.Text
+  read      Boolean   @default(false)
+  deletedAt DateTime? // soft delete
+  createdAt DateTime  @default(now())
+
+  @@map("contact_messages")
+}
