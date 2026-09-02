@@ -4,9 +4,9 @@
  * The /admin/login and /api/auth/** routes are publicly accessible.
  */
 import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(req: any) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow login page and auth API routes through

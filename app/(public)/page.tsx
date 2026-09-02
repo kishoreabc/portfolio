@@ -13,28 +13,44 @@ import { Footer } from "@/components/public/Footer";
 import { JourneyEntry } from "@/types";
 import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
+import type { SiteConfig, Skill, Project, Certification, Education, SocialLink } from "@prisma/client";
+import type { ContributionCalendar } from "@/lib/github";
+
 // Revalidate homepage every hour (ISR)
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  // Fetch all DB-driven content in parallel for speed
-  const [
-    config,
-    skills,
-    projects,
-    certifications,
-    educationList,
-    socialLinks,
-    githubHeatmap,
-  ] = await Promise.all([
-    prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
-    prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
-    prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
-    prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
-    prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
-    prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
-    fetchGitHubHeatmap(),
-  ]);
+  let config: SiteConfig | null = null;
+  let skills: Skill[] = [];
+  let projects: Project[] = [];
+  let certifications: Certification[] = [];
+  let educationList: Education[] = [];
+  let socialLinks: SocialLink[] = [];
+  let githubHeatmap: ContributionCalendar | null = null;
+
+  try {
+    const results = await Promise.all([
+      prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
+      prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
+      prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
+      prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
+      prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
+      prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
+      fetchGitHubHeatmap(),
+    ]);
+    config = results[0];
+    skills = results[1];
+    projects = results[2];
+    certifications = results[3];
+    educationList = results[4];
+    socialLinks = results[5];
+    githubHeatmap = results[6];
+  } catch (error) {
+    console.warn(
+      "[HomePage] Database or external fetch error during render/build, using fallbacks:",
+      error instanceof Error ? error.message : error
+    );
+  }
 
   const rawJourneyEntries = (config?.journeyEntries as unknown as JourneyEntry[]) || [
     {

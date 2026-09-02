@@ -9,6 +9,7 @@
  * If no cache exists, we return null and the UI shows manual stats.
  */
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import type { LeetCodeDay, LeetCodeHeatmapData } from "@/types";
 
 const LEETCODE_GRAPHQL = "https://leetcode.com/graphql";
@@ -199,7 +200,7 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
     await prisma.siteConfig.update({
       where: { id: "singleton" },
       data: {
-        leetcodeCache: fresh as any,
+        leetcodeCache: fresh as unknown as Prisma.InputJsonValue,
         leetcodeCachedAt: new Date(),
         leetcodeTotal: fresh.solvedTotal,
         leetcodeEasy: fresh.solvedEasy,
