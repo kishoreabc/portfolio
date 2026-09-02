@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 
 export function ProfileForm({ config }: { config: SiteConfig | null }) {
   const [loading, setLoading] = useState(false);
@@ -41,8 +42,11 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<SiteConfigFormData>({
+
     resolver: zodResolver(SiteConfigSchema),
     defaultValues,
   });
@@ -120,10 +124,20 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold">Resume URL (Cloudinary / PDF link)</label>
-              <Input {...register("resumeUrl")} placeholder="https://res.cloudinary.com/..." />
+              <label className="text-xs font-semibold">Phone Number</label>
+              <Input {...register("phone")} placeholder="+91 9876543210" />
             </div>
           </div>
+
+          <CloudinaryUpload
+            label="Resume PDF File (Cloudinary Upload)"
+            value={watch("resumeUrl") ?? ""}
+            onChange={(url) => setValue("resumeUrl", url, { shouldValidate: true })}
+            placeholder="Upload PDF resume or paste Cloudinary URL..."
+            accept=".pdf,application/pdf"
+          />
+
+
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">About Section Text</label>

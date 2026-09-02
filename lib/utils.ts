@@ -44,3 +44,52 @@ export function toSlug(text: string): string {
 export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
+
+/**
+ * Parses timeline period strings (e.g. "2024 – Present", "2023 – 2024", "2024")
+ * into numeric values for reliable chronological sorting.
+ */
+export function parseTimelinePeriod(period: string): { endVal: number; startVal: number } {
+  if (!period) return { endVal: 0, startVal: 0 };
+
+  const normalized = period.replace(/[–—]/g, "-").trim();
+  const parts = normalized.split("-").map((p) => p.trim());
+
+  const parseYear = (str: string): number => {
+    if (!str) return 0;
+    const lower = str.toLowerCase();
+    if (lower.includes("present") || lower.includes("current") || lower.includes("now")) {
+      return 9999;
+    }
+    const match = str.match(/\b(19\d\d|20\d\d)\b/);
+    return match ? parseInt(match[1], 10) : 0;
+  };
+
+  const startVal = parseYear(parts[0]);
+  const endVal = parts.length > 1 ? parseYear(parts[1]) : startVal;
+
+  return { endVal, startVal };
+}
+
+/**
+ * Sorts journey entries in descending chronological order (most recent / ongoing first).
+ */
+export function sortJourneyEntriesByTimelineDesc<T extends { period: string }>(entries: T[]): T[] {
+  return [...entries].sort((a, b) => {
+    const timeA = parseTimelinePeriod(a.period);
+    const timeB = parseTimelinePeriod(b.period);
+
+    // 1. Compare end date/year (e.g. Present = 9999 > 2025 > 2024)
+    if (timeB.endVal !== timeA.endVal) {
+      return timeB.endVal - timeA.endVal;
+    }
+
+    // 2. If end date/year is the same (e.g. both are Present), compare start date/year
+    if (timeB.startVal !== timeA.startVal) {
+      return timeB.startVal - timeA.startVal;
+    }
+
+    return 0;
+  });
+}
+

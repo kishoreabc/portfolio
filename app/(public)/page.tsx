@@ -11,6 +11,7 @@ import { Journey } from "@/components/public/Journey";
 import { Contact } from "@/components/public/Contact";
 import { Footer } from "@/components/public/Footer";
 import { JourneyEntry } from "@/types";
+import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
 // Revalidate homepage every hour (ISR)
 export const revalidate = 3600;
@@ -29,13 +30,13 @@ export default async function HomePage() {
     prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
     prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
     prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
-    prisma.certification.findMany({ orderBy: { displayOrder: "asc" } }),
+    prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
     prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
     prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
     fetchGitHubHeatmap(),
   ]);
 
-  const journeyEntries = (config?.journeyEntries as unknown as JourneyEntry[]) || [
+  const rawJourneyEntries = (config?.journeyEntries as unknown as JourneyEntry[]) || [
     {
       id: "btech",
       title: "B.Tech in AI & ML",
@@ -82,6 +83,8 @@ export default async function HomePage() {
       icon: "shield",
     },
   ];
+
+  const journeyEntries = sortJourneyEntriesByTimelineDesc(rawJourneyEntries);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground">

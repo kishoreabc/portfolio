@@ -24,7 +24,7 @@ export function ProjectModal({ project, open, onOpenChange }: ProjectModalProps)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto p-6 sm:p-8">
+      <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[85vh] overflow-y-auto p-6 sm:p-8">
         <DialogHeader className="space-y-2">
           <div className="flex items-center gap-2">
             <Badge variant="default" className="text-xs px-2 py-0.5">

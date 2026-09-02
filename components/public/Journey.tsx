@@ -4,7 +4,19 @@ import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { JourneyEntry } from "@/types";
-import { GraduationCap, Cpu, Code2, Award, Shield } from "lucide-react";
+import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
+import {
+  GraduationCap,
+  Cpu,
+  Code2,
+  Award,
+  Shield,
+  Briefcase,
+  Rocket,
+  Sparkles,
+  BookOpen,
+  Milestone,
+} from "lucide-react";
 
 interface JourneyProps {
   journeyEntries: JourneyEntry[];
@@ -23,6 +35,16 @@ export function Journey({ journeyEntries }: JourneyProps) {
         return Award;
       case "shield":
         return Shield;
+      case "briefcase":
+        return Briefcase;
+      case "rocket":
+        return Rocket;
+      case "sparkles":
+        return Sparkles;
+      case "book-open":
+        return BookOpen;
+      case "milestone":
+        return Milestone;
       default:
         return Cpu;
     }
@@ -46,7 +68,7 @@ export function Journey({ journeyEntries }: JourneyProps) {
 
         {/* Timeline Container */}
         <div className="max-w-3xl mx-auto relative before:absolute before:left-4 sm:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/80">
-          {journeyEntries.map((entry, idx) => {
+          {sortJourneyEntriesByTimelineDesc(journeyEntries).map((entry, idx) => {
             const Icon = getIcon(entry.icon);
             const isEven = idx % 2 === 0;
 

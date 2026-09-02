@@ -19,11 +19,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Edit2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
+
 
 interface ProjectDialogProps {
   project?: Project;
   trigger?: React.ReactNode;
 }
+
 
 export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
   const [open, setOpen] = useState(false);
@@ -173,6 +176,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">GitHub URL</label>
               <Input {...register("githubUrl")} placeholder="https://github.com/..." />
@@ -183,6 +187,14 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
               <Input {...register("liveUrl")} placeholder="https://..." />
             </div>
           </div>
+
+          <CloudinaryUpload
+            label="Project Cover Image (Cloudinary)"
+            value={watch("imageUrl") ?? ""}
+            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true })}
+            placeholder="Upload project screenshot or paste Cloudinary URL..."
+          />
+
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">

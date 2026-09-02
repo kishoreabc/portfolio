@@ -13,14 +13,21 @@ import type { LeetCodeDay, LeetCodeHeatmapData } from "@/types";
 
 const LEETCODE_GRAPHQL = "https://leetcode.com/graphql";
 
-const CALENDAR_QUERY = `
-  query userProfileCalendar($username: String!) {
+const USER_PROFILE_AND_STATS_QUERY = `
+  query userProfileAndStats($username: String!) {
     matchedUser(username: $username) {
       userCalendar {
         activeYears
         streak
         totalActiveDays
         submissionCalendar
+      }
+      submitStatsGlobal {
+        acSubmissionNum {
+          difficulty
+          count
+          submissions
+        }
       }
     }
   }
@@ -30,13 +37,17 @@ interface LeetCodeCachePayload {
   submissionCalendar: Record<string, number>;
   streak: number;
   totalActiveDays: number;
+  solvedTotal: number;
+  solvedEasy: number;
+  solvedMedium: number;
+  solvedHard: number;
 }
 
 /**
- * Fetches LeetCode submission calendar for past year.
+ * Fetches LeetCode submission calendar and solved problem stats for past year.
  * Returns raw payload or null on failure.
  */
-async function fetchLeetCodeCalendar(
+async function fetchLeetCodeData(
   username: string
 ): Promise<LeetCodeCachePayload | null> {
   try {
@@ -48,7 +59,7 @@ async function fetchLeetCodeCalendar(
         "User-Agent": "Mozilla/5.0 (compatible; portfolio-bot/1.0)",
       },
       body: JSON.stringify({
-        query: CALENDAR_QUERY,
+        query: USER_PROFILE_AND_STATS_QUERY,
         variables: { username },
       }),
       cache: "no-store",
@@ -58,15 +69,24 @@ async function fetchLeetCodeCalendar(
     if (!res.ok) return null;
 
     const data = await res.json();
-    const calendar = data?.data?.matchedUser?.userCalendar;
+    const user = data?.data?.matchedUser;
+    const calendar = user?.userCalendar;
     if (!calendar?.submissionCalendar) return null;
 
     const parsedCalendar = JSON.parse(calendar.submissionCalendar) as Record<string, number>;
+
+    const submitStats = user?.submitStatsGlobal?.acSubmissionNum || [];
+    const getCount = (diff: string) =>
+      submitStats.find((s: { difficulty: string; count: number }) => s.difficulty === diff)?.count ?? 0;
 
     return {
       submissionCalendar: parsedCalendar,
       streak: calendar.streak ?? 0,
       totalActiveDays: calendar.totalActiveDays ?? 0,
+      solvedTotal: getCount("All"),
+      solvedEasy: getCount("Easy"),
+      solvedMedium: getCount("Medium"),
+      solvedHard: getCount("Hard"),
     };
   } catch {
     return null;
@@ -118,11 +138,15 @@ function buildHeatmapData(
     totalSubmissions,
     activeDays,
     streak: payload.streak,
+    solvedTotal: payload.solvedTotal,
+    solvedEasy: payload.solvedEasy,
+    solvedMedium: payload.solvedMedium,
+    solvedHard: payload.solvedHard,
   };
 }
 
 /**
- * Gets LeetCode heatmap data.
+ * Gets LeetCode heatmap & solved problem data.
  * Reads from DB cache if fresh (< 24h), otherwise fetches from LeetCode.
  * Falls back to stale cache on failure, returns null if no cache.
  */
@@ -133,7 +157,14 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
   // Check cache freshness
   const config = await prisma.siteConfig.findUnique({
     where: { id: "singleton" },
-    select: { leetcodeCache: true, leetcodeCachedAt: true },
+    select: {
+      leetcodeCache: true,
+      leetcodeCachedAt: true,
+      leetcodeTotal: true,
+      leetcodeEasy: true,
+      leetcodeMedium: true,
+      leetcodeHard: true,
+    },
   });
 
   const cacheAge = config?.leetcodeCachedAt
@@ -145,27 +176,35 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
 
   // Serve fresh cache (normalize if old structure)
   if (cachedPayload && cacheAge < CACHE_TTL_MS) {
-    const normalized =
-      "submissionCalendar" in cachedPayload
-        ? cachedPayload
-        : {
-            submissionCalendar: cachedPayload as unknown as Record<string, number>,
-            streak: 0,
-            totalActiveDays: 0,
-          };
+    const normalized: LeetCodeCachePayload = {
+      submissionCalendar:
+        "submissionCalendar" in cachedPayload
+          ? cachedPayload.submissionCalendar
+          : (cachedPayload as unknown as Record<string, number>),
+      streak: cachedPayload.streak ?? 0,
+      totalActiveDays: cachedPayload.totalActiveDays ?? 0,
+      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 393,
+      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 225,
+      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 157,
+      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 11,
+    };
     return buildHeatmapData(normalized);
   }
 
   // Fetch fresh data
-  const fresh = await fetchLeetCodeCalendar(username);
+  const fresh = await fetchLeetCodeData(username);
 
   if (fresh) {
-    // Update cache in DB
+    // Update cache and solved stats in DB
     await prisma.siteConfig.update({
       where: { id: "singleton" },
       data: {
         leetcodeCache: fresh as any,
         leetcodeCachedAt: new Date(),
+        leetcodeTotal: fresh.solvedTotal,
+        leetcodeEasy: fresh.solvedEasy,
+        leetcodeMedium: fresh.solvedMedium,
+        leetcodeHard: fresh.solvedHard,
       },
     });
     return buildHeatmapData(fresh);
@@ -174,18 +213,23 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
   // Fetch failed — serve stale cache if available
   if (cachedPayload) {
     console.warn("[LeetCode] Fetch failed, serving stale cache");
-    const normalized =
-      "submissionCalendar" in cachedPayload
-        ? cachedPayload
-        : {
-            submissionCalendar: cachedPayload as unknown as Record<string, number>,
-            streak: 0,
-            totalActiveDays: 0,
-          };
+    const normalized: LeetCodeCachePayload = {
+      submissionCalendar:
+        "submissionCalendar" in cachedPayload
+          ? cachedPayload.submissionCalendar
+          : (cachedPayload as unknown as Record<string, number>),
+      streak: cachedPayload.streak ?? 0,
+      totalActiveDays: cachedPayload.totalActiveDays ?? 0,
+      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 393,
+      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 225,
+      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 157,
+      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 11,
+    };
     return buildHeatmapData(normalized);
   }
 
   // No cache at all
   return null;
 }
+
 

@@ -38,7 +38,12 @@ export interface LeetCodeHeatmapData {
   totalSubmissions: number;
   activeDays: number;
   streak?: number;
+  solvedTotal?: number;
+  solvedEasy?: number;
+  solvedMedium?: number;
+  solvedHard?: number;
 }
+
 
 // ─── GitHub Heatmap ───────────────────────────────────────────
 

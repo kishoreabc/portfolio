@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, ExternalLink } from "lucide-react";
+import { Edit, Trash2, ExternalLink, Eye } from "lucide-react";
 
 export const metadata = {
   title: "Manage Certifications | Admin",
@@ -13,7 +13,7 @@ export const metadata = {
 
 export default async function AdminCertificationsPage() {
   const certs = await prisma.certification.findMany({
-    orderBy: { displayOrder: "asc" },
+    orderBy: [{ issueDate: "desc" }, { createdAt: "desc" }],
   });
 
   return (
@@ -69,6 +69,18 @@ export default async function AdminCertificationsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {(c.imageUrl || c.credentialUrl) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-8 h-8 text-muted-foreground hover:text-primary"
+                            title="View Certificate"
+                            render={<a href={c.imageUrl || c.credentialUrl!} target="_blank" rel="noreferrer" />}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
+
                         <CertificationDialog
                           certification={c}
                           trigger={

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Code2, ExternalLink, Flame, Trophy, CheckCircle2 } from "lucide-react";
 import { SiteConfig } from "@prisma/client";
-import { GitHubHeatmapData, LeetCodeHeatmapData } from "@/types";
+import { GitHubHeatmapData, LeetCodeHeatmapData, LeetCodeDay } from "@/types";
+
 
 interface CodingSectionProps {
   config: SiteConfig | null;
@@ -18,8 +19,9 @@ export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
   const [lcHeatmap, setLcHeatmap] = useState<LeetCodeHeatmapData | null>(null);
   const [lcLoading, setLcLoading] = useState(true);
 
-  const totalLeetCode = config?.leetcodeTotal ?? 380;
+  const totalLeetCode = lcHeatmap?.solvedTotal ?? config?.leetcodeTotal ?? 393;
   const leetcodeUrl = "https://leetcode.com/u/KISHORE-R/";
+
 
   useEffect(() => {
     async function fetchLeetCodeData() {

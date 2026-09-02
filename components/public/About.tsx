@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,23 @@ interface AboutProps {
 }
 
 export function About({ config, educationList }: AboutProps) {
+  const [solvedCount, setSolvedCount] = useState<number>(config?.leetcodeTotal ?? 393);
+
+  useEffect(() => {
+    async function fetchLatestStats() {
+      try {
+        const res = await fetch("/api/leetcode/heatmap");
+        const json = await res.json();
+        if (json.success && json.data?.solvedTotal) {
+          setSolvedCount(json.data.solvedTotal);
+        }
+      } catch {
+        // Fallback to initial config value
+      }
+    }
+    fetchLatestStats();
+  }, []);
+
   const aboutText =
     config?.aboutText ||
     "I am a final-year B.Tech Artificial Intelligence & Machine Learning student at Bannari Amman Institute of Technology. Focused on building production-ready AI systems across Machine Learning, Retrieval-Augmented Generation (RAG), Multimodal AI, and LLM orchestration.";
@@ -67,11 +85,12 @@ export function About({ config, educationList }: AboutProps) {
                 <p className="text-xs text-muted-foreground mt-0.5">B.Tech CGPA</p>
               </Card>
               <Card className="border-border/70 bg-card/60 p-4 text-center">
-                <p className="text-2xl font-bold text-gradient">380+</p>
+                <p className="text-2xl font-bold text-gradient">{solvedCount}+</p>
                 <p className="text-xs text-muted-foreground mt-0.5">LeetCode Solved</p>
               </Card>
             </div>
           </motion.div>
+
 
           {/* Education Timeline */}
           <motion.div

@@ -16,6 +16,7 @@ import {
   LogOut,
   ExternalLink,
   ShieldAlert,
+  Milestone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ export function AdminSidebar({
     { href: "/admin/certifications", label: "Certifications", icon: Award },
     { href: "/admin/skills", label: "Skills", icon: Wrench },
     { href: "/admin/education", label: "Education", icon: GraduationCap },
+    { href: "/admin/journey", label: "Journey", icon: Milestone },
     { href: "/admin/social-links", label: "Social Links", icon: Share2 },
     {
       href: "/admin/messages",

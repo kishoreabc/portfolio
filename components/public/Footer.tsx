@@ -37,7 +37,6 @@ export function Footer({ socialLinks }: FooterProps) {
 
         {/* Copyright */}
         <div className="space-y-1 text-right">
-          <p>© {year} Kishore R. All rights reserved.</p>
           <p className="text-[10px] text-muted-foreground">
             Built with Next.js 15, TypeScript, Tailwind CSS, & Prisma.
           </p>

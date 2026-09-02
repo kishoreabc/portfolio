@@ -111,6 +111,20 @@ export const SocialLinkSchema = z.object({
 
 export type SocialLinkFormData = z.infer<typeof SocialLinkSchema>;
 
+// ─── Journey Entry CRUD ───────────────────────────────────────
+
+export const JourneyEntrySchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, "Title is required").max(200),
+  organization: z.string().min(1, "Organization is required").max(200),
+  period: z.string().min(1, "Period is required").max(100),
+  description: z.string().min(1, "Description is required"),
+  type: z.enum(["education", "project", "achievement", "certification", "activity"]),
+  icon: z.string().min(1),
+});
+
+export type JourneyEntryFormData = z.infer<typeof JourneyEntrySchema>;
+
 // ─── Site Config ──────────────────────────────────────────────
 
 export const SiteConfigSchema = z.object({

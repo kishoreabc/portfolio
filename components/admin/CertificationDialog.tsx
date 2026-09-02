@@ -20,6 +20,8 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
+
 interface CertificationDialogProps {
   certification?: Certification;
   trigger?: React.ReactNode;
@@ -113,10 +115,13 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
             <Input {...register("credentialUrl")} placeholder="https://nptel.ac.in/..." />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold">Certificate Image / PDF URL</label>
-            <Input {...register("imageUrl")} placeholder="https://res.cloudinary.com/..." />
-          </div>
+          <CloudinaryUpload
+            label="Certificate Image / PDF (Cloudinary)"
+            value={watch("imageUrl") ?? ""}
+            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true })}
+            placeholder="Upload file or paste Cloudinary URL..."
+          />
+
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Description / Score</label>
