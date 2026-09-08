@@ -70,12 +70,37 @@ export function Hero({ config, socialLinks }: HeroProps) {
       <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="container-portfolio relative z-10 text-center space-y-8 max-w-4xl">
-        {/* Availability Badge */}
+        {/* Professional Avatar / Profile Picture */}
+        {config?.avatarUrl && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex justify-center -mb-2"
+          >
+            <div className="relative group cursor-pointer">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary via-blue-500 to-purple-600 opacity-60 blur-md group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-background shadow-2xl ring-2 ring-primary/40 bg-card">
+                <img
+                  src={config.avatarUrl}
+                  alt={config.name || "Kishore R"}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <span
+                className="absolute bottom-1 right-1 w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full bg-emerald-500 ring-2 ring-background border border-emerald-400 shadow-sm"
+                title={availability}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Availability & Identity Badges */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center"
+          className="flex flex-wrap items-center justify-center gap-3"
         >
           <Badge
             variant="outline"
@@ -87,17 +112,27 @@ export function Hero({ config, socialLinks }: HeroProps) {
             </span>
             {availability}
           </Badge>
+
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium text-primary bg-primary/10 border border-primary/20 shadow-xs">
+            <Sparkles className="w-3 h-3 text-amber-500" />
+            <span>Kishore R • AI/ML Portfolio</span>
+          </span>
         </motion.div>
 
         {/* Main Headline */}
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.15] text-foreground"
+          className="space-y-3"
         >
-          Building <span className="text-gradient">Intelligent Systems</span> That Solve Real Problems.
-        </motion.h1>
+          <p className="text-sm sm:text-base font-semibold text-primary tracking-wide uppercase font-mono">
+            Hi, I&apos;m Kishore R
+          </p>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.15] text-foreground">
+            Building <span className="text-gradient">Intelligent Systems</span> That Solve Real Problems.
+          </h1>
+        </motion.div>
 
         {/* Subtitle */}
         <motion.p

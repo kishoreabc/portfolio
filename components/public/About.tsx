@@ -32,15 +32,15 @@ export function About({ config, educationList }: AboutProps) {
 
   const aboutText =
     config?.aboutText ||
-    "I am a final-year B.Tech Artificial Intelligence & Machine Learning student at Bannari Amman Institute of Technology. Focused on building production-ready AI systems across Machine Learning, Retrieval-Augmented Generation (RAG), Multimodal AI, and LLM orchestration.";
+    "I am Kishore R, an Artificial Intelligence & Machine Learning engineer and final-year B.Tech student at Bannari Amman Institute of Technology. Focused on building production-ready AI systems across Machine Learning, Retrieval-Augmented Generation (RAG), Multimodal AI, and LLM orchestration. I combine strong DSA fundamentals with modern AI engineering practices to create systems that deliver real-world impact.";
 
   return (
     <section id="about" className="section-padding bg-card/20 relative border-t border-border/40">
       <div className="container-portfolio space-y-12">
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono">
-            About Me
+          <Badge variant="outline" className="px-3.5 py-1 rounded-full text-xs font-mono border-primary/30 text-primary">
+            About Kishore R
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             Engineering <span className="text-gradient">AI with Purpose</span>
@@ -60,6 +60,29 @@ export function About({ config, educationList }: AboutProps) {
             className="lg:col-span-6 space-y-6"
           >
             <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 sm:p-8 space-y-6">
+              {config?.avatarUrl && (
+                <div className="flex items-center gap-4 pb-4 border-b border-border/60">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-primary/40 shadow-md shrink-0 bg-muted">
+                    <img
+                      src={config.avatarUrl}
+                      alt={config.name || "Kishore R"}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="space-y-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
+                      {config.name || "Kishore R"}
+                    </h3>
+                    <p className="text-xs text-primary font-medium truncate">
+                      {config.headline || "AI/ML & Generative AI Engineer"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {config.location || "Salem, Tamil Nadu, India"}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4 text-foreground/90 text-sm leading-relaxed whitespace-pre-line">
                 {aboutText}
               </div>

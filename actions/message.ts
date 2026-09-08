@@ -172,10 +172,14 @@ export async function sendReplyEmailAction({
       message: replyText.trim(),
     });
 
-    // Automatically mark the message as read after replying
+    // Automatically mark the message as read and replied after sending
     await prisma.contactMessage.update({
       where: { id: messageId },
-      data: { read: true },
+      data: {
+        read: true,
+        replied: true,
+        repliedAt: new Date(),
+      },
     });
 
     revalidatePath("/admin/messages");
@@ -190,4 +194,21 @@ export async function sendReplyEmailAction({
         "Could not send email directly via Resend. You can use 'Open in Email Client' or copy the text to send manually.",
     };
   }
+}
+
+export async function markMessageReplied(id: string, replied: boolean = true) {
+  await requireAdmin();
+
+  await prisma.contactMessage.update({
+    where: { id },
+    data: {
+      replied,
+      repliedAt: replied ? new Date() : null,
+      ...(replied ? { read: true } : {}),
+    },
+  });
+
+  revalidatePath("/admin/messages");
+  revalidatePath("/admin");
+  return { success: true };
 }

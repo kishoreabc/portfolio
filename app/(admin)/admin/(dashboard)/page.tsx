@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
     prisma.blogPost.count(),
     prisma.skill.count(),
     prisma.contactMessage.count({ where: { deletedAt: null } }),
-    prisma.contactMessage.count({ where: { read: false, deletedAt: null } }),
+    prisma.contactMessage.count({ where: { read: false, deletedAt: null, replied: false } }),
     prisma.contactMessage.findMany({
       where: { deletedAt: null },
       orderBy: { createdAt: "desc" },
@@ -111,6 +111,11 @@ export default async function AdminDashboardPage() {
                       <span className="text-xs text-muted-foreground">({msg.email})</span>
                       {!msg.read && (
                         <span className="w-2 h-2 rounded-full bg-primary inline-block" title="Unread" />
+                      )}
+                      {msg.replied && (
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          Replied
+                        </span>
                       )}
                     </div>
                     <p className="text-xs font-semibold text-foreground/90">{msg.subject}</p>

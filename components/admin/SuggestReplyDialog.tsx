@@ -25,12 +25,14 @@ import {
   MessageSquare,
   Cpu,
   Key,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   generateMessageReplySuggestion,
   sendReplyEmailAction,
   markMessageRead,
+  markMessageReplied,
 } from "@/actions/message";
 
 interface SuggestReplyDialogProps {
@@ -42,6 +44,8 @@ interface SuggestReplyDialogProps {
     message: string;
     createdAt: Date | string;
     read: boolean;
+    replied?: boolean;
+    repliedAt?: Date | string | null;
   };
   trigger?: React.ReactNode;
 }
@@ -174,7 +178,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
       });
 
       if (res.success) {
-        toast.success(`Email reply sent directly to ${message.email}!`);
+        toast.success(`Email reply sent directly to ${message.email} and moved to Replied tab!`);
         setOpen(false);
       } else {
         toast.error(res.error || "Direct send failed. You can use 'Open Mail App' instead.");
@@ -183,6 +187,25 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
       toast.error(err?.message || "Failed to send email reply.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const [markingReplied, setMarkingReplied] = useState(false);
+
+  const handleMarkReplied = async () => {
+    setMarkingReplied(true);
+    try {
+      await markMessageReplied(message.id, !message.replied);
+      toast.success(
+        message.replied
+          ? "Moved back to Inbox"
+          : "Marked as Replied & moved to Replied tab"
+      );
+      setOpen(false);
+    } catch {
+      toast.error("Failed to update reply status");
+    } finally {
+      setMarkingReplied(false);
     }
   };
 
@@ -222,6 +245,11 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
               <Sparkles className="w-5 h-5 text-amber-500" />
               AI Suggested Reply
+              {message.replied && (
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Replied
+                </span>
+              )}
             </DialogTitle>
 
             {/* Model & API Key Buttons */}
@@ -492,6 +520,26 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
                 }
                 className="text-xs gap-1.5 cursor-pointer"
               />
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleMarkReplied}
+                disabled={markingReplied}
+                className={`text-xs gap-1.5 cursor-pointer ${
+                  message.replied
+                    ? "border-muted-foreground/30 hover:border-foreground/60 text-muted-foreground"
+                    : "border-emerald-500/40 hover:border-emerald-500 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+                }`}
+              >
+                {markingReplied ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                )}
+                {message.replied ? "Move to Inbox" : "Mark as Replied"}
+              </Button>
             </div>
 
             <div className="flex items-center gap-2">

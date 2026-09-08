@@ -1,14 +1,15 @@
 "use client";
 
-import { markMessageRead, softDeleteMessage, restoreMessage } from "@/actions/message";
+import { markMessageRead, markMessageReplied, softDeleteMessage, restoreMessage } from "@/actions/message";
 import { Button } from "@/components/ui/button";
-import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles } from "lucide-react";
+import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
 
 export function MessageRowActions({
   id,
   read,
+  replied = false,
   deletedAt,
   email,
   subject,
@@ -18,6 +19,7 @@ export function MessageRowActions({
 }: {
   id: string;
   read: boolean;
+  replied?: boolean;
   deletedAt: Date | null;
   email: string;
   subject: string;
@@ -52,8 +54,32 @@ export function MessageRowActions({
     }
   };
 
+  const handleToggleReplied = async () => {
+    try {
+      await markMessageReplied(id, !replied);
+      toast.success(replied ? "Moved back to Inbox" : "Marked as Replied & moved to Replied tab");
+    } catch {
+      toast.error("Failed to update reply status");
+    }
+  };
+
   return (
     <div className="flex items-center justify-end gap-1">
+      {/* Mark as Replied / Move to Inbox Toggle */}
+      {!deletedAt && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`w-8 h-8 cursor-pointer ${
+            replied ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10" : "text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
+          }`}
+          onClick={handleToggleReplied}
+          title={replied ? "Marked as Replied. Click to move back to Inbox." : "Mark as Replied (moves to Replied tab)"}
+        >
+          <CheckCircle2 className={`w-4 h-4 ${replied ? "fill-emerald-500/20" : ""}`} />
+        </Button>
+      )}
+
       {/* AI Suggest Reply Dialog */}
       {!deletedAt && (
         <SuggestReplyDialog
@@ -65,6 +91,7 @@ export function MessageRowActions({
             message: messageText,
             createdAt,
             read,
+            replied,
           }}
           trigger={
             <Button

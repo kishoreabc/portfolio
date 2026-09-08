@@ -162,6 +162,8 @@ model ContactMessage {
   subject   String
   message   String    @db.Text
   read      Boolean   @default(false)
+  replied   Boolean   @default(false)
+  repliedAt DateTime?
   deletedAt DateTime? // soft delete
   createdAt DateTime  @default(now())
 

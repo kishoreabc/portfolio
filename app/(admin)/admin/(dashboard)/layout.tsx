@@ -18,7 +18,7 @@ export default async function AdminLayout({
 
   // Count unread contact messages for the sidebar badge
   const unreadCount = await prisma.contactMessage.count({
-    where: { read: false, deletedAt: null },
+    where: { read: false, deletedAt: null, replied: false },
   });
 
   const signOutAction = async () => {

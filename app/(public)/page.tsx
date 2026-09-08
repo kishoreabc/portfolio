@@ -14,11 +14,43 @@ import { Footer } from "@/components/public/Footer";
 import { JourneyEntry } from "@/types";
 import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
+import type { Metadata } from "next";
 import type { SiteConfig, Skill, Project, Certification, BlogPost, Education, SocialLink } from "@prisma/client";
 import type { ContributionCalendar } from "@/lib/github";
 
 // Revalidate homepage every hour (ISR)
 export const revalidate = 3600;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await prisma.siteConfig.findUnique({
+    where: { id: "singleton" },
+    select: { seoTitle: true, seoDescription: true, avatarUrl: true },
+  });
+
+  const title = config?.seoTitle?.trim() || "Kishore R | AI/ML & Generative AI Engineer | Kishore Portfolio";
+  const description =
+    config?.seoDescription?.trim() ||
+    "Official portfolio and personal website of Kishore R (Kishore), an AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and experience.";
+
+  const images = config?.avatarUrl ? [{ url: config.avatarUrl, alt: "Kishore R Profile Photo" }] : [];
+
+  return {
+    title: {
+      absolute: title,
+    },
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(images.length > 0 ? { images } : {}),
+    },
+    twitter: {
+      title,
+      description,
+      ...(images.length > 0 ? { images } : {}),
+    },
+  };
+}
 
 export default async function HomePage() {
   let config: SiteConfig | null = null;
