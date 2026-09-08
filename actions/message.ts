@@ -120,8 +120,7 @@ Guidelines:
 - Sign off cleanly as:
 Best regards,
 Kishore R
-AI/ML & Generative AI Engineer
-kishorehp134@gmail.com | github.com/kishoreabc
+kishorehp134@gmail.com
 
 Output ONLY the ready-to-send email body text (no markdown formatting, no JSON wrappers, no quotes).`;
 

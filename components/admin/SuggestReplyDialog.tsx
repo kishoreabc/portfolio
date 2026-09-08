@@ -23,6 +23,8 @@ import {
   Clock,
   ExternalLink,
   MessageSquare,
+  Cpu,
+  Key,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -64,18 +66,51 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
   const [copied, setCopied] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("gemini-3.5-flash-lite");
+  const [customModel, setCustomModel] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedKey = localStorage.getItem("portfolio_gemini_api_key") || "";
+      setApiKey(storedKey);
       const storedModel =
         localStorage.getItem("portfolio_gemini_model") || "gemini-3.5-flash-lite";
-      setApiKey(storedKey);
-      setModel(storedModel);
+      if (
+        [
+          "gemini-3.5-flash-lite",
+          "gemini-2.5-flash",
+          "gemini-3.7-flash",
+          "gemini-2.5-pro",
+        ].includes(storedModel)
+      ) {
+        setModel(storedModel);
+      } else if (storedModel) {
+        setModel("custom");
+        setCustomModel(storedModel);
+      }
     }
   }, []);
 
+  const handleSaveApiKey = (val: string) => {
+    setApiKey(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("portfolio_gemini_api_key", val.trim());
+    }
+  };
+
+  const handleSaveModel = (val: string) => {
+    setModel(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("portfolio_gemini_model", val.trim());
+    }
+  };
+
+  const displayModelName = model === "custom" && customModel ? customModel : model;
+
   const handleGenerate = async (selectedTone = tone) => {
+    const effectiveModel =
+      model === "custom" ? (customModel.trim() || "gemini-3.5-flash-lite") : model;
+
     setGenerating(true);
     try {
       const res = await generateMessageReplySuggestion({
@@ -86,17 +121,22 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
         tone: selectedTone,
         customInstruction: customInstruction.trim() || undefined,
         apiKey: apiKey.trim() || undefined,
-        model,
+        model: effectiveModel,
       });
 
       if (!res.success) {
-        toast.error(res.error || "Failed to generate reply suggestion.");
+        if (res.needsApiKey) {
+          setShowSettings(true);
+          toast.warning("Gemini API key is required. Please enter it in the AI Settings.");
+        } else {
+          toast.error(res.error || "Failed to generate reply suggestion.");
+        }
         return;
       }
 
       if (res.replyText) {
         setReplyText(res.replyText);
-        toast.success(`✨ Reply suggestion drafted using ${res.modelUsed || model}!`);
+        toast.success(`✨ Reply suggestion drafted using ${res.modelUsed || effectiveModel}!`);
       }
     } catch (err: any) {
       toast.error(err?.message || "Failed to generate reply");
@@ -183,9 +223,29 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
               <Sparkles className="w-5 h-5 text-amber-500" />
               AI Suggested Reply
             </DialogTitle>
-            <Badge variant="secondary" className="font-mono text-xs px-2.5 py-0.5">
-              {model}
-            </Badge>
+
+            {/* Model & API Key Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setShowSettings(!showSettings)}
+                className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-muted cursor-pointer font-mono shadow-xs"
+                title="Click to change Gemini model"
+              >
+                <Cpu className="w-3.5 h-3.5 text-primary" />
+                <span className="truncate max-w-[130px] font-medium">{displayModelName}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowSettings(!showSettings)}
+                className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 px-2.5 py-1 rounded-md border border-border bg-background hover:bg-muted cursor-pointer font-mono shadow-xs"
+                title="Click to configure Gemini API key"
+              >
+                <Key className="w-3.5 h-3.5 text-amber-500" />
+                <span>{apiKey ? "Key Set" : "Add Key"}</span>
+              </button>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">
             Generate and customize an intelligent, context-aware reply for {message.name}.
@@ -193,6 +253,95 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
+          {/* AI Settings Drawer (Model & API Key) */}
+          {showSettings && (
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-primary/25 space-y-3 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" /> Gemini AI Settings
+                </span>
+                <span className="text-[10px] text-muted-foreground font-mono">Persisted in browser</span>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {/* Model Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground flex items-center gap-1">
+                    <Cpu className="w-3 h-3 text-primary" /> Select Model
+                  </label>
+                  <select
+                    value={
+                      ["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.7-flash", "gemini-2.5-pro"].includes(model)
+                        ? model
+                        : "custom"
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== "custom") {
+                        handleSaveModel(val);
+                      } else {
+                        setModel("custom");
+                      }
+                    }}
+                    className="w-full h-8 px-2 text-xs rounded-md border border-input bg-background font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra-fast)</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (Balanced)</option>
+                    <option value="gemini-3.7-flash">gemini-3.7-flash (Next-Gen Reasoning)</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning)</option>
+                    <option value="custom">Custom Model ID...</option>
+                  </select>
+
+                  {model === "custom" && (
+                    <Input
+                      type="text"
+                      value={customModel}
+                      onChange={(e) => {
+                        setCustomModel(e.target.value);
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("portfolio_gemini_model", e.target.value.trim());
+                        }
+                      }}
+                      placeholder="e.g. gemini-3.8-flash"
+                      className="text-xs h-7 font-mono mt-1"
+                    />
+                  )}
+                </div>
+
+                {/* API Key */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-foreground flex items-center gap-1">
+                    <Key className="w-3 h-3 text-amber-500" /> API Key
+                  </label>
+                  <div className="flex gap-1.5">
+                    <Input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => handleSaveApiKey(e.target.value)}
+                      placeholder="AIzaSy..."
+                      className="text-xs h-8 font-mono"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-8 px-2.5 shrink-0 cursor-pointer"
+                      onClick={() => {
+                        setShowSettings(false);
+                        toast.success("AI settings updated.");
+                      }}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Active model: <strong className="font-mono text-primary">{displayModelName}</strong>. You can also configure default values via <code className="font-mono text-primary">GEMINI_MODEL</code> and <code className="font-mono text-primary">GEMINI_API_KEY</code> in <code className="font-mono text-primary">.env.local</code>.
+              </p>
+            </div>
+          )}
           {/* Incoming Message Card */}
           <div className="p-4 rounded-xl border border-border/80 bg-muted/30 space-y-2.5">
             <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-muted-foreground">
@@ -227,7 +376,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
               <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-primary" /> Select Reply Tone & Intent
               </label>
-              <span className="text-[10px] text-muted-foreground">Click to draft suggestion</span>
+              <span className="text-[10px] text-muted-foreground">Select tone, then click &quot;Draft Reply&quot; below</span>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -235,10 +384,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => {
-                    setTone(t.id);
-                    handleGenerate(t.id);
-                  }}
+                  onClick={() => setTone(t.id)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer border ${
                     tone === t.id
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
@@ -306,7 +452,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={9}
-              placeholder="Click a tone above or 'Draft Reply' to generate an AI suggestion tailored to this message..."
+              placeholder="Select a tone above, add any optional notes, and click 'Draft Reply' to generate a tailored suggestion..."
               className="text-xs leading-relaxed font-sans bg-background"
             />
           </div>
