@@ -31,6 +31,14 @@ export async function generateMetadata({
   };
 }
 
+function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg className={`fill-current shrink-0 ${className}`} viewBox="0 0 24 24">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  );
+}
+
 export default async function BlogDetailPage({
   params,
 }: {
@@ -47,6 +55,8 @@ export default async function BlogDetailPage({
     notFound();
   }
 
+  const linkedinUrl = blog.canonicalUrl || "https://www.linkedin.com/in/kishoreabc/recent-activity/all/";
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
@@ -59,6 +69,9 @@ export default async function BlogDetailPage({
         {/* Header */}
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-3 py-1 rounded-full border border-[#0A66C2]/20 font-mono">
+              <LinkedInIcon className="w-3.5 h-3.5" /> LinkedIn Article
+            </span>
             {blog.featured && (
               <Badge variant="default" className="text-xs px-2.5 py-0.5">
                 Featured Article
@@ -92,23 +105,21 @@ export default async function BlogDetailPage({
           <div className="flex flex-wrap gap-2 pt-2">
             {blog.tags.map((tag) => (
               <Badge key={tag} variant="secondary" className="text-xs px-3 py-1 font-mono">
-                {tag}
+                #{tag}
               </Badge>
             ))}
           </div>
 
-          {blog.canonicalUrl && (
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full gap-2 text-xs"
-                render={<a href={blog.canonicalUrl} target="_blank" rel="noreferrer" />}
-              >
-                Read on Original Platform <ExternalLink className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          )}
+          <div className="pt-2">
+            <a
+              href={linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-medium text-white bg-[#0A66C2] hover:bg-[#004182] px-4 py-2 rounded-full transition-all shadow-xs"
+            >
+              <LinkedInIcon className="w-3.5 h-3.5" /> Read on LinkedIn <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
 
         {/* Cover Image */}

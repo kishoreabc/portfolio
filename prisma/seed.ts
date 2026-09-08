@@ -197,7 +197,7 @@ async function main() {
       },
       {
         platform: "LinkedIn",
-        url: "https://www.linkedin.com/in/kishore-r-615837238/",
+        url: "https://www.linkedin.com/in/kishoreabc/",
         iconSlug: "linkedin",
         enabled: true,
         displayOrder: 2,

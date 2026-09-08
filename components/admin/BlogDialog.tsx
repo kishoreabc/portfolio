@@ -158,10 +158,10 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold">External Article URL (Medium / Substack / Dev.to)</label>
-            <Input {...register("canonicalUrl")} placeholder="https://medium.com/@kishore/..." />
+            <label className="text-xs font-semibold">LinkedIn Post / Article URL</label>
+            <Input {...register("canonicalUrl")} placeholder="https://www.linkedin.com/pulse/... or https://www.linkedin.com/posts/..." />
             <p className="text-[10px] text-muted-foreground">
-              Optional. If specified, users can click to read your article directly on external publication platforms.
+              Direct link to your published article or post on LinkedIn.
             </p>
           </div>
 

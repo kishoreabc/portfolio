@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { useState } from "react";
 import { BlogPost } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BlogModal } from "@/components/public/BlogModal";
 import {
-  BookOpen,
   Calendar,
   Clock,
   ExternalLink,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
   Sparkles,
   Eye,
 } from "lucide-react";
-import Link from "next/link";
 
 interface BlogsProps {
   blogs: BlogPost[];
+}
+
+export function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg className={`fill-current shrink-0 ${className}`} viewBox="0 0 24 24">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  );
 }
 
 const fallbackBlogs: BlogPost[] = [
@@ -46,7 +48,7 @@ Employing a lightweight cross-encoder re-ranker before passing context to the LL
     coverImage: null,
     tags: ["RAG", "FAISS", "Python", "Generative AI"],
     readTime: "6 min read",
-    canonicalUrl: null,
+    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
     published: true,
     featured: true,
     displayOrder: 1,
@@ -75,7 +77,7 @@ Indexing vectors into ChromaDB allows sub-50ms retrieval latencies across tens o
     coverImage: null,
     tags: ["Multimodal AI", "CLIP", "ChromaDB", "Computer Vision"],
     readTime: "5 min read",
-    canonicalUrl: null,
+    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
     published: true,
     featured: true,
     displayOrder: 2,
@@ -101,7 +103,7 @@ Memories of object locations are parsed into spatial graphs stored in MySQL with
     coverImage: null,
     tags: ["Voice AI", "FastAPI", "Assistive Tech", "LLMs"],
     readTime: "4 min read",
-    canonicalUrl: null,
+    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
     published: true,
     featured: false,
     displayOrder: 3,
@@ -115,17 +117,6 @@ export function Blogs({ blogs }: BlogsProps) {
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<string>("All");
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  // Screen swipe-right transition: driven by scroll when transitioning from Certifications into Blogs
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "center center"],
-  });
-
-  const swipeX = useTransform(scrollYProgress, [0, 0.9], [-160, 0]);
-  const swipeOpacity = useTransform(scrollYProgress, [0, 0.45, 0.9], [0.2, 0.75, 1]);
 
   const displayBlogs = blogs && blogs.length > 0 ? blogs.filter((b) => b.published) : fallbackBlogs;
 
@@ -142,21 +133,8 @@ export function Blogs({ blogs }: BlogsProps) {
     setModalOpen(true);
   };
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -360, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 360, behavior: "smooth" });
-    }
-  };
-
   return (
     <section
-      ref={sectionRef}
       id="blogs"
       className="section-padding bg-background relative border-t border-border/40 overflow-hidden"
     >
@@ -164,63 +142,31 @@ export function Blogs({ blogs }: BlogsProps) {
       <div className="absolute top-1/4 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main sliding animation container: swipe right across screen as user scrolls into blogs */}
-      <motion.div
-        style={{ x: swipeX, opacity: swipeOpacity }}
-        initial={{ opacity: 0, x: -120 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="container-portfolio space-y-10"
-      >
-        {/* Header & Controls */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2">
-              <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono">
-                <BookOpen className="w-3 h-3 mr-1 text-primary" /> Technical Writing
-              </Badge>
-              <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" /> Engineering Insights
-              </span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              Featured <span className="text-gradient">Blogs & Articles</span>
-            </h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              In-depth engineering deep-dives, architectural breakdowns, and research case studies in
-              Generative AI, RAG pipelines, and Multimodal intelligence.
-            </p>
-          </div>
-
-          {/* Carousel Slide Controls */}
-          <div className="flex items-center gap-2 self-start md:self-end">
-            <Button
+      <div className="container-portfolio space-y-10">
+        {/* Header - Fully Centered */}
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 justify-center">
+            <Badge
               variant="outline"
-              size="icon"
-              onClick={scrollLeft}
-              className="h-9 w-9 rounded-full border-border/70 hover:border-primary/60 hover:text-primary transition-all"
-              aria-label="Slide blogs left"
-              title="Slide blogs left"
+              className="px-3 py-1 rounded-full text-xs font-mono border-[#0A66C2]/40 bg-[#0A66C2]/10 text-[#0A66C2] dark:text-[#70B5F9]"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={scrollRight}
-              className="h-9 w-9 rounded-full border-border/70 hover:border-primary/60 hover:text-primary transition-all"
-              aria-label="Slide blogs right"
-              title="Slide blogs right"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <LinkedInIcon className="w-3.5 h-3.5 mr-1.5" /> LinkedIn Articles
+            </Badge>
+            <span className="text-xs text-muted-foreground font-mono flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-400" /> Engineering Insights
+            </span>
           </div>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            Blogs & <span className="text-gradient">Articles</span>
+          </h2>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl mx-auto">
+            In-depth engineering deep-dives, architectural breakdowns, and AI case studies published on LinkedIn.
+          </p>
         </div>
 
-        {/* Tag Filters */}
+        {/* Tag Filters - Centered */}
         {allTags.length > 2 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
             {allTags.map((tag) => (
               <Button
                 key={tag}
@@ -239,56 +185,60 @@ export function Blogs({ blogs }: BlogsProps) {
           </div>
         )}
 
-        {/* Horizontal Sliding Track for Blogs */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-6 pt-2 scroll-smooth snap-x snap-mandatory scrollbar-none"
-        >
-          {filteredBlogs.map((blog, idx) => (
-            <motion.div
-              key={blog.id}
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="w-[320px] sm:w-[380px] md:w-[420px] shrink-0 snap-start flex flex-col"
-            >
-              <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden">
+        {/* Centered Responsive Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+          {filteredBlogs.map((blog) => {
+            const linkedinUrl =
+              blog.canonicalUrl || "https://www.linkedin.com/in/kishoreabc/recent-activity/all/";
+
+            return (
+              <Card
+                key={blog.id}
+                className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-[#0A66C2]/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden"
+              >
                 <div className="space-y-4">
                   {/* Top Bar: Badges & Reading Info */}
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-2.5 py-0.5 rounded-full border border-[#0A66C2]/20 font-mono">
+                        <LinkedInIcon className="w-3 h-3" /> Post
+                      </span>
                       {blog.featured && (
                         <Badge variant="default" className="text-[10px] px-2 py-0.5 shadow-xs">
                           Featured
                         </Badge>
                       )}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
                       {blog.readTime && (
-                        <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground">
+                        <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3 text-primary/80" /> {blog.readTime}
                         </span>
                       )}
+                      {blog.publishedAt && (
+                        <span className="flex items-center gap-1 text-muted-foreground/80">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      )}
                     </div>
-
-                    {blog.publishedAt && (
-                      <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground/80">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(blog.publishedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    )}
                   </div>
 
                   {/* Title */}
                   <div className="space-y-2">
-                    <h3
-                      onClick={() => handleOpenModal(blog)}
-                      className="font-bold text-lg sm:text-xl text-foreground group-hover:text-primary transition-colors cursor-pointer leading-snug line-clamp-2 break-words"
+                    <a
+                      href={linkedinUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-lg text-foreground group-hover:text-[#0A66C2] dark:group-hover:text-[#70B5F9] transition-colors leading-snug line-clamp-2 break-words block hover:underline"
+                      title="Read article on LinkedIn"
                     >
                       {blog.title}
-                    </h3>
+                    </a>
 
                     {/* Summary */}
                     <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 break-words">
@@ -304,7 +254,7 @@ export function Blogs({ blogs }: BlogsProps) {
                         variant="secondary"
                         className="text-[10px] px-2 py-0.5 bg-muted/60 hover:bg-muted font-mono"
                       >
-                        {tag}
+                        #{tag}
                       </Badge>
                     ))}
                     {blog.tags.length > 3 && (
@@ -317,41 +267,45 @@ export function Blogs({ blogs }: BlogsProps) {
 
                 {/* Card Footer: Action buttons */}
                 <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-2 mt-auto">
+                  <a
+                    href={linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 h-8 text-xs px-3.5 rounded-full bg-[#0A66C2] hover:bg-[#004182] text-white font-medium transition-all shadow-xs cursor-pointer"
+                  >
+                    <LinkedInIcon className="w-3.5 h-3.5" /> Read on LinkedIn{" "}
+                    <ExternalLink className="w-3 h-3 ml-0.5" />
+                  </a>
+
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenModal(blog)}
-                    className="h-8 text-xs px-3 rounded-full border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
+                    className="h-8 text-xs px-3 rounded-full border-border/70 hover:border-primary/50 text-muted-foreground hover:text-foreground gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
+                    title="Quick preview summary on page"
                   >
                     <Eye className="w-3.5 h-3.5" /> Quick Read
                   </Button>
-
-                  <div className="flex items-center gap-2">
-                    {blog.canonicalUrl ? (
-                      <a
-                        href={blog.canonicalUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 hover:underline px-1 py-1"
-                        title="Read on external publication"
-                      >
-                        External <ExternalLink className="w-3 h-3" />
-                      </a>
-                    ) : (
-                      <Link
-                        href={`/blogs/${blog.slug}`}
-                        className="text-xs font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
-                      >
-                        Article <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    )}
-                  </div>
                 </div>
               </Card>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
-      </motion.div>
+
+        {/* Bottom Centered CTA */}
+        <div className="text-center pt-2">
+          <a
+            href="https://www.linkedin.com/in/kishoreabc/recent-activity/all/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 h-9 px-5 rounded-full text-xs font-mono border border-border/70 bg-card/60 hover:bg-[#0A66C2]/10 hover:border-[#0A66C2]/40 hover:text-[#0A66C2] dark:hover:text-[#70B5F9] transition-all shadow-xs"
+          >
+            <LinkedInIcon className="w-3.5 h-3.5 text-[#0A66C2] dark:text-[#70B5F9]" />
+            Follow on LinkedIn for Latest AI Write-ups
+            <ExternalLink className="w-3 h-3 text-muted-foreground" />
+          </a>
+        </div>
+      </div>
 
       {/* Blog Reading Modal */}
       <BlogModal blog={selectedBlog} open={modalOpen} onOpenChange={setModalOpen} />

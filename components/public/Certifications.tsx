@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Certification } from "@prisma/client";
-import { Award, ExternalLink, Calendar, ShieldCheck, Eye, ArrowUpRight } from "lucide-react";
+import { Award, ExternalLink, Calendar, ShieldCheck, Eye } from "lucide-react";
 import { CertificateModal } from "@/components/public/CertificateModal";
 
 interface CertificationsProps {
@@ -16,16 +15,6 @@ interface CertificationsProps {
 export function Certifications({ certifications }: CertificationsProps) {
   const [selectedCert, setSelectedCert] = useState<Certification | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  // As user scrolls past certifications, smooth swipe-right exit transition toward blogs
-  const exitX = useTransform(scrollYProgress, [0.7, 1], [0, 60]);
-  const exitOpacity = useTransform(scrollYProgress, [0.75, 1], [1, 0.7]);
 
   const publishedCerts = certifications.filter((c) => c.published);
 
@@ -36,11 +25,10 @@ export function Certifications({ certifications }: CertificationsProps) {
 
   return (
     <section
-      ref={sectionRef}
       id="certifications"
       className="section-padding bg-background relative border-t border-border/40 overflow-hidden"
     >
-      <motion.div style={{ x: exitX, opacity: exitOpacity }} className="container-portfolio space-y-12">
+      <div className="container-portfolio space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono">
@@ -56,15 +44,8 @@ export function Certifications({ certifications }: CertificationsProps) {
 
         {/* Certifications Grid */}
         <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-          {publishedCerts.map((cert, idx) => (
-            <motion.div
-              key={cert.id}
-              initial={{ opacity: 0, y: 30, x: idx % 2 === 0 ? -25 : 25 }}
-              whileInView={{ opacity: 1, y: 0, x: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.55, delay: idx * 0.1, ease: [0.25, 1, 0.5, 1] }}
-              className="flex"
-            >
+          {publishedCerts.map((cert) => (
+            <div key={cert.id} className="flex">
               <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/50 hover:shadow-lg transition-all p-6 flex flex-col justify-between space-y-4 w-full overflow-hidden min-w-0">
                 <div className="space-y-4 min-w-0">
                   {/* Card Top: Award Icon + Actions */}
@@ -139,10 +120,10 @@ export function Certifications({ certifications }: CertificationsProps) {
                   )}
                 </div>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
-      </motion.div>
+      </div>
 
       {/* Certificate Modal */}
       <CertificateModal

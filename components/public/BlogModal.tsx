@@ -20,6 +20,14 @@ interface BlogModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
+  return (
+    <svg className={`fill-current shrink-0 ${className}`} viewBox="0 0 24 24">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  );
+}
+
 export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
   if (!blog) return null;
 
@@ -31,11 +39,16 @@ export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
     }
   };
 
+  const linkedinUrl = blog.canonicalUrl || "https://www.linkedin.com/in/kishoreabc/recent-activity/all/";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[88vh] overflow-y-auto p-6 sm:p-8">
         <DialogHeader className="space-y-3 pb-4 border-b border-border/60">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-2.5 py-0.5 rounded-full border border-[#0A66C2]/20 font-mono">
+              <LinkedInIcon className="w-3 h-3" /> LinkedIn Article
+            </span>
             {blog.featured && (
               <Badge variant="default" className="text-xs px-2.5 py-0.5">
                 Featured Article
@@ -98,14 +111,14 @@ export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
               <p className="text-sm font-medium text-foreground">
                 This article was originally published on an external platform.
               </p>
-              {blog.canonicalUrl && (
-                <Button
-                  render={<a href={blog.canonicalUrl} target="_blank" rel="noreferrer" />}
-                  className="rounded-full gap-2 text-xs"
-                >
-                  Read on External Publication <ExternalLink className="w-3.5 h-3.5" />
-                </Button>
-              )}
+              <a
+                href={linkedinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-[#0A66C2] hover:bg-[#004182] px-4 py-2 rounded-full transition-all shadow-xs"
+              >
+                <LinkedInIcon className="w-3.5 h-3.5" /> Read on LinkedIn <ExternalLink className="w-3.5 h-3.5" />
+              </a>
             </div>
           )}
         </div>
@@ -122,16 +135,14 @@ export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
               <Share2 className="w-3.5 h-3.5" /> Share
             </Button>
 
-            {blog.canonicalUrl && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1.5 rounded-full"
-                render={<a href={blog.canonicalUrl} target="_blank" rel="noreferrer" />}
-              >
-                External Link <ExternalLink className="w-3 h-3" />
-              </Button>
-            )}
+            <a
+              href={linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-white bg-[#0A66C2] hover:bg-[#004182] px-3 py-1.5 rounded-full transition-all shadow-xs"
+            >
+              <LinkedInIcon className="w-3 h-3" /> Read on LinkedIn <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
 
           <div className="flex items-center gap-2">
