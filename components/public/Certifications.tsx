@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useState, useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,16 @@ interface CertificationsProps {
 export function Certifications({ certifications }: CertificationsProps) {
   const [selectedCert, setSelectedCert] = useState<Certification | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  // As user scrolls past certifications, smooth swipe-right exit transition toward blogs
+  const exitX = useTransform(scrollYProgress, [0.7, 1], [0, 60]);
+  const exitOpacity = useTransform(scrollYProgress, [0.75, 1], [1, 0.7]);
 
   const publishedCerts = certifications.filter((c) => c.published);
 
@@ -25,8 +35,12 @@ export function Certifications({ certifications }: CertificationsProps) {
   };
 
   return (
-    <section id="certifications" className="section-padding bg-background relative border-t border-border/40">
-      <div className="container-portfolio space-y-12">
+    <section
+      ref={sectionRef}
+      id="certifications"
+      className="section-padding bg-background relative border-t border-border/40 overflow-hidden"
+    >
+      <motion.div style={{ x: exitX, opacity: exitOpacity }} className="container-portfolio space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono">
@@ -128,18 +142,7 @@ export function Certifications({ certifications }: CertificationsProps) {
             </motion.div>
           ))}
         </div>
-
-        {/* Scroll transition callout to Blogs */}
-        <div className="text-center pt-2">
-          <a
-            href="#blogs"
-            className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-primary transition-all py-1.5 px-3 rounded-full border border-border/50 bg-card/40 hover:bg-card hover:border-primary/40 group"
-          >
-            <span>Scroll down to explore Technical Blogs & Articles</span>
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
-          </a>
-        </div>
-      </div>
+      </motion.div>
 
       {/* Certificate Modal */}
       <CertificateModal

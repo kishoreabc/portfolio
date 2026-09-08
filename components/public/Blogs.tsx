@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { BlogPost } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -116,6 +116,16 @@ export function Blogs({ blogs }: BlogsProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTag, setActiveTag] = useState<string>("All");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Screen swipe-right transition: driven by scroll when transitioning from Certifications into Blogs
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "center center"],
+  });
+
+  const swipeX = useTransform(scrollYProgress, [0, 0.9], [-160, 0]);
+  const swipeOpacity = useTransform(scrollYProgress, [0, 0.45, 0.9], [0.2, 0.75, 1]);
 
   const displayBlogs = blogs && blogs.length > 0 ? blogs.filter((b) => b.published) : fallbackBlogs;
 
@@ -146,6 +156,7 @@ export function Blogs({ blogs }: BlogsProps) {
 
   return (
     <section
+      ref={sectionRef}
       id="blogs"
       className="section-padding bg-background relative border-t border-border/40 overflow-hidden"
     >
@@ -153,12 +164,13 @@ export function Blogs({ blogs }: BlogsProps) {
       <div className="absolute top-1/4 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main sliding animation container: slides horizontally into view as user scrolls */}
+      {/* Main sliding animation container: swipe right across screen as user scrolls into blogs */}
       <motion.div
-        initial={{ opacity: 0, x: -60 }}
+        style={{ x: swipeX, opacity: swipeOpacity }}
+        initial={{ opacity: 0, x: -120 }}
         whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true, amount: 0.15 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="container-portfolio space-y-10"
       >
         {/* Header & Controls */}
