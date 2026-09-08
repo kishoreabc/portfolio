@@ -190,14 +190,14 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
       ) : (
         <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Blog Post</Button>} />
       )}
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{blog ? "Edit Blog Post" : "Create New Blog Post"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4 w-full min-w-0 max-w-full overflow-hidden">
           {/* AI Auto-Generator Box */}
-          <div className="space-y-3 p-4 rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10">
+          <div className="space-y-3 p-4 rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10 min-w-0 max-w-full">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-bold flex items-center gap-1.5 text-primary">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" /> LinkedIn / Article URL & AI Quick Read
@@ -313,11 +313,11 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 min-w-0 max-w-full">
               <Input
                 {...register("canonicalUrl")}
                 placeholder="https://www.linkedin.com/posts/... or any article URL"
-                className="bg-background text-xs"
+                className="bg-background text-xs min-w-0 flex-1"
               />
               <Button
                 type="button"
@@ -344,12 +344,13 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0">
+            <div className="space-y-1.5 min-w-0">
               <label className="text-xs font-semibold">Title *</label>
               <Input
                 {...register("title")}
                 placeholder="Building Production-Grade RAG Systems"
+                className="w-full min-w-0 text-xs"
                 onChange={(e) => {
                   register("title").onChange(e);
                   if (!blog) {
@@ -364,24 +365,25 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
               {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 min-w-0">
               <label className="text-xs font-semibold">Slug *</label>
-              <Input {...register("slug")} placeholder="building-production-rag-systems" />
+              <Input {...register("slug")} placeholder="building-production-rag-systems" className="w-full min-w-0 text-xs" />
               {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <label className="text-xs font-semibold">Summary / Excerpt *</label>
             <Textarea
               {...register("summary")}
-              rows={2}
+              rows={3}
               placeholder="A concise summary displayed on the blog card..."
+              className="w-full min-w-0 text-xs leading-relaxed resize-y"
             />
             {errors.summary && <p className="text-xs text-destructive">{errors.summary.message}</p>}
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <label className="text-xs font-semibold">Tags (Comma separated) *</label>
             <Input
               value={Array.isArray(tagsInput) ? tagsInput.join(", ") : ""}
@@ -393,19 +395,30 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
                 setValue("tags", list);
               }}
               placeholder="Generative AI, RAG, Vector Search, LLMs"
+              className="w-full min-w-0 text-xs"
             />
             {errors.tags && <p className="text-xs text-destructive">{errors.tags.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 min-w-0">
+            <div className="space-y-1.5 min-w-0">
               <label className="text-xs font-semibold">Read Time</label>
-              <Input {...register("readTime")} placeholder="5 min read" />
+              <Input {...register("readTime")} placeholder="5 min read" className="w-full min-w-0 text-xs" />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 min-w-0">
               <label className="text-xs font-semibold">Published Date</label>
-              <Input type="date" {...register("publishedAt")} />
+              <Input type="date" {...register("publishedAt")} className="w-full min-w-0 text-xs" />
+            </div>
+
+            <div className="space-y-1.5 min-w-0">
+              <label className="text-xs font-semibold">Display Order</label>
+              <Input
+                type="number"
+                {...register("displayOrder", { valueAsNumber: true })}
+                placeholder="1"
+                className="w-full min-w-0 text-xs"
+              />
             </div>
           </div>
 
@@ -418,7 +431,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             helpText="Upload blog cover image (PNG, JPG, WebP) or paste an image URL directly."
           />
 
-          <div className="space-y-2">
+          <div className="space-y-2 min-w-0 max-w-full">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-semibold">Full Markdown Content (Quick Read)</label>
 
@@ -427,27 +440,27 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
                 <button
                   type="button"
                   onClick={() => setPreviewMarkdown(false)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                     !previewMarkdown
                       ? "bg-background text-foreground shadow-xs font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                   title="Edit raw markdown"
                 >
-                  <PenLine className="w-3 h-3" />
+                  <PenLine className="w-3.5 h-3.5" />
                   Write
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewMarkdown(true)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                     previewMarkdown
                       ? "bg-primary text-primary-foreground shadow-xs font-semibold"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                   title="Preview formatted markdown output"
                 >
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-3.5 h-3.5" />
                   Preview
                 </button>
               </div>
@@ -456,16 +469,16 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             {!previewMarkdown ? (
               <Textarea
                 {...register("content")}
-                rows={9}
+                rows={14}
                 placeholder="## Overview&#10;&#10;Write or auto-generate quick read content here with markdown support..."
-                className="font-mono text-xs leading-relaxed"
+                className="font-mono text-xs leading-relaxed min-h-[280px] resize-y w-full min-w-0"
               />
             ) : (
-              <div className="min-h-[200px] max-h-[380px] overflow-y-auto p-4 rounded-xl border border-input bg-card/70 text-xs shadow-inner">
+              <div className="min-h-[280px] w-full p-5 sm:p-7 rounded-xl border border-input bg-card/60 text-xs shadow-xs min-w-0 max-w-full break-words [overflow-wrap:anywhere] overflow-x-hidden">
                 {watch("content") ? (
                   <MarkdownView content={watch("content") || ""} />
                 ) : (
-                  <div className="text-center py-10 text-muted-foreground text-xs italic">
+                  <div className="text-center py-14 text-muted-foreground text-xs italic">
                     No content to preview yet. Switch to &quot;Write&quot; or click &quot;Auto-Generate Quick Read&quot; above.
                   </div>
                 )}
@@ -475,7 +488,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>
                 {previewMarkdown
-                  ? "Showing live rendered preview with styled headers, code blocks & bullet points."
+                  ? "Showing live rendered preview. Extends downward naturally without cramping or inner scrollbars."
                   : "Supports Markdown & Code blocks (## headings, - lists, `inline code`, ``` blocks)."}
               </span>
               <button
@@ -483,19 +496,8 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
                 onClick={() => setPreviewMarkdown(!previewMarkdown)}
                 className="text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
               >
-                {previewMarkdown ? "Switch to Edit Mode" : "Switch to Preview Mode"}
+                {previewMarkdown ? "Switch to Write (Edit Mode)" : "Switch to Live Preview"}
               </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold">Display Order</label>
-              <Input
-                type="number"
-                {...register("displayOrder", { valueAsNumber: true })}
-                placeholder="1"
-              />
             </div>
           </div>
 

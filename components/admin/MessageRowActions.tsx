@@ -2,8 +2,9 @@
 
 import { markMessageRead, softDeleteMessage, restoreMessage } from "@/actions/message";
 import { Button } from "@/components/ui/button";
-import { Mail, MailOpen, Trash2, RotateCcw, Reply } from "lucide-react";
+import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
 
 export function MessageRowActions({
   id,
@@ -11,12 +12,18 @@ export function MessageRowActions({
   deletedAt,
   email,
   subject,
+  name = "Visitor",
+  messageText = "",
+  createdAt = new Date(),
 }: {
   id: string;
   read: boolean;
   deletedAt: Date | null;
   email: string;
   subject: string;
+  name?: string;
+  messageText?: string;
+  createdAt?: Date;
 }) {
   const handleToggleRead = async () => {
     try {
@@ -47,6 +54,31 @@ export function MessageRowActions({
 
   return (
     <div className="flex items-center justify-end gap-1">
+      {/* AI Suggest Reply Dialog */}
+      {!deletedAt && (
+        <SuggestReplyDialog
+          message={{
+            id,
+            name,
+            email,
+            subject,
+            message: messageText,
+            createdAt,
+            read,
+          }}
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 cursor-pointer"
+              title="✨ Suggest AI Reply"
+            >
+              <Sparkles className="w-4 h-4" />
+            </Button>
+          }
+        />
+      )}
+
       {/* Reply button opens mailto: */}
       <Button
         variant="ghost"

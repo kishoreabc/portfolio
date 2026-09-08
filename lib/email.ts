@@ -31,7 +31,7 @@ export interface ContactEmailPayload {
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<void> {
   let from = process.env.CONTACT_FROM_EMAIL?.trim();
   if (!from || from.includes("yourdomain.com") || from.includes("example.com")) {
-    from = "Portfolio Contact <onboarding@resend.dev>";
+    from = "Kishore R  <noreply@kishoreabc.dev>";
   }
   const to = (process.env.CONTACT_TO_EMAIL ?? "kishorehp134@gmail.com").trim().toLowerCase();
 
@@ -91,6 +91,38 @@ ${payload.message}
 Sent from your portfolio contact form
 Reply to: ${payload.senderEmail}
     `.trim(),
+  });
+
+  if (error) {
+    throw new Error(`Resend error: ${error.message}`);
+  }
+}
+
+/**
+ * Sends a direct reply email to the message sender.
+ */
+export async function sendDirectReplyEmail({
+  recipientName,
+  recipientEmail,
+  subject,
+  message,
+}: {
+  recipientName: string;
+  recipientEmail: string;
+  subject: string;
+  message: string;
+}): Promise<void> {
+  let from = process.env.CONTACT_FROM_EMAIL?.trim();
+  if (!from || from.includes("yourdomain.com") || from.includes("example.com")) {
+    from = "Kishore R <noreply@kishoreabc.dev>";
+  }
+
+  const { error } = await getResend().emails.send({
+    from,
+    to: recipientEmail,
+    replyTo: process.env.CONTACT_TO_EMAIL ?? "kishorehp134@gmail.com",
+    subject: subject.startsWith("Re:") ? subject : `Re: ${subject}`,
+    text: message,
   });
 
   if (error) {

@@ -11,45 +11,45 @@ export function MarkdownView({ content, className = "" }: MarkdownViewProps) {
   if (!content) return null;
 
   return (
-    <div className={`prose prose-neutral dark:prose-invert max-w-none text-foreground leading-relaxed ${className}`}>
+    <div className={`prose prose-neutral dark:prose-invert max-w-none text-foreground leading-relaxed break-words [overflow-wrap:anywhere] min-w-0 ${className}`}>
       <ReactMarkdown
         components={{
           h1: ({ ...props }) => (
             <h1
-              className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-5 mb-3 border-b border-border/60 pb-2"
+              className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mt-5 mb-3 border-b border-border/60 pb-2 break-words"
               {...props}
             />
           ),
           h2: ({ ...props }) => (
             <h2
-              className="text-lg sm:text-xl font-bold tracking-tight text-foreground mt-5 mb-2.5 text-primary"
+              className="text-lg sm:text-xl font-bold tracking-tight text-foreground mt-5 mb-2.5 text-primary break-words"
               {...props}
             />
           ),
           h3: ({ ...props }) => (
             <h3
-              className="text-base sm:text-lg font-semibold tracking-tight text-foreground mt-4 mb-2"
+              className="text-base sm:text-lg font-semibold tracking-tight text-foreground mt-4 mb-2 break-words"
               {...props}
             />
           ),
           p: ({ ...props }) => (
-            <p className="text-foreground/90 leading-relaxed mb-3 text-xs sm:text-sm" {...props} />
+            <p className="text-foreground/90 leading-relaxed mb-3 text-xs sm:text-sm break-words" {...props} />
           ),
           ul: ({ ...props }) => (
-            <ul className="list-disc list-inside space-y-1.5 my-2.5 text-foreground/90 text-xs sm:text-sm pl-2" {...props} />
+            <ul className="list-disc list-inside space-y-1.5 my-2.5 text-foreground/90 text-xs sm:text-sm pl-2 break-words" {...props} />
           ),
           ol: ({ ...props }) => (
-            <ol className="list-decimal list-inside space-y-1.5 my-2.5 text-foreground/90 text-xs sm:text-sm pl-2" {...props} />
+            <ol className="list-decimal list-inside space-y-1.5 my-2.5 text-foreground/90 text-xs sm:text-sm pl-2 break-words" {...props} />
           ),
           li: ({ ...props }) => (
-            <li className="leading-relaxed" {...props} />
+            <li className="leading-relaxed break-words" {...props} />
           ),
           a: ({ href, children, ...props }) => (
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary underline underline-offset-2 hover:opacity-80 font-medium"
+              className="text-primary underline underline-offset-2 hover:opacity-80 font-medium break-all"
               {...props}
             >
               {children}
@@ -60,7 +60,7 @@ export function MarkdownView({ content, className = "" }: MarkdownViewProps) {
             if (isInline) {
               return (
                 <code
-                  className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px] text-primary border border-border/50"
+                  className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px] text-primary border border-border/50 break-words [overflow-wrap:anywhere]"
                   {...props}
                 >
                   {children}
@@ -68,13 +68,13 @@ export function MarkdownView({ content, className = "" }: MarkdownViewProps) {
               );
             }
             return (
-              <pre className="p-3.5 rounded-xl bg-muted/70 border border-border overflow-x-auto my-3 text-xs font-mono text-foreground/90 leading-normal">
+              <pre className="p-3.5 rounded-xl bg-muted/70 border border-border overflow-x-auto my-3 text-xs font-mono text-foreground/90 leading-normal max-w-full whitespace-pre-wrap break-words">
                 <code {...props}>{children}</code>
               </pre>
             );
           },
           blockquote: ({ ...props }) => (
-            <blockquote className="border-l-2 border-primary pl-4 italic text-muted-foreground my-3 bg-muted/20 py-1 rounded-r" {...props} />
+            <blockquote className="border-l-2 border-primary pl-4 italic text-muted-foreground my-3 bg-muted/20 py-1 rounded-r break-words" {...props} />
           ),
           strong: ({ ...props }) => (
             <strong className="font-semibold text-foreground" {...props} />

@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/db";
 import { MessageRowActions } from "@/components/admin/MessageRowActions";
+import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Sparkles } from "lucide-react";
 
 export const metadata = {
   title: "Contact Messages | Admin",
@@ -88,8 +90,25 @@ export default async function AdminMessagesPage({
                       </div>
                     </TableCell>
                     <TableCell className="max-w-md">
-                      <div className="space-y-1">
-                        <p className="font-medium text-xs text-foreground">{m.subject}</p>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <p className="font-semibold text-xs text-foreground">{m.subject}</p>
+                          {!showTrash && (
+                            <SuggestReplyDialog
+                              message={m}
+                              trigger={
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                                  title="Draft AI suggested reply"
+                                >
+                                  <Sparkles className="w-3 h-3" />
+                                  Suggest Reply
+                                </button>
+                              }
+                            />
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-3">
                           {m.message}
                         </p>
@@ -111,6 +130,9 @@ export default async function AdminMessagesPage({
                         deletedAt={m.deletedAt}
                         email={m.email}
                         subject={m.subject}
+                        name={m.name}
+                        messageText={m.message}
+                        createdAt={m.createdAt}
                       />
                     </TableCell>
                   </TableRow>

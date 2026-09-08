@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { BlogPost } from "@prisma/client";
 import {
   Dialog,
@@ -30,6 +31,37 @@ function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
 }
 
 export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const topAnchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      // Force initial scroll position to the very top (0)
+      if (contentRef.current) {
+        contentRef.current.scrollTop = 0;
+      }
+      topAnchorRef.current?.scrollIntoView({ block: "start" });
+
+      const rId = requestAnimationFrame(() => {
+        if (contentRef.current) {
+          contentRef.current.scrollTop = 0;
+        }
+        topAnchorRef.current?.scrollIntoView({ block: "start" });
+      });
+
+      const tId = setTimeout(() => {
+        if (contentRef.current) {
+          contentRef.current.scrollTop = 0;
+        }
+      }, 50);
+
+      return () => {
+        cancelAnimationFrame(rId);
+        clearTimeout(tId);
+      };
+    }
+  }, [open, blog?.id]);
+
   if (!blog) return null;
 
   const handleCopyLink = () => {
@@ -44,7 +76,14 @@ export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[88vh] overflow-y-auto p-6 sm:p-8">
+      <DialogContent
+        ref={contentRef}
+        initialFocus={false}
+        className="w-[95vw] sm:max-w-3xl md:max-w-4xl max-h-[88vh] overflow-y-auto p-6 sm:p-8"
+      >
+        {/* Invisible top anchor ensuring scroll starts at the top */}
+        <div ref={topAnchorRef} className="h-0 w-0 p-0 m-0 opacity-0 pointer-events-none" aria-hidden="true" />
+
         <DialogHeader className="space-y-3 pb-4 border-b border-border/60">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-2.5 py-0.5 rounded-full border border-[#0A66C2]/20 font-mono">

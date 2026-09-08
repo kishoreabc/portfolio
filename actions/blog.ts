@@ -113,10 +113,11 @@ async function fetchUrlMetadata(url: string) {
       html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']description["']/i);
 
     const ogImageMatch =
-      html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']*)["']/i) ||
-      html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:image["']/i) ||
-      html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']*)["']/i) ||
-      html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']twitter:image["']/i);
+      html.match(/<meta[^>]*property=["']og:image(?::secure_url)?["'][^>]*content=["']([^"']*)["']/i) ||
+      html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*property=["']og:image(?::secure_url)?["']/i) ||
+      html.match(/<meta[^>]*name=["']twitter:image(?::src)?["'][^>]*content=["']([^"']*)["']/i) ||
+      html.match(/<meta[^>]*content=["']([^"']*)["'][^>]*name=["']twitter:image(?::src)?["']/i) ||
+      html.match(/<img[^>]*class=["'][^"']*cover[_-]image[^"']*["'][^>]*src=["']([^"']*)["']/i);
     const ogDateMatch =
       html.match(/<meta[^>]*property=["']article:published_time["'][^>]*content=["']([^"']*)["']/i) ||
       html.match(/<meta[^>]*name=["']date["'][^>]*content=["']([^"']*)["']/i) ||
@@ -137,10 +138,16 @@ async function fetchUrlMetadata(url: string) {
         .slice(0, 5000);
     }
 
+    let extractedCover = (ogImageMatch?.[1] || "").replace(/&amp;/g, "&").trim();
+    // Ignore generic LinkedIn placeholder icons
+    if (extractedCover.includes("static.licdn.com/aero-v1/sc/h/")) {
+      extractedCover = "";
+    }
+
     return {
       title: ogTitleMatch?.[1] || titleMatch?.[1]?.trim(),
       description: ogDescMatch?.[1] || metaDescMatch?.[1]?.trim(),
-      coverImage: ogImageMatch?.[1] || "",
+      coverImage: extractedCover,
       publishedDate: ogDateMatch?.[1] || "",
       bodySnippet: bodyText,
     };
@@ -234,6 +241,38 @@ Return ONLY a JSON object with these exact keys:
       parsedDate = new Date().toISOString().split("T")[0];
     }
 
+    let coverImage = (pageData.coverImage || parsed.coverImage || "").replace(/&amp;/g, "&").trim();
+
+    // Auto-upload extracted cover image to Cloudinary so it is permanent and avoids hotlink issues
+    if (coverImage && coverImage.startsWith("http")) {
+      try {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "wasbvar9";
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default";
+
+        const formData = new FormData();
+        formData.append("file", coverImage);
+        formData.append("upload_preset", uploadPreset);
+
+        const cloudRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+          {
+            method: "POST",
+            body: formData,
+            signal: AbortSignal.timeout(8000),
+          }
+        );
+
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          if (cloudData.secure_url) {
+            coverImage = cloudData.secure_url;
+          }
+        }
+      } catch (uploadErr) {
+        console.warn("Cloudinary auto-upload failed, keeping direct clean image URL:", uploadErr);
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -243,7 +282,7 @@ Return ONLY a JSON object with these exact keys:
         tags: Array.isArray(parsed.tags) ? parsed.tags : ["Generative AI", "Engineering"],
         readTime: parsed.readTime || "4 min read",
         publishedAt: parsedDate,
-        coverImage: pageData.coverImage || parsed.coverImage || "",
+        coverImage,
         content: parsed.content || "",
       },
     };

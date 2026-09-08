@@ -78,8 +78,8 @@ export function CloudinaryUpload({
 
       {/* Preview Card */}
       {value ? (
-        <div className="relative group border border-border/80 rounded-lg p-3 bg-muted/30 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 overflow-hidden">
+        <div className="relative group border border-border/80 rounded-lg p-3 bg-muted/30 flex items-center justify-between gap-3 min-w-0 max-w-full">
+          <div className="flex items-center gap-3 overflow-hidden min-w-0 flex-1">
             {isImage ? (
               <div className="w-12 h-12 rounded border border-border overflow-hidden shrink-0 bg-background flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -95,8 +95,8 @@ export function CloudinaryUpload({
               </div>
             )}
 
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-xs font-mono truncate text-foreground/90">{value}</p>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <p className="text-xs font-mono truncate text-foreground/90 max-w-full">{value}</p>
               <a
                 href={value}
                 target="_blank"
@@ -122,12 +122,12 @@ export function CloudinaryUpload({
       ) : null}
 
       {/* Upload Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0 max-w-full">
         <Input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="text-xs font-mono"
+          className="text-xs font-mono min-w-0 flex-1"
         />
 
         <label className="shrink-0 cursor-pointer">
