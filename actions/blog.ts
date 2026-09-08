@@ -141,9 +141,11 @@ async function fetchUrlMetadata(url: string) {
 export async function generateBlogQuickRead({
   url,
   apiKey,
+  model,
 }: {
   url: string;
   apiKey?: string;
+  model?: string;
 }) {
   await requireAdmin();
 
@@ -163,6 +165,12 @@ export async function generateBlogQuickRead({
         "Gemini API key is required. Please set GEMINI_API_KEY in .env.local or enter it in the dialog.",
     };
   }
+
+  const effectiveModel = (
+    model?.trim() ||
+    process.env.GEMINI_MODEL?.trim() ||
+    "gemini-3.5-flash-lite"
+  ).toLowerCase();
 
   try {
     const pageData = await fetchUrlMetadata(url.trim());
@@ -189,7 +197,7 @@ Return ONLY a JSON object with these exact keys:
 }`;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-Flash-Lite",
+      model: effectiveModel,
       contents: prompt,
       config: {
         responseMimeType: "application/json",

@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Loader2, Sparkles, Key } from "lucide-react";
+import { Plus, Loader2, Sparkles, Key, Cpu } from "lucide-react";
 import { toast } from "sonner";
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 
@@ -31,12 +31,21 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [apiKey, setApiKey] = useState("");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [model, setModel] = useState("gemini-3.5-flash-lite");
+  const [customModel, setCustomModel] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedKey = localStorage.getItem("portfolio_gemini_api_key") || "";
       setApiKey(storedKey);
+      const storedModel = localStorage.getItem("portfolio_gemini_model") || "gemini-3.5-flash-lite";
+      if (["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.7-flash", "gemini-2.5-pro"].includes(storedModel)) {
+        setModel(storedModel);
+      } else if (storedModel) {
+        setModel("custom");
+        setCustomModel(storedModel);
+      }
     }
   }, []);
 
@@ -79,23 +88,33 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
     }
   };
 
+  const handleSaveModel = (val: string) => {
+    setModel(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("portfolio_gemini_model", val.trim());
+    }
+  };
+
   const handleAutoGenerate = async () => {
     if (!canonicalUrlValue || !canonicalUrlValue.trim().startsWith("http")) {
       toast.error("Please enter a valid blog or LinkedIn URL first (starting with http:// or https://).");
       return;
     }
 
+    const effectiveModel = model === "custom" ? (customModel.trim() || "gemini-3.5-flash-lite") : model;
+
     setGenerating(true);
     try {
       const res = await generateBlogQuickRead({
         url: canonicalUrlValue.trim(),
         apiKey: apiKey.trim() || undefined,
+        model: effectiveModel,
       });
 
       if (!res.success) {
         if (res.needsApiKey) {
-          setShowApiKeyInput(true);
-          toast.warning("Gemini API key is required. Please enter it below or set GEMINI_API_KEY in .env.local.");
+          setShowSettings(true);
+          toast.warning("Gemini API key is required. Please enter it in the AI Settings.");
         } else {
           toast.error(res.error || "Failed to generate blog content with Gemini.");
         }
@@ -125,7 +144,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
           setValue("readTime", res.data.readTime, { shouldValidate: true });
         }
 
-        toast.success("✨ Quick Read content generated successfully using Gemini AI!");
+        toast.success(`✨ Quick Read generated using ${effectiveModel}!`);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to generate content");
@@ -153,6 +172,8 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
     }
   };
 
+  const displayModelName = model === "custom" && customModel ? customModel : model;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger ? (
@@ -168,51 +189,117 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
           {/* AI Auto-Generator Box */}
           <div className="space-y-3 p-4 rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-bold flex items-center gap-1.5 text-primary">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> LinkedIn / Article URL & AI Quick Read Generator
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> LinkedIn / Article URL & AI Quick Read
               </label>
-              <button
-                type="button"
-                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 underline underline-offset-2 cursor-pointer"
-              >
-                <Key className="w-3 h-3" /> {apiKey ? "API Key Configured" : "Gemini API Key"}
-              </button>
+
+              {/* Model & API Key Buttons */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-background hover:bg-muted cursor-pointer font-mono"
+                  title="Click to change Gemini model"
+                >
+                  <Cpu className="w-3 h-3 text-primary" />
+                  <span className="truncate max-w-[120px]">{displayModelName}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 px-2 py-0.5 rounded-md border border-border bg-background hover:bg-muted cursor-pointer font-mono"
+                  title="Click to configure Gemini API key"
+                >
+                  <Key className="w-3 h-3 text-amber-500" />
+                  <span>{apiKey ? "Key Set" : "Add Key"}</span>
+                </button>
+              </div>
             </div>
 
-            {/* Optional Gemini API Key Drawer */}
-            {showApiKeyInput && (
-              <div className="p-3 rounded-lg bg-background border border-border space-y-2">
+            {/* AI Settings Drawer (Model & API Key) */}
+            {showSettings && (
+              <div className="p-3.5 rounded-lg bg-background border border-border space-y-3 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-medium text-foreground flex items-center gap-1">
-                    <Key className="w-3 h-3 text-amber-500" /> Gemini API Key
-                  </label>
-                  <span className="text-[10px] text-muted-foreground">Stored locally in your browser</span>
+                  <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" /> Gemini AI Settings
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Persisted in browser</span>
                 </div>
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => handleSaveApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="text-xs h-8 font-mono"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-8 shrink-0 cursor-pointer"
-                    onClick={() => {
-                      setShowApiKeyInput(false);
-                      toast.success("Gemini API key saved.");
-                    }}
-                  >
-                    Save
-                  </Button>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {/* Model Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-foreground flex items-center gap-1">
+                      <Cpu className="w-3 h-3 text-primary" /> Select Model
+                    </label>
+                    <select
+                      value={["gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-3.7-flash", "gemini-2.5-pro"].includes(model) ? model : "custom"}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val !== "custom") {
+                          handleSaveModel(val);
+                        } else {
+                          setModel("custom");
+                        }
+                      }}
+                      className="w-full h-8 px-2 text-xs rounded-md border border-input bg-background font-mono text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                    >
+                      <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra-fast)</option>
+                      <option value="gemini-2.5-flash">gemini-2.5-flash (Balanced)</option>
+                      <option value="gemini-3.7-flash">gemini-3.7-flash (Next-Gen Reasoning)</option>
+                      <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning)</option>
+                      <option value="custom">Custom Model ID...</option>
+                    </select>
+
+                    {model === "custom" && (
+                      <Input
+                        type="text"
+                        value={customModel}
+                        onChange={(e) => {
+                          setCustomModel(e.target.value);
+                          if (typeof window !== "undefined") {
+                            localStorage.setItem("portfolio_gemini_model", e.target.value.trim());
+                          }
+                        }}
+                        placeholder="e.g. gemini-3.8-flash"
+                        className="text-xs h-7 font-mono mt-1"
+                      />
+                    )}
+                  </div>
+
+                  {/* API Key */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-foreground flex items-center gap-1">
+                      <Key className="w-3 h-3 text-amber-500" /> API Key
+                    </label>
+                    <div className="flex gap-1.5">
+                      <Input
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => handleSaveApiKey(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className="text-xs h-8 font-mono"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8 px-2.5 shrink-0 cursor-pointer"
+                        onClick={() => {
+                          setShowSettings(false);
+                          toast.success("AI settings updated.");
+                        }}
+                      >
+                        Done
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
-                  You can also permanently configure <code className="font-mono text-primary font-semibold">GEMINI_API_KEY</code> in <code className="font-mono text-primary font-semibold">.env.local</code>.
+
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Active model: <strong className="font-mono text-primary">{displayModelName}</strong>. You can also configure default values via <code className="font-mono text-primary">GEMINI_MODEL</code> and <code className="font-mono text-primary">GEMINI_API_KEY</code> in <code className="font-mono text-primary">.env.local</code>.
                 </p>
               </div>
             )}
@@ -244,7 +331,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             </div>
 
             <p className="text-[11px] text-muted-foreground leading-normal">
-              Paste your LinkedIn article or post link and click <strong>Auto-Generate Quick Read</strong> to automatically compose the structured Markdown breakdown, title, executive summary, technical tags, and read time using Gemini AI.
+              Paste your article or LinkedIn post link and click <strong>Auto-Generate Quick Read</strong>. Gemini AI ({displayModelName}) will analyze the link and automatically generate the Quick Read markdown breakdown, summary, tags, and read time.
             </p>
           </div>
 
