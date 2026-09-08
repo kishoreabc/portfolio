@@ -116,17 +116,8 @@ Memories of object locations are parsed into spatial graphs stored in MySQL with
 export function Blogs({ blogs }: BlogsProps) {
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTag, setActiveTag] = useState<string>("All");
 
   const displayBlogs = blogs && blogs.length > 0 ? blogs.filter((b) => b.published) : fallbackBlogs;
-
-  // Extract all unique tags
-  const allTags = ["All", ...Array.from(new Set(displayBlogs.flatMap((b) => b.tags)))];
-
-  const filteredBlogs =
-    activeTag === "All"
-      ? displayBlogs
-      : displayBlogs.filter((b) => b.tags.includes(activeTag));
 
   const handleOpenModal = (blog: BlogPost) => {
     setSelectedBlog(blog);
@@ -164,30 +155,9 @@ export function Blogs({ blogs }: BlogsProps) {
           </p>
         </div>
 
-        {/* Tag Filters - Centered */}
-        {allTags.length > 2 && (
-          <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
-            {allTags.map((tag) => (
-              <Button
-                key={tag}
-                variant={activeTag === tag ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveTag(tag)}
-                className={`text-xs rounded-full px-3 h-7 transition-all shrink-0 ${
-                  activeTag === tag
-                    ? "shadow-sm font-semibold"
-                    : "text-muted-foreground hover:text-foreground border-border/60"
-                }`}
-              >
-                {tag}
-              </Button>
-            ))}
-          </div>
-        )}
-
         {/* Centered Responsive Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-          {filteredBlogs.map((blog) => {
+          {displayBlogs.map((blog) => {
             const linkedinUrl =
               blog.canonicalUrl || "https://www.linkedin.com/in/kishoreabc/recent-activity/all/";
 
