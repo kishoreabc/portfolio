@@ -265,7 +265,7 @@ export function Blogs({ blogs }: BlogsProps) {
         {/* Bottom Centered CTA */}
         <div className="text-center pt-2">
           <a
-            href="https://www.linkedin.com/in/kishoreabc/recent-activity/all/"
+            href="https://www.linkedin.com/in/kishoreabc"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 h-9 px-5 rounded-full text-xs font-mono border border-border/70 bg-card/60 hover:bg-[#0A66C2]/10 hover:border-[#0A66C2]/40 hover:text-[#0A66C2] dark:hover:text-[#70B5F9] transition-all shadow-xs"
