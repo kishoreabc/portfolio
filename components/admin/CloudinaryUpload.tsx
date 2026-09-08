@@ -12,6 +12,7 @@ interface CloudinaryUploadProps {
   label?: string;
   placeholder?: string;
   accept?: string;
+  helpText?: string;
 }
 
 export function CloudinaryUpload({
@@ -20,6 +21,7 @@ export function CloudinaryUpload({
   label = "Certificate Image / PDF",
   placeholder = "https://res.cloudinary.com/...",
   accept = "image/*,.pdf",
+  helpText,
 }: CloudinaryUploadProps) {
   const [uploading, setUploading] = useState(false);
 
@@ -158,7 +160,7 @@ export function CloudinaryUpload({
         </label>
       </div>
       <p className="text-[10px] text-muted-foreground">
-        Upload certificate images (PNG, JPG, WebP) or PDF documents directly to Cloudinary.
+        {helpText || "Upload certificate images (PNG, JPG, WebP) or PDF documents directly to Cloudinary."}
       </p>
     </div>
   );

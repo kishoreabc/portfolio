@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Calendar, ExternalLink, BookOpen, ArrowRight, Share2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { MarkdownView } from "@/components/ui/markdown-view";
 
 interface BlogModalProps {
   blog: BlogPost | null;
@@ -102,9 +103,7 @@ export function BlogModal({ blog, open, onOpenChange }: BlogModalProps) {
           )}
 
           {blog.content ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed whitespace-pre-line font-sans text-sm sm:text-base">
-              {blog.content}
-            </div>
+            <MarkdownView content={blog.content} />
           ) : (
             <div className="p-8 rounded-xl bg-card/60 border border-border/70 text-center space-y-3">
               <BookOpen className="w-10 h-10 text-primary/70 mx-auto" />

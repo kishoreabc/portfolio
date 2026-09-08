@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Clock, Calendar, ExternalLink, BookOpen, Share2 } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { MarkdownView } from "@/components/ui/markdown-view";
 
 export const revalidate = 86400; // 24h ISR
 
@@ -137,9 +138,7 @@ export default async function BlogDetailPage({
         {/* Content Body */}
         <Card className="border-border/70 bg-card/60 p-6 sm:p-10 space-y-6">
           {blog.content ? (
-            <article className="prose prose-neutral dark:prose-invert max-w-none text-foreground/90 leading-relaxed whitespace-pre-line text-sm sm:text-base font-sans">
-              {blog.content}
-            </article>
+            <MarkdownView content={blog.content} />
           ) : (
             <div className="text-center py-12 space-y-3">
               <BookOpen className="w-12 h-12 text-primary/70 mx-auto" />

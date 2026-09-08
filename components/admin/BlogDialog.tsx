@@ -17,9 +17,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Loader2, Sparkles, Key, Cpu } from "lucide-react";
+import { Plus, Loader2, Sparkles, Key, Cpu, Eye, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
+import { MarkdownView } from "@/components/ui/markdown-view";
 
 interface BlogDialogProps {
   blog?: BlogPost;
@@ -34,6 +35,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
   const [model, setModel] = useState("gemini-3.5-flash-lite");
   const [customModel, setCustomModel] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [previewMarkdown, setPreviewMarkdown] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -122,29 +124,36 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
       }
 
       if (res.data) {
-        // Auto-populate Title if empty or suggested
-        if (!watch("title") || watch("title").trim() === "") {
+        // Auto-populate ALL details unconditionally from Gemini
+        if (res.data.title) {
           setValue("title", res.data.title, { shouldValidate: true });
         }
-        if (!watch("slug") || watch("slug").trim() === "") {
+        if (res.data.slug) {
           setValue("slug", res.data.slug, { shouldValidate: true });
         }
-        // Populate full markdown quick-read content
-        setValue("content", res.data.content, { shouldValidate: true });
-        // Populate summary
-        if (!watch("summary") || watch("summary").trim() === "") {
+        if (res.data.summary) {
           setValue("summary", res.data.summary, { shouldValidate: true });
         }
-        // Populate tags
         if (res.data.tags && res.data.tags.length > 0) {
           setValue("tags", res.data.tags, { shouldValidate: true });
         }
-        // Populate read time
         if (res.data.readTime) {
           setValue("readTime", res.data.readTime, { shouldValidate: true });
         }
+        if (res.data.publishedAt) {
+          setValue("publishedAt", res.data.publishedAt, { shouldValidate: true });
+        }
+        if (res.data.coverImage) {
+          setValue("coverImage", res.data.coverImage, { shouldValidate: true });
+        }
+        if (res.data.content) {
+          setValue("content", res.data.content, { shouldValidate: true });
+        }
 
-        toast.success(`✨ Quick Read generated using ${effectiveModel}!`);
+        // Switch to preview mode so user immediately sees the rich formatted output
+        setPreviewMarkdown(true);
+
+        toast.success(`✨ All details & Quick Read generated using ${effectiveModel}!`);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to generate content");
@@ -406,19 +415,77 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             onChange={(url) => setValue("coverImage", url, { shouldValidate: true })}
             placeholder="Upload blog cover image or paste URL..."
             accept="image/*"
+            helpText="Upload blog cover image (PNG, JPG, WebP) or paste an image URL directly."
           />
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-semibold">Full Markdown Content (Quick Read)</label>
-              <span className="text-[10px] text-muted-foreground font-mono">Supports Markdown & Code Blocks</span>
+
+              {/* Toggle Write / Preview */}
+              <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border/80">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMarkdown(false)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    !previewMarkdown
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Edit raw markdown"
+                >
+                  <PenLine className="w-3 h-3" />
+                  Write
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMarkdown(true)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                    previewMarkdown
+                      ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Preview formatted markdown output"
+                >
+                  <Eye className="w-3 h-3" />
+                  Preview
+                </button>
+              </div>
             </div>
-            <Textarea
-              {...register("content")}
-              rows={8}
-              placeholder="# Overview&#10;&#10;Write or auto-generate quick read content here with markdown support..."
-              className="font-mono text-xs"
-            />
+
+            {!previewMarkdown ? (
+              <Textarea
+                {...register("content")}
+                rows={9}
+                placeholder="## Overview&#10;&#10;Write or auto-generate quick read content here with markdown support..."
+                className="font-mono text-xs leading-relaxed"
+              />
+            ) : (
+              <div className="min-h-[200px] max-h-[380px] overflow-y-auto p-4 rounded-xl border border-input bg-card/70 text-xs shadow-inner">
+                {watch("content") ? (
+                  <MarkdownView content={watch("content") || ""} />
+                ) : (
+                  <div className="text-center py-10 text-muted-foreground text-xs italic">
+                    No content to preview yet. Switch to &quot;Write&quot; or click &quot;Auto-Generate Quick Read&quot; above.
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+              <span>
+                {previewMarkdown
+                  ? "Showing live rendered preview with styled headers, code blocks & bullet points."
+                  : "Supports Markdown & Code blocks (## headings, - lists, `inline code`, ``` blocks)."}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreviewMarkdown(!previewMarkdown)}
+                className="text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+              >
+                {previewMarkdown ? "Switch to Edit Mode" : "Switch to Preview Mode"}
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
