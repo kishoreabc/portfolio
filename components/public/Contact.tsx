@@ -104,10 +104,7 @@ export function Contact({ config }: ContactProps) {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-xs text-muted-foreground space-y-1">
-                <p className="font-semibold text-foreground">⚡ Quick Response</p>
-                <p>Direct email delivery enabled. Messages reach Kishorehp134@gmail.com immediately.</p>
-              </div>
+        
             </Card>
           </div>
 

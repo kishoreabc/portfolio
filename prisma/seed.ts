@@ -18,18 +18,18 @@ async function main() {
       id: "singleton",
       heroTitle: "Building Intelligent Systems That Solve Real Problems.",
       heroSubtitle:
-        "AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.",
+        "Aspiring AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.",
       availabilityStatus: "Open to opportunities",
       name: "Kishore R",
-      headline: "AI/ML & Generative AI Engineer",
+      headline: "Aspiring AI/ML & Generative AI Engineer",
       bio: "I'm a final-year B.Tech Artificial Intelligence & Machine Learning student at Bannari Amman Institute of Technology with strong foundations in Machine Learning, Deep Learning, Generative AI, RAG pipelines, multimodal AI, and LLM-powered applications. I build systems that bridge the gap between AI research and real-world deployment.",
       location: "Salem, Tamil Nadu, India",
       contactEmail: "Kishorehp134@gmail.com",
       aboutText:
         "Final-year B.Tech AI & ML student passionate about building production-ready AI systems. My work spans RAG pipelines, multimodal search, voice-first assistive technology, and LLM orchestration. I combine strong DSA fundamentals with modern AI engineering practices to create systems that actually work in production.",
-      seoTitle: "Kishore R — AI/ML & Generative AI Engineer",
+      seoTitle: "Kishore R — Aspiring AI/ML & Generative AI Engineer",
       seoDescription:
-        "Portfolio of Kishore R, an AI/ML & Generative AI engineer specializing in RAG, multimodal AI, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India.",
+        "Portfolio of Kishore R, an Aspiring AI/ML & Generative AI Engineer specializing in RAG, multimodal AI, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India.",
       leetcodeTotal: 380,
       leetcodeEasy: 0,
       leetcodeMedium: 0,

@@ -14,15 +14,18 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 
+const DEFAULT_SEO_KEYWORDS =
+  "Kishore, Kishore R, kishore, kishore r, kishoreabc, kishorehp134, Kishore Salem, Kishore Tamil Nadu, Kishore India, Kishore Bannari Amman, Kishore BIT, Kishore Portfolio, Kishore R Portfolio, Kishore Website, Kishore R Website, Kishore Official Website, Kishore Developer, Kishore Software Engineer, Kishore AI Developer, Kishore GitHub, Kishore LinkedIn, Kishore LeetCode, Kishore AI, Kishore R AI, Kishore AI Engineer, Kishore ML Engineer, AI/ML Engineer, Generative AI Engineer, RAG Engineer, LLM Specialist, Multimodal AI, Deep Learning Engineer, Machine Learning Engineer India, Full Stack AI Developer, Python AI Developer, LangChain, LangGraph, FastAPI, Next.js, Data Structures and Algorithms";
+
 export function ProfileForm({ config }: { config: SiteConfig | null }) {
   const [loading, setLoading] = useState(false);
 
   const defaultValues: SiteConfigFormData = {
     heroTitle: config?.heroTitle ?? "Building Intelligent Systems That Solve Real Problems.",
-    heroSubtitle: config?.heroSubtitle ?? "AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.",
+    heroSubtitle: config?.heroSubtitle ?? "Aspiring AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.",
     availabilityStatus: config?.availabilityStatus ?? "Open to opportunities",
     name: config?.name ?? "Kishore R",
-    headline: config?.headline ?? "AI/ML & Generative AI Engineer",
+    headline: config?.headline ?? "Aspiring AI/ML & Generative AI Engineer",
     bio: config?.bio ?? "",
     location: config?.location ?? "Salem, Tamil Nadu, India",
     contactEmail: config?.contactEmail ?? "Kishorehp134@gmail.com",
@@ -30,8 +33,9 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
     avatarUrl: config?.avatarUrl ?? "",
     resumeUrl: config?.resumeUrl ?? "",
     aboutText: config?.aboutText ?? "",
-    seoTitle: config?.seoTitle ?? "Kishore R — AI/ML & Generative AI Engineer",
-    seoDescription: config?.seoDescription ?? "Portfolio of Kishore R, an AI/ML & Generative AI engineer specializing in RAG, multimodal AI, LLMs, and intelligent systems.",
+    seoTitle: config?.seoTitle ?? "Kishore R ",
+    seoDescription: config?.seoDescription ?? "Official portfolio and personal website of Kishore R, an aspiring AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems.",
+    seoKeywords: config?.seoKeywords ?? DEFAULT_SEO_KEYWORDS,
     ogImageUrl: config?.ogImageUrl ?? "",
     leetcodeTotal: config?.leetcodeTotal ?? 380,
     leetcodeEasy: config?.leetcodeEasy ?? 0,
@@ -195,13 +199,44 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
         <CardContent className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">SEO Title</label>
-            <Input {...register("seoTitle")} placeholder="Kishore R — AI/ML & Generative AI Engineer" />
+            <Input {...register("seoTitle")} placeholder="Kishore R — Aspiring AI/ML & Generative AI Engineer" />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">SEO Meta Description</label>
             <Textarea {...register("seoDescription")} rows={2} placeholder="Portfolio of Kishore R..." />
           </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold">Exact-Match Keyword Matrix</label>
+              <button
+                type="button"
+                onClick={() => setValue("seoKeywords", DEFAULT_SEO_KEYWORDS, { shouldValidate: true })}
+                className="text-[11px] text-primary hover:underline cursor-pointer font-medium"
+              >
+                Reset to Recommended Keywords
+              </button>
+            </div>
+            <Textarea
+              {...register("seoKeywords")}
+              rows={4}
+              placeholder="Comma-separated keywords (e.g. Kishore, Kishore R, Kishore AI Engineer...)"
+              className="font-mono text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Comma-separated terms indexed by Google and search engines for exact-match ranking.
+            </p>
+          </div>
+
+          <CloudinaryUpload
+            label="Open Graph / Social Share Card Image (og:image)"
+            value={watch("ogImageUrl") ?? ""}
+            onChange={(url) => setValue("ogImageUrl", url, { shouldValidate: true })}
+            placeholder="Upload social banner or leave empty to use avatar..."
+            accept="image/*"
+            helpText="1200x630px preview card displayed when your website link is shared on LinkedIn or Twitter."
+          />
         </CardContent>
       </Card>
 

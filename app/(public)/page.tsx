@@ -24,21 +24,34 @@ export const revalidate = 3600;
 export async function generateMetadata(): Promise<Metadata> {
   const config = await prisma.siteConfig.findUnique({
     where: { id: "singleton" },
-    select: { seoTitle: true, seoDescription: true, avatarUrl: true },
+    select: {
+      seoTitle: true,
+      seoDescription: true,
+      seoKeywords: true,
+      ogImageUrl: true,
+      avatarUrl: true,
+    },
   });
 
-  const title = config?.seoTitle?.trim() || "Kishore R | AI/ML & Generative AI Engineer | Kishore Portfolio";
+  const title = config?.seoTitle?.trim() || "Kishore R | Aspiring AI/ML & Generative AI Engineer | Portfolio";
   const description =
     config?.seoDescription?.trim() ||
     "Official portfolio and personal website of Kishore R (Kishore), an AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and experience.";
 
-  const images = config?.avatarUrl ? [{ url: config.avatarUrl, alt: "Kishore R Profile Photo" }] : [];
+  const rawKeywords = config?.seoKeywords?.trim();
+  const keywords = rawKeywords
+    ? rawKeywords.split(",").map((k) => k.trim()).filter(Boolean)
+    : undefined;
+
+  const socialImage = config?.ogImageUrl?.trim() || config?.avatarUrl?.trim();
+  const images = socialImage ? [{ url: socialImage, alt: "Kishore R Profile Photo" }] : [];
 
   return {
     title: {
       absolute: title,
     },
     description,
+    keywords,
     openGraph: {
       title,
       description,

@@ -20,11 +20,11 @@ model SiteConfig {
   id                 String   @id @default("singleton")
   // Hero
   heroTitle          String   @default("Building Intelligent Systems That Solve Real Problems.")
-  heroSubtitle       String   @default("AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.")
+  heroSubtitle       String   @default("Aspiring AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.")
   availabilityStatus String   @default("Open to opportunities")
   // Personal
   name               String   @default("Kishore R")
-  headline           String   @default("AI/ML & Generative AI Engineer")
+  headline           String   @default("Aspiring AI/ML & Generative AI Engineer")
   bio                String   @default("") @db.Text
   location           String   @default("Salem, Tamil Nadu, India")
   contactEmail       String   @default("Kishorehp134@gmail.com")
@@ -35,7 +35,10 @@ model SiteConfig {
   // SEO
   seoTitle           String?
   seoDescription     String?
+  seoKeywords        String?   @db.Text
   ogImageUrl         String?
+  // Display Options
+  heroImageStyle     String?   @default("split")
   // Dynamic JSON sections
   achievements       Json     @default("[]")
   journeyEntries     Json     @default("[]")

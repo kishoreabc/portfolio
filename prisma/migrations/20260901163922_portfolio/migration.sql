@@ -2,10 +2,10 @@
 CREATE TABLE "site_config" (
     "id" TEXT NOT NULL DEFAULT 'singleton',
     "heroTitle" TEXT NOT NULL DEFAULT 'Building Intelligent Systems That Solve Real Problems.',
-    "heroSubtitle" TEXT NOT NULL DEFAULT 'AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.',
+    "heroSubtitle" TEXT NOT NULL DEFAULT 'Aspiring AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.',
     "availabilityStatus" TEXT NOT NULL DEFAULT 'Open to opportunities',
     "name" TEXT NOT NULL DEFAULT 'Kishore R',
-    "headline" TEXT NOT NULL DEFAULT 'AI/ML & Generative AI Engineer',
+    "headline" TEXT NOT NULL DEFAULT 'Aspiring AI/ML & Generative AI Engineer',
     "bio" TEXT NOT NULL DEFAULT '',
     "location" TEXT NOT NULL DEFAULT 'Salem, Tamil Nadu, India',
     "contactEmail" TEXT NOT NULL DEFAULT 'Kishorehp134@gmail.com',

@@ -195,7 +195,7 @@ export async function generateBlogQuickRead({
     const pageData = await fetchUrlMetadata(url.trim());
     const ai = new GoogleGenAI({ apiKey: effectiveKey });
 
-    const prompt = `You are an expert AI/ML technical writer and developer advocate for Kishore R (AI/ML & Generative AI Engineer).
+    const prompt = `You are an expert AI/ML technical writer and developer advocate for Kishore R (Aspiring AI/ML & Generative AI Engineer).
 Kishore has published or shared a technical article/post at the following link:
 Target URL: ${url}
 Extracted Title: ${pageData.title || "Not detected"}

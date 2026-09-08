@@ -118,7 +118,7 @@ export function Navbar() {
                 <div className="flex flex-col space-y-4">
                   <div className="pb-4 border-b border-border">
                     <p className="font-bold text-base">Kishore R</p>
-                    <p className="text-xs text-muted-foreground">AI/ML & Generative AI Engineer</p>
+                    <p className="text-xs text-muted-foreground">Aspiring AI/ML & Generative AI Engineer</p>
                   </div>
                   {navItems.map((item) => (
                     <a

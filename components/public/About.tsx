@@ -74,7 +74,7 @@ export function About({ config, educationList }: AboutProps) {
                       {config.name || "Kishore R"}
                     </h3>
                     <p className="text-xs text-primary font-medium truncate">
-                      {config.headline || "AI/ML & Generative AI Engineer"}
+                      {config.headline || "Aspiring AI/ML & Generative AI Engineer"}
                     </p>
                     <p className="text-[11px] text-muted-foreground truncate">
                       {config.location || "Salem, Tamil Nadu, India"}

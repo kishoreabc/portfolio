@@ -16,7 +16,7 @@ export function Footer({ socialLinks }: FooterProps) {
         <div className="space-y-1">
           <p className="font-bold text-sm text-foreground">Kishore R</p>
           <p className="text-xs text-muted-foreground">
-            AI/ML & Generative AI Engineer • Bannari Amman Institute of Technology
+            Aspiring AI/ML & Generative AI Engineer • Bannari Amman Institute of Technology
           </p>
         </div>
 

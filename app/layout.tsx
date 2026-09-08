@@ -13,7 +13,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.kishoreabc.dev"
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Kishore R | AI/ML & Generative AI Engineer | Kishore Portfolio",
+    default: "Kishore R | Aspiring AI/ML & Generative AI Engineer | Kishore Portfolio",
     template: "%s | Kishore R",
   },
   description:
@@ -79,9 +79,9 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: siteUrl,
     siteName: "Kishore R Portfolio",
-    title: "Kishore R | AI/ML & Generative AI Engineer | Kishore Portfolio",
+    title: "Kishore R | Aspiring AI/ML & Generative AI Engineer | Kishore Portfolio",
     description:
-      "Official portfolio and personal website of Kishore R (Kishore), an AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems.",
+      "Official portfolio and personal website of Kishore R (Kishore), an Aspiring AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems.",
     images: [
       {
         url: "/icon.svg",
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kishore R | AI/ML & Generative AI Engineer | Kishore Portfolio",
+    title: "Kishore R | Aspiring AI/ML & Generative AI Engineer | Kishore Portfolio",
     description:
       "Official portfolio of Kishore R (Kishore). Building intelligent systems with RAG, multimodal AI, LLMs, and Generative AI.",
     creator: "@kishoreabc",
@@ -140,7 +140,7 @@ const jsonLd = {
         "kishoreabc.dev",
       ],
       description:
-        "Official portfolio and personal website of Kishore R, AI/ML & Generative AI Engineer.",
+        "Official portfolio and personal website of Kishore R, Aspiring AI/ML & Generative AI Engineer.",
       publisher: {
         "@id": `${siteUrl}/#person`,
       },
@@ -150,7 +150,7 @@ const jsonLd = {
       "@type": "ProfilePage",
       "@id": `${siteUrl}/#profilepage`,
       url: siteUrl,
-      name: "Kishore R | AI/ML & Generative AI Engineer Profile",
+      name: "Kishore R | Aspiring AI/ML & Generative AI Engineer Profile",
       isPartOf: {
         "@id": `${siteUrl}/#website`,
       },
@@ -179,9 +179,9 @@ const jsonLd = {
         "Kishore Salem",
         "kishorehp134",
       ],
-      jobTitle: "AI/ML & Generative AI Engineer",
+      jobTitle: "Aspiring AI/ML & Generative AI Engineer",
       description:
-        "Kishore R (Kishore) is an AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems engineering.",
+        "Kishore R (Kishore) is an Aspiring AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems engineering.",
       url: siteUrl,
       image: `${siteUrl}/icon.svg`,
       email: "mailto:kishorehp134@gmail.com",
