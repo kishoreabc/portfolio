@@ -81,7 +81,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
       ) : (
         <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Certification</Button>} />
       )}
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{certification ? "Edit Certification" : "Add Certification"}</DialogTitle>
         </DialogHeader>

@@ -33,11 +33,11 @@ export default async function AdminCertificationsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Issuer</TableHead>
-                <TableHead>Issue Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[45%] min-w-[240px]">Title & Description</TableHead>
+                <TableHead className="w-[20%] min-w-[140px]">Issuer</TableHead>
+                <TableHead className="w-[13%] min-w-[100px]">Issue Date</TableHead>
+                <TableHead className="w-[10%]">Status</TableHead>
+                <TableHead className="w-[12%] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,11 +50,13 @@ export default async function AdminCertificationsPage() {
               ) : (
                 certs.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="space-y-0.5">
-                        <span className="font-semibold text-sm">{c.title}</span>
+                    <TableCell className="whitespace-normal max-w-sm">
+                      <div className="space-y-1">
+                        <span className="font-semibold text-sm block leading-tight text-foreground">{c.title}</span>
                         {c.description && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">{c.description}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 break-words leading-relaxed">
+                            {c.description}
+                          </p>
                         )}
                       </div>
                     </TableCell>

@@ -150,3 +150,27 @@ export const SiteConfigSchema = z.object({
 });
 
 export type SiteConfigFormData = z.infer<typeof SiteConfigSchema>;
+
+// ─── Blog Post CRUD ───────────────────────────────────────────
+
+export const BlogPostSchema = z.object({
+  title: z.string().min(1, "Title is required").max(250),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(250)
+    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens only"),
+  summary: z.string().min(1, "Summary is required").max(1000),
+  content: z.string().optional(),
+  coverImage: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  tags: z.array(z.string()).min(1, "At least one tag is required"),
+  readTime: z.string().optional(),
+  canonicalUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  published: z.boolean(),
+  featured: z.boolean(),
+  displayOrder: z.number().int(),
+  publishedAt: z.string().optional(),
+});
+
+export type BlogPostFormData = z.infer<typeof BlogPostSchema>;
+

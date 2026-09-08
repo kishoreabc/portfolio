@@ -6,6 +6,7 @@ import { About } from "@/components/public/About";
 import { Skills } from "@/components/public/Skills";
 import { Projects } from "@/components/public/Projects";
 import { Certifications } from "@/components/public/Certifications";
+import { Blogs } from "@/components/public/Blogs";
 import { CodingSection } from "@/components/public/CodingSection";
 import { Journey } from "@/components/public/Journey";
 import { Contact } from "@/components/public/Contact";
@@ -13,7 +14,7 @@ import { Footer } from "@/components/public/Footer";
 import { JourneyEntry } from "@/types";
 import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
-import type { SiteConfig, Skill, Project, Certification, Education, SocialLink } from "@prisma/client";
+import type { SiteConfig, Skill, Project, Certification, BlogPost, Education, SocialLink } from "@prisma/client";
 import type { ContributionCalendar } from "@/lib/github";
 
 // Revalidate homepage every hour (ISR)
@@ -24,6 +25,7 @@ export default async function HomePage() {
   let skills: Skill[] = [];
   let projects: Project[] = [];
   let certifications: Certification[] = [];
+  let blogs: BlogPost[] = [];
   let educationList: Education[] = [];
   let socialLinks: SocialLink[] = [];
   let githubHeatmap: ContributionCalendar | null = null;
@@ -34,6 +36,7 @@ export default async function HomePage() {
       prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
       prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
       prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
+      prisma.blogPost.findMany({ where: { published: true }, orderBy: [{ featured: "desc" }, { displayOrder: "asc" }, { publishedAt: "desc" }] }),
       prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
       prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
       fetchGitHubHeatmap(),
@@ -42,9 +45,10 @@ export default async function HomePage() {
     skills = results[1];
     projects = results[2];
     certifications = results[3];
-    educationList = results[4];
-    socialLinks = results[5];
-    githubHeatmap = results[6];
+    blogs = results[4];
+    educationList = results[5];
+    socialLinks = results[6];
+    githubHeatmap = results[7];
   } catch (error) {
     console.warn(
       "[HomePage] Database or external fetch error during render/build, using fallbacks:",
@@ -112,6 +116,7 @@ export default async function HomePage() {
         <Skills skills={skills} />
         <Projects projects={projects} />
         <Certifications certifications={certifications} />
+        <Blogs blogs={blogs} />
         <CodingSection config={config} githubHeatmap={githubHeatmap} />
         <Journey journeyEntries={journeyEntries} />
         <Contact config={config} />

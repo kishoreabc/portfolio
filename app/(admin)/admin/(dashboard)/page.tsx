@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderGit2, Award, Wrench, MessageSquare, ExternalLink, ArrowRight, Milestone } from "lucide-react";
+import { FolderGit2, BookOpen, Award, Wrench, MessageSquare, ExternalLink, ArrowRight, Milestone } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +12,7 @@ export default async function AdminDashboardPage() {
   const [
     projectsCount,
     certificationsCount,
+    blogsCount,
     skillsCount,
     messagesCount,
     unreadMessagesCount,
@@ -20,6 +21,7 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     prisma.project.count(),
     prisma.certification.count(),
+    prisma.blogPost.count(),
     prisma.skill.count(),
     prisma.contactMessage.count({ where: { deletedAt: null } }),
     prisma.contactMessage.count({ where: { read: false, deletedAt: null } }),
@@ -38,6 +40,7 @@ export default async function AdminDashboardPage() {
   const stats = [
     { label: "Total Projects", value: projectsCount, href: "/admin/projects", icon: FolderGit2 },
     { label: "Certifications", value: certificationsCount, href: "/admin/certifications", icon: Award },
+    { label: "Blog Articles", value: blogsCount, href: "/admin/blogs", icon: BookOpen },
     { label: "Skills Badges", value: skillsCount, href: "/admin/skills", icon: Wrench },
     { label: "Journey Milestones", value: journeyCount, href: "/admin/journey", icon: Milestone },
     { label: "Unread Messages", value: unreadMessagesCount, total: messagesCount, href: "/admin/messages", icon: MessageSquare, highlight: unreadMessagesCount > 0 },
@@ -48,12 +51,12 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
         <p className="text-muted-foreground mt-1">
-          Manage and update portfolio metrics, projects, skills, and visitor messages.
+          Manage and update portfolio metrics, projects, skills, blogs, and visitor messages.
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

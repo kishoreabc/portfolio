@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   FolderGit2,
+  BookOpen,
   Award,
   Wrench,
   GraduationCap,
@@ -38,6 +39,7 @@ export function AdminSidebar({
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/projects", label: "Projects", icon: FolderGit2 },
     { href: "/admin/certifications", label: "Certifications", icon: Award },
+    { href: "/admin/blogs", label: "Blogs", icon: BookOpen },
     { href: "/admin/skills", label: "Skills", icon: Wrench },
     { href: "/admin/education", label: "Education", icon: GraduationCap },
     { href: "/admin/journey", label: "Journey", icon: Milestone },

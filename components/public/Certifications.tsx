@@ -45,14 +45,14 @@ export function Certifications({ certifications }: CertificationsProps) {
           {publishedCerts.map((cert, idx) => (
             <motion.div
               key={cert.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
+              initial={{ opacity: 0, y: 30, x: idx % 2 === 0 ? -25 : 25 }}
+              whileInView={{ opacity: 1, y: 0, x: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.55, delay: idx * 0.1, ease: [0.25, 1, 0.5, 1] }}
               className="flex"
             >
-              <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/50 hover:shadow-lg transition-all p-6 flex flex-col justify-between space-y-4 w-full">
-                <div className="space-y-4">
+              <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/50 hover:shadow-lg transition-all p-6 flex flex-col justify-between space-y-4 w-full overflow-hidden min-w-0">
+                <div className="space-y-4 min-w-0">
                   {/* Card Top: Award Icon + Actions */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
@@ -87,9 +87,11 @@ export function Certifications({ certifications }: CertificationsProps) {
                   </div>
 
                   {/* Title & Issuer */}
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-lg text-foreground">{cert.title}</h3>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="space-y-1 min-w-0">
+                    <h3 className="font-bold text-lg text-foreground break-words leading-snug">
+                      {cert.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                       <span className="font-medium text-foreground/80">{cert.issuer}</span>
                       {cert.issueDate && (
                         <span className="flex items-center gap-1 font-mono">
@@ -102,7 +104,7 @@ export function Certifications({ certifications }: CertificationsProps) {
 
                   {/* Description */}
                   {cert.description && (
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed break-words line-clamp-4 hover:line-clamp-none transition-all">
                       {cert.description}
                     </p>
                   )}
@@ -111,9 +113,9 @@ export function Certifications({ certifications }: CertificationsProps) {
                 {/* Footer / ID section */}
                 <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground mt-auto">
                   {cert.credentialId ? (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 truncate">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      ID: {cert.credentialId}
+                      <span className="truncate">ID: {cert.credentialId}</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 text-muted-foreground/70">
@@ -125,6 +127,17 @@ export function Certifications({ certifications }: CertificationsProps) {
               </Card>
             </motion.div>
           ))}
+        </div>
+
+        {/* Scroll transition callout to Blogs */}
+        <div className="text-center pt-2">
+          <a
+            href="#blogs"
+            className="inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-primary transition-all py-1.5 px-3 rounded-full border border-border/50 bg-card/40 hover:bg-card hover:border-primary/40 group"
+          >
+            <span>Scroll down to explore Technical Blogs & Articles</span>
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </a>
         </div>
       </div>
 

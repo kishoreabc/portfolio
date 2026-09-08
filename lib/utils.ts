@@ -39,10 +39,15 @@ export function toSlug(text: string): string {
 
 /**
  * Returns the base URL for the site.
- * Uses NEXT_PUBLIC_SITE_URL in production.
+ * Uses NEXT_PUBLIC_SITE_URL, strips trailing slashes to avoid '//' paths,
+ * and defaults to 'https://www.kishoreabc.dev'.
  */
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const raw = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!raw || raw.includes("vercel.app") || (raw.includes("localhost") && process.env.NODE_ENV === "production")) {
+    return "https://www.kishoreabc.dev";
+  }
+  return raw.replace(/\/+$/, "");
 }
 
 /**

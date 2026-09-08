@@ -54,7 +54,11 @@ export function MessageRowActions({
         className="w-8 h-8"
         title="Reply via email"
         render={
-          <a href={`mailto:${email}?subject=Re: ${encodeURIComponent(subject)}`}>
+          <a
+            href={`mailto:${email}?subject=Re: ${encodeURIComponent(subject)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <Reply className="w-4 h-4 text-muted-foreground hover:text-foreground" />
           </a>
         }

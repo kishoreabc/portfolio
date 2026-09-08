@@ -167,3 +167,27 @@ model ContactMessage {
 
   @@map("contact_messages")
 }
+
+// ─────────────────────────────────────────────
+// BLOG POST
+// ─────────────────────────────────────────────
+model BlogPost {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  summary      String    @db.Text
+  content      String?   @db.Text
+  coverImage   String?
+  tags         String[]
+  readTime     String?   @default("5 min read")
+  published    Boolean   @default(true)
+  featured     Boolean   @default(false)
+  displayOrder Int       @default(0)
+  canonicalUrl String?   // External link (Medium, Substack, etc.)
+  publishedAt  DateTime? @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("blog_posts")
+}
+
