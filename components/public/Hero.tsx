@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDown, FileText, Sparkles, Code2, Mail, ExternalLink, MapPin } from "lucide-react";
+import { ArrowDown, ArrowRight, FileText, Sparkles, Code2, Mail, ExternalLink, MapPin } from "lucide-react";
 import { SiteConfig, SocialLink } from "@prisma/client";
 
 interface HeroProps {
@@ -100,12 +100,12 @@ export function Hero({ config, socialLinks }: HeroProps) {
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             {/* Left Column: Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              {/* Availability Badge */}
+              {/* Availability Badge & Direct "View Projects" Prompt */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="inline-flex items-center justify-center lg:justify-start"
+                className="flex flex-wrap items-center justify-center lg:justify-start gap-3"
               >
                 <Badge
                   variant="outline"
@@ -117,6 +117,16 @@ export function Hero({ config, socialLinks }: HeroProps) {
                   </span>
                   {availability}
                 </Badge>
+
+                {/* Direct "View Projects" prompt beside opening message */}
+                <a
+                  href="#projects"
+                  className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+                  <span>View Projects</span>
+                  <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                </a>
               </motion.div>
 
               {/* Headline & Greeting */}
@@ -334,12 +344,12 @@ export function Hero({ config, socialLinks }: HeroProps) {
             </motion.div>
           )}
 
-          {/* Availability Badge */}
+          {/* Availability Badge & Direct "View Projects" Prompt */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center justify-center"
+            className="flex flex-wrap items-center justify-center gap-3"
           >
             <Badge
               variant="outline"
@@ -351,6 +361,15 @@ export function Hero({ config, socialLinks }: HeroProps) {
               </span>
               {availability}
             </Badge>
+
+            <a
+              href="#projects"
+              className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+              <span>View Projects</span>
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </a>
           </motion.div>
 
           {/* Main Headline */}

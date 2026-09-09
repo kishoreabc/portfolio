@@ -44,6 +44,11 @@ export function CloudinaryUpload({
       formData.append("file", file);
       formData.append("upload_preset", uploadPreset);
 
+      // Unique timestamped folder ensures Cloudinary replaces the content rather than
+      // returning "existing: true" and refusing the update, while preserving the exact original filename!
+      const timestamp = Date.now();
+      formData.append("folder", `portfolio/uploads/${timestamp}`);
+
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
         {
@@ -60,7 +65,7 @@ export function CloudinaryUpload({
 
       const uploadedUrl = data.secure_url || data.url;
       onChange(uploadedUrl);
-      toast.success("Uploaded to Cloudinary!");
+      toast.success("File uploaded and replaced successfully!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Cloudinary upload failed");
     } finally {

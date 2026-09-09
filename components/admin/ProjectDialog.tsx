@@ -191,7 +191,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
           <CloudinaryUpload
             label="Project Cover Image (Cloudinary)"
             value={watch("imageUrl") ?? ""}
-            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true })}
+            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload project screenshot or paste Cloudinary URL..."
           />
 

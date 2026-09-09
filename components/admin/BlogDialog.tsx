@@ -425,7 +425,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
           <CloudinaryUpload
             label="Cover Image (Cloudinary Upload)"
             value={watch("coverImage") ?? ""}
-            onChange={(url) => setValue("coverImage", url, { shouldValidate: true })}
+            onChange={(url) => setValue("coverImage", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload blog cover image or paste URL..."
             accept="image/*"
             helpText="Upload blog cover image (PNG, JPG, WebP) or paste an image URL directly."

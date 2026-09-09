@@ -137,7 +137,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             <CloudinaryUpload
               label="Professional Profile Image (Avatar)"
               value={watch("avatarUrl") ?? ""}
-              onChange={(url) => setValue("avatarUrl", url, { shouldValidate: true })}
+              onChange={(url) => setValue("avatarUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
               placeholder="Upload portrait photo or paste image URL..."
               accept="image/*"
               helpText="Professional photo displayed in the Hero and About sections."
@@ -146,7 +146,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             <CloudinaryUpload
               label="Resume PDF File"
               value={watch("resumeUrl") ?? ""}
-              onChange={(url) => setValue("resumeUrl", url, { shouldValidate: true })}
+              onChange={(url) => setValue("resumeUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
               placeholder="Upload PDF resume or paste Cloudinary URL..."
               accept=".pdf,application/pdf"
               helpText="Downloadable resume file linked across your portfolio."

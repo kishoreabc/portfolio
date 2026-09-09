@@ -118,7 +118,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
           <CloudinaryUpload
             label="Certificate Image / PDF (Cloudinary)"
             value={watch("imageUrl") ?? ""}
-            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true })}
+            onChange={(url) => setValue("imageUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload file or paste Cloudinary URL..."
           />
 

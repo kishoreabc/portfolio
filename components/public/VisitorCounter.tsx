@@ -53,12 +53,17 @@ export function VisitorCounter() {
   useEffect(() => {
     setMounted(true);
 
-    const recordOrFetchVisit = async () => {
+    const recordVisit = async () => {
       try {
-        const SESSION_KEY = "portfolio_site_visit_tracked";
-        const hasSession = sessionStorage.getItem(SESSION_KEY);
+        const DEBOUNCE_KEY = "portfolio_last_visit_time";
+        const lastVisit = sessionStorage.getItem(DEBOUNCE_KEY);
+        const now = Date.now();
 
-        if (!hasSession) {
+        // Allow views to increment dynamically on each visit/reload with a 2.5s anti-spam debounce
+        const shouldIncrement = !lastVisit || now - Number(lastVisit) > 2500;
+
+        if (shouldIncrement) {
+          sessionStorage.setItem(DEBOUNCE_KEY, now.toString());
           const res = await fetch("/api/visitors", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -66,22 +71,55 @@ export function VisitorCounter() {
           if (res.ok) {
             const data = await res.json();
             setCount(data.totalVisits);
-            sessionStorage.setItem(SESSION_KEY, "true");
             return;
           }
         }
 
+        // Otherwise fetch latest count
         const res = await fetch("/api/visitors", { method: "GET" });
         if (res.ok) {
           const data = await res.json();
           setCount(data.totalVisits);
         }
       } catch (err) {
-        console.error("[VisitorCounter] Error fetching visit count:", err);
+        console.error("[VisitorCounter] Error recording visit:", err);
       }
     };
 
-    recordOrFetchVisit();
+    recordVisit();
+
+    // Live dynamic polling every 6 seconds so live views update in real-time
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/visitors", { method: "GET" });
+        if (res.ok) {
+          const data = await res.json();
+          setCount((prev) => (data.totalVisits !== prev ? data.totalVisits : prev));
+        }
+      } catch {}
+    }, 6000);
+
+    // Refresh immediately when tab gains focus or visibility
+    const handleSync = async () => {
+      if (document.visibilityState === "visible") {
+        try {
+          const res = await fetch("/api/visitors", { method: "GET" });
+          if (res.ok) {
+            const data = await res.json();
+            setCount((prev) => (data.totalVisits !== prev ? data.totalVisits : prev));
+          }
+        } catch {}
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleSync);
+    window.addEventListener("focus", handleSync);
+
+    return () => {
+      clearInterval(pollInterval);
+      document.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("focus", handleSync);
+    };
   }, []);
 
   return (
