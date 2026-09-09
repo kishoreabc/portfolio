@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderGit2, BookOpen, Award, Wrench, MessageSquare, ExternalLink, ArrowRight, Milestone } from "lucide-react";
+import { FolderGit2, BookOpen, Award, Wrench, MessageSquare, ExternalLink, ArrowRight, Milestone, Eye } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
     unreadMessagesCount,
     recentMessages,
     config,
+    visitorCounter,
   ] = await Promise.all([
     prisma.project.count(),
     prisma.certification.count(),
@@ -31,6 +32,7 @@ export default async function AdminDashboardPage() {
       take: 5,
     }),
     prisma.siteConfig.findUnique({ where: { id: "singleton" }, select: { journeyEntries: true } }),
+    prisma.siteVisitorCounter.findUnique({ where: { id: "singleton" } }),
   ]);
 
   const journeyCount = Array.isArray(config?.journeyEntries)
@@ -38,6 +40,7 @@ export default async function AdminDashboardPage() {
     : 0;
 
   const stats = [
+    { label: "Total Visits", value: visitorCounter?.totalVisits ?? 0, href: "/", icon: Eye },
     { label: "Total Projects", value: projectsCount, href: "/admin/projects", icon: FolderGit2 },
     { label: "Certifications", value: certificationsCount, href: "/admin/certifications", icon: Award },
     { label: "Blog Articles", value: blogsCount, href: "/admin/blogs", icon: BookOpen },
@@ -56,7 +59,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

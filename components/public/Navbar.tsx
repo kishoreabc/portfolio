@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sun, Moon, Menu, Sparkles, MessageSquare } from "lucide-react";
+import { VisitorCounter } from "@/components/public/VisitorCounter";
 
 const navItems = [
   { label: "About", href: "#about" },
@@ -76,7 +77,10 @@ export function Navbar() {
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Site Visitor Counter */}
+          <VisitorCounter />
+
           {/* Theme Toggle */}
           {mounted && (
             <Button

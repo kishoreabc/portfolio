@@ -196,3 +196,16 @@ model BlogPost {
   @@map("blog_posts")
 }
 
+// ─────────────────────────────────────────────
+// SITE VISITOR COUNTER
+// Persistent site-wide visitor and visit tracking
+// ─────────────────────────────────────────────
+model SiteVisitorCounter {
+  id            String   @id @default("singleton")
+  totalVisits   Int      @default(0)
+  lastVisitedAt DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("site_visitor_counter")
+}
+
