@@ -113,37 +113,50 @@ export async function validateSession(
 ): Promise<AgentSession | null> {
   purgeExpiredSessions();
   const ipH = hashIp(ip);
-  let session = sessions.get(sessionId);
 
-  if (!session) {
-    try {
-      const conv = await prisma.aiConversation.findUnique({
-        where: { sessionId },
-      });
-      if (conv && conv.ipHash === ipH && !conv.endedAt) {
-        const restoredSession: AgentSession = {
-          sessionId,
-          conversationId: conv.id,
-          ipHash: conv.ipHash,
-          mode: conv.mode as AgentMode,
-          createdAt: conv.startedAt,
-          lastActivity: new Date(),
-          toolCallCount: 0,
-          webSearchCount: 0,
-          voiceStartedAt: conv.mode === "voice" ? conv.startedAt : null,
-          state: "IDLE",
-        };
-        sessions.set(sessionId, restoredSession);
-        session = restoredSession;
-      }
-    } catch (err) {
-      console.error("[AI:SessionStore] DB fallback lookup failed:", err);
+  try {
+    const conv = await prisma.aiConversation.findUnique({
+      where: { sessionId },
+      select: {
+        id: true,
+        ipHash: true,
+        endedAt: true,
+        mode: true,
+        startedAt: true,
+      },
+    });
+
+    // If conversation does not exist or has already been marked ended / revoked
+    if (!conv || conv.endedAt !== null || conv.ipHash !== ipH) {
+      sessions.delete(sessionId);
+      return null;
     }
-  }
 
-  if (!session) return null;
-  if (session.ipHash !== ipH) return null;
-  return session;
+    let session = sessions.get(sessionId);
+    if (!session) {
+      const restoredSession: AgentSession = {
+        sessionId,
+        conversationId: conv.id,
+        ipHash: conv.ipHash,
+        mode: conv.mode as AgentMode,
+        createdAt: conv.startedAt,
+        lastActivity: new Date(),
+        toolCallCount: 0,
+        webSearchCount: 0,
+        voiceStartedAt: conv.mode === "voice" ? conv.startedAt : null,
+        state: "IDLE",
+      };
+      sessions.set(sessionId, restoredSession);
+      session = restoredSession;
+    }
+
+    return session;
+  } catch (err) {
+    console.error("[AI:SessionStore] DB validation lookup failed:", err);
+    const session = sessions.get(sessionId);
+    if (!session || session.ipHash !== ipH) return null;
+    return session;
+  }
 }
 
 /**

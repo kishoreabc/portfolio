@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   const session = await validateSession(sessionId, ip);
   if (!session) {
     return NextResponse.json(
-      { error: toSafeErrorMessage("SESSION_OWNERSHIP_MISMATCH") },
+      { error: toSafeErrorMessage("SESSION_OWNERSHIP_MISMATCH"), revoked: true },
       { status: 403 }
     );
   }

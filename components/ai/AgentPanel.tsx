@@ -290,6 +290,8 @@ export function AgentPanel({
   const pendingTimerDisconnectRef = useRef(false);
   const isModelTurnActiveRef = useRef(false);
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionHeartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const handleRemoteRevokeRef = useRef<() => void>(() => {});
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -305,6 +307,13 @@ export function AgentPanel({
   }, [queueData]);
 
   // ── Voice Timer Helpers ─────────────────────────────────────────────────────
+
+  const stopSessionHeartbeat = useCallback(() => {
+    if (sessionHeartbeatRef.current) {
+      clearInterval(sessionHeartbeatRef.current);
+      sessionHeartbeatRef.current = null;
+    }
+  }, []);
 
   const stopVoiceTimer = useCallback(() => {
     if (voiceTimerRef.current) {
@@ -401,7 +410,13 @@ export function AgentPanel({
           role: "assistant",
           content: finalContent,
         }),
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (res.status === 403) {
+            handleRemoteRevokeRef.current?.();
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -447,7 +462,13 @@ export function AgentPanel({
           role: "user",
           content: finalContent,
         }),
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (res.status === 403) {
+            handleRemoteRevokeRef.current?.();
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -456,6 +477,7 @@ export function AgentPanel({
     sessionGenerationRef.current++;
 
     stopVoiceTimer();
+    stopSessionHeartbeat();
     if (safetyTimeoutRef.current) {
       clearTimeout(safetyTimeoutRef.current);
       safetyTimeoutRef.current = null;
@@ -495,7 +517,96 @@ export function AgentPanel({
     // Clean up queue and session in background
     void leaveQueue();
     void terminateCurrentSession();
-  }, [stopVoiceTimer, leaveQueue, terminateCurrentSession, finalizeUserTurn, finalizeAssistantTurn]);
+  }, [stopVoiceTimer, stopSessionHeartbeat, leaveQueue, terminateCurrentSession, finalizeUserTurn, finalizeAssistantTurn]);
+
+  const handleRemoteRevoke = useCallback(() => {
+    // Invalidate in-flight sessions and callbacks
+    sessionGenerationRef.current++;
+
+    stopVoiceTimer();
+    stopSessionHeartbeat();
+
+    if (chatThinkingTimerRef.current) {
+      clearTimeout(chatThinkingTimerRef.current);
+      chatThinkingTimerRef.current = null;
+    }
+
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    pendingTimerDisconnectRef.current = false;
+    isModelTurnActiveRef.current = false;
+
+    if (audioManagerRef.current) {
+      audioManagerRef.current.stop();
+      audioManagerRef.current = null;
+    }
+
+    const s = sessionRef.current;
+    sessionRef.current = null;
+    try {
+      void (s as any)?.close?.();
+    } catch {}
+
+    const convId = sessionDataRef.current?.conversationId ?? "";
+    if (convId) {
+      finalizeUserTurn(convId);
+      finalizeAssistantTurn(convId);
+    }
+
+    sessionDataRef.current = null;
+    setSessionData(null);
+
+    if (isMounted.current) {
+      setIsCompletingSentence(false);
+      setState("DISCONNECTED");
+      setVoiceSecondsLeft(null);
+    }
+
+    toast.error("Your session has been ended by the administrator.", {
+      duration: 8000,
+    });
+  }, [stopVoiceTimer, stopSessionHeartbeat, finalizeUserTurn, finalizeAssistantTurn]);
+
+  useEffect(() => {
+    handleRemoteRevokeRef.current = handleRemoteRevoke;
+  }, [handleRemoteRevoke]);
+
+  const startSessionHeartbeat = useCallback(
+    (sessionId: string, conversationId: string) => {
+      stopSessionHeartbeat();
+
+      sessionHeartbeatRef.current = setInterval(async () => {
+        if (!isMounted.current || !sessionRef.current) {
+          stopSessionHeartbeat();
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            `/api/ai/session/status?sessionId=${encodeURIComponent(sessionId)}&conversationId=${encodeURIComponent(conversationId)}`,
+            { cache: "no-store" }
+          );
+
+          if (!res.ok) {
+            if (res.status === 403 || res.status === 404) {
+              handleRemoteRevokeRef.current?.();
+            }
+            return;
+          }
+
+          const data = await res.json();
+          if (data.active === false || data.revoked) {
+            handleRemoteRevokeRef.current?.();
+          }
+        } catch {
+          // Network glitch, will retry on next tick
+        }
+      }, 2000);
+    },
+    [stopSessionHeartbeat]
+  );
 
   const handleRequestClose = useCallback(async () => {
     if (view === "queued" || queueDataRef.current) {
@@ -637,6 +748,14 @@ export function AgentPanel({
                 callId: call.id,
               }),
             });
+            if (res.status === 403) {
+              handleRemoteRevokeRef.current?.();
+              return {
+                id: call.id,
+                name: call.name as AllowedToolName,
+                response: { output: null },
+              };
+            }
             const data = await res.json();
 
             // Extract artifacts for voice mode display
@@ -945,6 +1064,9 @@ export function AgentPanel({
                 if (targetMode === "voice" && data.voiceTimeoutSeconds) {
                   startVoiceTimer(data.voiceTimeoutSeconds, data.voiceWarningSeconds ?? 120);
                 }
+
+                // Start realtime session status heartbeat to detect admin revocation
+                startSessionHeartbeat(data.sessionId, data.conversationId);
               }
 
               handleMessage(msg, data.conversationId, targetMode);
@@ -953,6 +1075,7 @@ export function AgentPanel({
               console.error("[AgentPanel] WebSocket error:", err);
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
               stopVoiceTimer();
+              stopSessionHeartbeat();
               setState("ERROR");
               setErrorMessage("Connection error. Please try again.");
               setView("error");
@@ -961,6 +1084,7 @@ export function AgentPanel({
               console.log("[AgentPanel] WebSocket closed:", e);
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
               stopVoiceTimer();
+              stopSessionHeartbeat();
               if (audioManagerRef.current) {
                 audioManagerRef.current.stop();
                 audioManagerRef.current = null;
@@ -980,6 +1104,7 @@ export function AgentPanel({
         }
 
         sessionRef.current = session;
+        startSessionHeartbeat(data.sessionId, data.conversationId);
 
         // Initialize and start audio manager if in voice mode
         if (targetMode === "voice" && isMounted.current && currentGen === sessionGenerationRef.current) {
@@ -1026,7 +1151,14 @@ export function AgentPanel({
         setView("error");
       }
     },
-    [handleMessage, startVoiceTimer, stopVoiceTimer, checkAndExecutePendingDisconnect]
+    [
+      handleMessage,
+      startVoiceTimer,
+      stopVoiceTimer,
+      checkAndExecutePendingDisconnect,
+      startSessionHeartbeat,
+      stopSessionHeartbeat,
+    ]
   );
 
   // ── Session Lifecycle ───────────────────────────────────────────────────────
@@ -1048,6 +1180,7 @@ export function AgentPanel({
 
       // Immediately tear down previous audio & socket
       stopVoiceTimer();
+      stopSessionHeartbeat();
       if (chatThinkingTimerRef.current) {
         clearTimeout(chatThinkingTimerRef.current);
         chatThinkingTimerRef.current = null;
@@ -1167,7 +1300,13 @@ export function AgentPanel({
           role: "user",
           content: text,
         }),
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (res.status === 403) {
+            handleRemoteRevokeRef.current?.();
+          }
+        })
+        .catch(() => {});
 
       try {
         await (sessionRef.current as any).sendRealtimeInput({ text });
@@ -1189,6 +1328,7 @@ export function AgentPanel({
       isMounted.current = false;
       sessionGenerationRef.current++;
       stopVoiceTimer();
+      stopSessionHeartbeat();
       if (audioManagerRef.current) {
         audioManagerRef.current.stop();
         audioManagerRef.current = null;
