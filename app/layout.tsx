@@ -85,9 +85,9 @@ export const metadata: Metadata = {
       "Official portfolio and personal website of Kishore R (Kishore), an Aspiring AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems.",
     images: [
       {
-        url: "/icon.svg",
-        width: 128,
-        height: 128,
+        url: "/icon-512x512.png",
+        width: 512,
+        height: 512,
         alt: "Kishore R Portfolio Logo",
       },
     ],
@@ -115,10 +115,19 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
   },
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
+      { url: "/icon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico" },
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
 };
@@ -158,6 +167,7 @@ export default async function RootLayout({
         "@id": `${siteUrl}/#website`,
         url: siteUrl,
         name: `${name} — Portfolio`,
+        alternateName: ["Kishore", "Kishore R", "Kishore Portfolio", "kishoreabc.dev", "kishoreabc"],
         publisher: {
           "@id": `${siteUrl}/#person`,
         },
@@ -185,7 +195,8 @@ export default async function RootLayout({
         jobTitle: headline,
         description: bio,
         url: siteUrl,
-        image: config?.avatarUrl || `${siteUrl}/icon.svg`,
+        image: config?.avatarUrl || `${siteUrl}/icon-512x512.png`,
+        logo: `${siteUrl}/icon-512x512.png`,
         email: contactEmail ? `mailto:${contactEmail}` : undefined,
         telephone: phone || undefined,
         address: {
