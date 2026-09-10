@@ -42,6 +42,9 @@ model SiteConfig {
   // Dynamic JSON sections
   achievements       Json     @default("[]")
   journeyEntries     Json     @default("[]")
+  // AI Settings
+  geminiApiKey       String?
+  geminiModel        String?   @default("gemini-3.1-flash-live-preview")
   // LeetCode (manual + cached)
   leetcodeTotal      Int      @default(380)
   leetcodeEasy       Int      @default(0)
@@ -207,5 +210,75 @@ model SiteVisitorCounter {
   updatedAt     DateTime @updatedAt
 
   @@map("site_visitor_counter")
+}
+
+// ─────────────────────────────────────────────
+// AI AGENT — DAILY USAGE BUDGET
+// Prisma-backed so limits survive serverless cold starts
+// and are shared across all instances.
+// ─────────────────────────────────────────────
+model AiUsageCounter {
+  id          String   @id @default("daily")
+  date        String   // "YYYY-MM-DD" — auto-reset key
+  sessions    Int      @default(0)
+  messages    Int      @default(0)
+  toolCalls   Int      @default(0)
+  webSearches Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@map("ai_usage_counter")
+}
+
+// ─────────────────────────────────────────────
+// AI AGENT — CONVERSATION SESSION
+// One record per visitor AI session (voice or chat).
+// IP stored as SHA-256 hash — never raw.
+// ─────────────────────────────────────────────
+model AiConversation {
+  id           String      @id @default(cuid())
+  sessionId    String      @unique
+  mode         String      // "voice" | "chat"
+  ipHash       String      // SHA-256(ip) — privacy-safe
+  startedAt    DateTime    @default(now())
+  endedAt      DateTime?
+  messageCount Int         @default(0)
+  messages     AiMessage[]
+
+  @@map("ai_conversations")
+}
+
+// ─────────────────────────────────────────────
+// AI AGENT — MESSAGE (TRANSCRIPT)
+// Each user turn and assistant response stored separately.
+// toolsUsed tracks which tools fired for a given reply.
+// ─────────────────────────────────────────────
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String         // "user" | "assistant"
+  content        String         @db.Text
+  toolsUsed      String[]       // e.g. ["get_my_projects", "get_my_github"]
+  createdAt      DateTime       @default(now())
+
+  @@map("ai_messages")
+}
+
+// ─────────────────────────────────────────────
+// AI AGENT — VOICE CONCURRENCY QUEUE
+// Visitors who cannot get a voice slot immediately are
+// added here. Prisma-backed for cross-instance consistency.
+// promoted = true once the visitor was admitted.
+// ─────────────────────────────────────────────
+model AiQueue {
+  id           String    @id @default(cuid())
+  queueId      String    @unique // opaque UUID returned to browser
+  ipHash       String
+  joinedAt     DateTime  @default(now())
+  lastPolledAt DateTime  @default(now())
+  promoted     Boolean   @default(false)
+  promotedAt   DateTime?
+
+  @@map("ai_queue")
 }
 

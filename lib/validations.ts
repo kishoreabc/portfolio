@@ -145,6 +145,8 @@ export const SiteConfigSchema = z.object({
   seoKeywords: z.string().max(5000).optional().or(z.literal("")),
   ogImageUrl: z.string().url().optional().or(z.literal("")),
   heroImageStyle: z.string().optional().or(z.literal("")),
+  geminiApiKey: z.string().optional().or(z.literal("")),
+  geminiModel: z.string().optional().or(z.literal("")),
   leetcodeTotal: z.number().int().min(0),
   leetcodeEasy: z.number().int().min(0),
   leetcodeMedium: z.number().int().min(0),

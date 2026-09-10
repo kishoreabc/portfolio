@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff, Bot } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CloudinaryUpload } from "@/components/admin/CloudinaryUpload";
 
@@ -19,6 +20,7 @@ const DEFAULT_SEO_KEYWORDS =
 
 export function ProfileForm({ config }: { config: SiteConfig | null }) {
   const [loading, setLoading] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const defaultValues: SiteConfigFormData = {
     heroTitle: config?.heroTitle ?? "Building Intelligent Systems That Solve Real Problems.",
@@ -37,6 +39,8 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
     seoDescription: config?.seoDescription ?? "Official portfolio and personal website of Kishore R, an aspiring AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems.",
     seoKeywords: config?.seoKeywords ?? DEFAULT_SEO_KEYWORDS,
     ogImageUrl: config?.ogImageUrl ?? "",
+    geminiApiKey: config?.geminiApiKey ?? "",
+    geminiModel: config?.geminiModel ?? "gemini-3.1-flash-live-preview",
     leetcodeTotal: config?.leetcodeTotal ?? 380,
     leetcodeEasy: config?.leetcodeEasy ?? 0,
     leetcodeMedium: config?.leetcodeMedium ?? 0,
@@ -237,6 +241,73 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             accept="image/*"
             helpText="1200x630px preview card displayed when your website link is shared on LinkedIn or Twitter."
           />
+        </CardContent>
+      </Card>
+
+      {/* AI Assistant & Gemini Configuration */}
+      <Card className="border-border/70 bg-card/60">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="w-5 h-5 text-primary" />
+                AI Assistant & Model Settings
+              </CardTitle>
+              <CardDescription>
+                Configure the Gemini model and API key used for the public voice/chat assistant, blog generation, and email replies.
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+              Gemini Live API
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold flex items-center justify-between">
+              <span>Google Gemini API Key</span>
+              <span className="text-[11px] font-normal text-muted-foreground">
+                Leave empty to fallback to GEMINI_API_KEY from .env.local
+              </span>
+            </label>
+            <div className="relative">
+              <Input
+                type={showApiKey ? "text" : "password"}
+                {...register("geminiApiKey")}
+                placeholder="AIzaSy... (Paste custom Google AI Studio key)"
+                className="font-mono text-xs pr-10"
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiKey(!showApiKey)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                aria-label={showApiKey ? "Hide API Key" : "Show API Key"}
+              >
+                {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Dynamic override: updating this key works immediately across the entire portfolio without requiring server restarts.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold flex items-center justify-between">
+              <span>Gemini Model ID</span>
+              <span className="text-[11px] font-normal text-muted-foreground">
+                Default: gemini-3.1-flash-live-preview
+              </span>
+            </label>
+            <Input
+              {...register("geminiModel")}
+              placeholder="gemini-3.1-flash-live-preview"
+              className="font-mono text-xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Model identifier used by the Live WebSocket assistant. Recommended: <code>gemini-3.1-flash-live-preview</code>.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

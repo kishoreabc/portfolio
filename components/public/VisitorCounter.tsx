@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion } from "motion/react";
-import { Eye } from "lucide-react";
 
 /**
  * Hook to smoothly animate a number count-up with ease-out curve
@@ -87,39 +86,6 @@ export function VisitorCounter() {
     };
 
     recordVisit();
-
-    // Live dynamic polling every 6 seconds so live views update in real-time
-    const pollInterval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/visitors", { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          setCount((prev) => (data.totalVisits !== prev ? data.totalVisits : prev));
-        }
-      } catch {}
-    }, 6000);
-
-    // Refresh immediately when tab gains focus or visibility
-    const handleSync = async () => {
-      if (document.visibilityState === "visible") {
-        try {
-          const res = await fetch("/api/visitors", { method: "GET" });
-          if (res.ok) {
-            const data = await res.json();
-            setCount((prev) => (data.totalVisits !== prev ? data.totalVisits : prev));
-          }
-        } catch {}
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleSync);
-    window.addEventListener("focus", handleSync);
-
-    return () => {
-      clearInterval(pollInterval);
-      document.removeEventListener("visibilitychange", handleSync);
-      window.removeEventListener("focus", handleSync);
-    };
   }, []);
 
   return (

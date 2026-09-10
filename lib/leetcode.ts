@@ -152,7 +152,18 @@ function buildHeatmapData(
  * Falls back to stale cache on failure, returns null if no cache.
  */
 export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> {
-  const username = process.env.NEXT_PUBLIC_LEETCODE_USERNAME ?? "KISHORE-R";
+  let username = process.env.NEXT_PUBLIC_LEETCODE_USERNAME;
+  if (!username) {
+    const leetSocial = await prisma.socialLink.findFirst({
+      where: { platform: { contains: "Leet", mode: "insensitive" } },
+    });
+    if (leetSocial?.url) {
+      const match = leetSocial.url.match(/leetcode\.com\/(?:u\/)?([^/]+)/i);
+      if (match) username = match[1];
+    }
+  }
+  if (!username) username = "KISHORE-R";
+
   const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   // Check cache freshness
@@ -184,10 +195,10 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
           : (cachedPayload as unknown as Record<string, number>),
       streak: cachedPayload.streak ?? 0,
       totalActiveDays: cachedPayload.totalActiveDays ?? 0,
-      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 393,
-      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 225,
-      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 157,
-      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 11,
+      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 0,
+      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 0,
+      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 0,
+      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 0,
     };
     return buildHeatmapData(normalized);
   }
@@ -221,10 +232,10 @@ export async function getLeetCodeHeatmap(): Promise<LeetCodeHeatmapData | null> 
           : (cachedPayload as unknown as Record<string, number>),
       streak: cachedPayload.streak ?? 0,
       totalActiveDays: cachedPayload.totalActiveDays ?? 0,
-      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 393,
-      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 225,
-      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 157,
-      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 11,
+      solvedTotal: cachedPayload.solvedTotal ?? config?.leetcodeTotal ?? 0,
+      solvedEasy: cachedPayload.solvedEasy ?? config?.leetcodeEasy ?? 0,
+      solvedMedium: cachedPayload.solvedMedium ?? config?.leetcodeMedium ?? 0,
+      solvedHard: cachedPayload.solvedHard ?? config?.leetcodeHard ?? 0,
     };
     return buildHeatmapData(normalized);
   }

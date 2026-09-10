@@ -239,7 +239,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
         />
       )}
 
-      <DialogContent className="sm:max-w-3xl lg:max-w-4xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
+      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader className="space-y-1.5 border-b border-border/60 pb-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">

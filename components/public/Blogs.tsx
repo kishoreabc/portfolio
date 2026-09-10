@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BlogPost } from "@prisma/client";
+import { BlogPost, SocialLink } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 
 interface BlogsProps {
   blogs: BlogPost[];
+  socialLinks?: SocialLink[];
 }
 
 export function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string }) {
@@ -26,98 +27,15 @@ export function LinkedInIcon({ className = "w-3.5 h-3.5" }: { className?: string
   );
 }
 
-const fallbackBlogs: BlogPost[] = [
-  {
-    id: "fb-1",
-    title: "Building Production-Grade RAG Systems: Vector Embeddings to Multi-Document Reasoning",
-    slug: "building-production-grade-rag-systems",
-    summary:
-      "A deep dive into building resilient Retrieval-Augmented Generation architectures with FAISS, OCR document parsing, and hybrid chunking strategies for enterprise documents.",
-    content: `## Architecture of High-Accuracy RAG Pipelines
-
-Retrieval-Augmented Generation (RAG) is quickly shifting from simple toy prototypes to high-reliability production systems. In this article, we break down the critical lessons learned building production document analysis systems.
-
-### 1. The Chunking Bottleneck
-Naive fixed-character chunking frequently fractures critical context. Implementing semantic chunking based on document structure (headers, table boundaries, paragraphs) dramatically boosts retrieval precision.
-
-### 2. Hybrid Retrieval with FAISS and BM25
-While dense vector retrieval (Sentence Transformers) captures semantic intent, sparse lexical retrieval (BM25) guarantees exact keyword matching (part numbers, ticker symbols, financial metrics). Combining both yields state-of-the-art results.
-
-### 3. Re-ranking
-Employing a lightweight cross-encoder re-ranker before passing context to the LLM reduces hallucination rates by over 40% and keeps context windows lean.`,
-    coverImage: null,
-    tags: ["RAG", "FAISS", "Python", "Generative AI"],
-    readTime: "6 min read",
-    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
-    published: true,
-    featured: true,
-    displayOrder: 1,
-    publishedAt: new Date("2026-03-01"),
-    createdAt: new Date("2026-03-01"),
-    updatedAt: new Date("2026-03-01"),
-  },
-  {
-    id: "fb-2",
-    title: "Multimodal Semantic Search: Combining MetaCLIP & BLIP with Vector Databases",
-    slug: "multimodal-semantic-search-metaclip-blip",
-    summary:
-      "How to design an e-commerce catalog search indexing 20,000+ items that supports concurrent image-similarity queries, natural language prompts, and cosine ranking.",
-    content: `## Bridging Text and Vision in Modern Search
-
-Users do not think purely in text or purely in images. When looking for fashion items, they want to provide a reference image and say "find something like this in emerald green".
-
-### Unified Latent Space with MetaCLIP
-By projecting both image features and text descriptions into a shared embedding space, we can compute cosine distance between arbitrary modalities without intermediate translations.
-
-### Automated Captioning via BLIP
-For catalogs with sparse metadata, leveraging BLIP generates synthetic detailed descriptions that enrich both vector embeddings and keyword search indexes.
-
-### Scalable Vector Search
-Indexing vectors into ChromaDB allows sub-50ms retrieval latencies across tens of thousands of items with filtered metadata scopes.`,
-    coverImage: null,
-    tags: ["Multimodal AI", "CLIP", "ChromaDB", "Computer Vision"],
-    readTime: "5 min read",
-    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
-    published: true,
-    featured: true,
-    displayOrder: 2,
-    publishedAt: new Date("2026-02-15"),
-    createdAt: new Date("2026-02-15"),
-    updatedAt: new Date("2026-02-15"),
-  },
-  {
-    id: "fb-3",
-    title: "Voice-First Assistive Agents: Real-Time Audio Memory Systems with FastAPI & TTS",
-    slug: "voice-first-assistive-agents",
-    summary:
-      "Designing EchoRecall, a conversational assistive agent enabling visually impaired users to store and retrieve real-world object locations using natural spoken dialogues.",
-    content: `## Designing for Voice-Only Interfaces
-
-Voice-first applications require a completely different design paradigm than chat screens. Latency, clarity, and conversational state tracking are paramount.
-
-### Low-Latency Speech Pipelines
-Minimizing Time-to-First-Token (TTFT) requires streaming audio chunking, fast intent recognition via lightweight LLM models, and synthesized SSML speech markup for realistic prosody and pitch variations.
-
-### Spatial Memory Indexing
-Memories of object locations are parsed into spatial graphs stored in MySQL with timestamped validity states, allowing natural queries like "Where did I put my keys this morning?".`,
-    coverImage: null,
-    tags: ["Voice AI", "FastAPI", "Assistive Tech", "LLMs"],
-    readTime: "4 min read",
-    canonicalUrl: "https://www.linkedin.com/in/kishoreabc/recent-activity/all/",
-    published: true,
-    featured: false,
-    displayOrder: 3,
-    publishedAt: new Date("2026-01-20"),
-    createdAt: new Date("2026-01-20"),
-    updatedAt: new Date("2026-01-20"),
-  },
-];
-
-export function Blogs({ blogs }: BlogsProps) {
+export function Blogs({ blogs, socialLinks = [] }: BlogsProps) {
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const displayBlogs = blogs && blogs.length > 0 ? blogs.filter((b) => b.published) : fallbackBlogs;
+  const displayBlogs = blogs && blogs.length > 0 ? blogs.filter((b) => b.published) : [];
+
+  const linkedinLink = socialLinks.find(
+    (l) => l.platform.toLowerCase() === "linkedin" || (l.iconSlug ?? "").toLowerCase() === "linkedin"
+  )?.url;
 
   const handleOpenModal = (blog: BlogPost) => {
     setSelectedBlog(blog);
@@ -155,126 +73,137 @@ export function Blogs({ blogs }: BlogsProps) {
           </p>
         </div>
 
-        {/* Centered Responsive Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-          {displayBlogs.map((blog) => {
-            const linkedinUrl =
-              blog.canonicalUrl || "https://www.linkedin.com/in/kishoreabc/recent-activity/all/";
+        {/* Centered Responsive Grid or Empty State */}
+        {displayBlogs.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm font-mono">
+            No published articles at the moment.
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+            {displayBlogs.map((blog) => {
+              const articleUrl = blog.canonicalUrl || `/blog/${blog.slug}`;
 
-            return (
-              <Card
-                key={blog.id}
-                className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-[#0A66C2]/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden"
-              >
-                <div className="space-y-4">
-                  {/* Top Bar: Badges & Reading Info */}
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-2.5 py-0.5 rounded-full border border-[#0A66C2]/20 font-mono">
-                        <LinkedInIcon className="w-3 h-3" /> Post
-                      </span>
-                      {blog.featured && (
-                        <Badge variant="default" className="text-[10px] px-2 py-0.5 shadow-xs">
-                          Featured
-                        </Badge>
-                      )}
+              return (
+                <Card
+                  key={blog.id}
+                  className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-[#0A66C2]/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden"
+                >
+                  <div className="space-y-4">
+                    {/* Top Bar: Badges & Reading Info */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#0A66C2] dark:text-[#70B5F9] bg-[#0A66C2]/10 px-2.5 py-0.5 rounded-full border border-[#0A66C2]/20 font-mono">
+                          <LinkedInIcon className="w-3 h-3" /> Post
+                        </span>
+                        {blog.featured && (
+                          <Badge variant="default" className="text-[10px] px-2 py-0.5 shadow-xs">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
+                        {blog.readTime && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-primary/80" /> {blog.readTime}
+                          </span>
+                        )}
+                        {blog.publishedAt && (
+                          <span className="flex items-center gap-1 text-muted-foreground/80">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-[11px] font-mono text-muted-foreground">
-                      {blog.readTime && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-primary/80" /> {blog.readTime}
-                        </span>
-                      )}
-                      {blog.publishedAt && (
-                        <span className="flex items-center gap-1 text-muted-foreground/80">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(blog.publishedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <div className="space-y-2">
-                    <a
-                      href={linkedinUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-bold text-lg text-foreground group-hover:text-[#0A66C2] dark:group-hover:text-[#70B5F9] transition-colors leading-snug line-clamp-2 break-words block hover:underline"
-                      title="Read article on LinkedIn"
-                    >
-                      {blog.title}
-                    </a>
-
-                    {/* Summary */}
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 break-words">
-                      {blog.summary}
-                    </p>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {blog.tags.slice(0, 3).map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="text-[10px] px-2 py-0.5 bg-muted/60 hover:bg-muted font-mono"
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <a
+                        href={articleUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-lg text-foreground group-hover:text-[#0A66C2] dark:group-hover:text-[#70B5F9] transition-colors leading-snug line-clamp-2 break-words block hover:underline"
+                        title="Read article on LinkedIn"
                       >
-                        #{tag}
-                      </Badge>
-                    ))}
-                    {blog.tags.length > 3 && (
-                      <span className="text-[10px] text-muted-foreground font-mono self-center">
-                        +{blog.tags.length - 3}
-                      </span>
-                    )}
+                        {blog.title}
+                      </a>
+
+                      {/* Summary */}
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 break-words">
+                        {blog.summary}
+                      </p>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {blog.tags.slice(0, 3).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-[10px] px-2 py-0.5 bg-muted/60 hover:bg-muted font-mono"
+                        >
+                          #{tag}
+                        </Badge>
+                      ))}
+                      {blog.tags.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground font-mono self-center">
+                          +{blog.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Card Footer: Action buttons */}
-                <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-2 mt-auto">
-                  <a
-                    href={linkedinUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 h-8 text-xs px-3.5 rounded-full bg-[#0A66C2] hover:bg-[#004182] text-white font-medium transition-all shadow-xs cursor-pointer"
-                  >
-                    <LinkedInIcon className="w-3.5 h-3.5" /> Read on LinkedIn{" "}
-                    <ExternalLink className="w-3 h-3 ml-0.5" />
-                  </a>
+                  {/* Card Footer: Action buttons */}
+                  <div className="pt-4 border-t border-border/50 flex items-center justify-between gap-2 mt-auto">
+                    {articleUrl !== "#" ? (
+                      <a
+                        href={articleUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 h-8 text-xs px-3.5 rounded-full bg-[#0A66C2] hover:bg-[#004182] text-white font-medium transition-all shadow-xs cursor-pointer"
+                      >
+                        <LinkedInIcon className="w-3.5 h-3.5" /> Read on LinkedIn{" "}
+                        <ExternalLink className="w-3 h-3 ml-0.5" />
+                      </a>
+                    ) : (
+                      <div />
+                    )}
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleOpenModal(blog)}
-                    className="h-8 text-xs px-3 rounded-full border-border/70 hover:border-primary/50 text-muted-foreground hover:text-foreground gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
-                    title="Quick preview summary on page"
-                  >
-                    <Eye className="w-3.5 h-3.5" /> Quick Read
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenModal(blog)}
+                      className="h-8 text-xs px-3 rounded-full border-border/70 hover:border-primary/50 text-muted-foreground hover:text-foreground gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
+                      title="Quick preview summary on page"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Quick Read
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {/* Bottom Centered CTA */}
-        <div className="text-center pt-2">
-          <a
-            href="https://www.linkedin.com/in/kishoreabc"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 h-9 px-5 rounded-full text-xs font-mono border border-border/70 bg-card/60 hover:bg-[#0A66C2]/10 hover:border-[#0A66C2]/40 hover:text-[#0A66C2] dark:hover:text-[#70B5F9] transition-all shadow-xs"
-          >
-            <LinkedInIcon className="w-3.5 h-3.5 text-[#0A66C2] dark:text-[#70B5F9]" />
-            Follow on LinkedIn for Latest AI Write-ups
-            <ExternalLink className="w-3 h-3 text-muted-foreground" />
-          </a>
-        </div>
+        {linkedinLink && (
+          <div className="text-center pt-2">
+            <a
+              href={linkedinLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 h-9 px-5 rounded-full text-xs font-mono border border-border/70 bg-card/60 hover:bg-[#0A66C2]/10 hover:border-[#0A66C2]/40 hover:text-[#0A66C2] dark:hover:text-[#70B5F9] transition-all shadow-xs"
+            >
+              <LinkedInIcon className="w-3.5 h-3.5 text-[#0A66C2] dark:text-[#70B5F9]" />
+              Follow on LinkedIn for Latest AI Write-ups
+              <ExternalLink className="w-3 h-3 text-muted-foreground" />
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Blog Reading Modal */}

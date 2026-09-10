@@ -18,6 +18,7 @@ import {
   ExternalLink,
   ShieldAlert,
   Milestone,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ export function AdminSidebar({
       icon: MessageSquare,
       badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined,
     },
+    { href: "/admin/ai-conversations", label: "AI Conversations", icon: Bot },
     { href: "/admin/profile", label: "Profile & Site Config", icon: User },
   ];
 

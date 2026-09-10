@@ -6,21 +6,33 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Code2, ExternalLink, Flame, Trophy, CheckCircle2 } from "lucide-react";
-import { SiteConfig } from "@prisma/client";
+import { SiteConfig, SocialLink } from "@prisma/client";
 import { GitHubHeatmapData, LeetCodeHeatmapData, LeetCodeDay } from "@/types";
-
 
 interface CodingSectionProps {
   config: SiteConfig | null;
   githubHeatmap: GitHubHeatmapData | null;
+  socialLinks?: SocialLink[];
 }
 
-export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
+export function CodingSection({ config, githubHeatmap, socialLinks = [] }: CodingSectionProps) {
   const [lcHeatmap, setLcHeatmap] = useState<LeetCodeHeatmapData | null>(null);
   const [lcLoading, setLcLoading] = useState(true);
 
-  const totalLeetCode = lcHeatmap?.solvedTotal ?? config?.leetcodeTotal ?? 393;
-  const leetcodeUrl = "https://leetcode.com/u/KISHORE-R/";
+  const totalLeetCode = lcHeatmap?.solvedTotal ?? config?.leetcodeTotal ?? 0;
+
+  const githubLink = socialLinks.find(
+    (l) => l.platform.toLowerCase() === "github" || (l.iconSlug ?? "").toLowerCase() === "github"
+  )?.url;
+  const githubUsername = githubLink ? githubLink.replace(/\/$/, "").split("/").pop() : null;
+
+  const leetcodeLink = socialLinks.find(
+    (l) =>
+      l.platform.toLowerCase() === "leetcode" ||
+      (l.iconSlug ?? "").toLowerCase() === "leetcode" ||
+      (l.iconSlug ?? "").toLowerCase() === "code"
+  )?.url;
+  const leetcodeUsername = leetcodeLink ? leetcodeLink.replace(/\/$/, "").split("/").pop() : null;
 
 
   useEffect(() => {
@@ -71,7 +83,7 @@ export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
               <Code2 className="w-5 h-5" />
             </div>
             <p className="text-3xl font-extrabold text-foreground">
-              {githubHeatmap?.totalContributions ?? "800+"}
+              {githubHeatmap?.totalContributions ?? 0}
             </p>
             <p className="text-xs text-muted-foreground font-medium">GitHub Contributions (Year)</p>
           </Card>
@@ -96,14 +108,16 @@ export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
                 </svg>
                 <h3 className="font-bold text-sm">GitHub Contributions</h3>
               </div>
-              <a
-                href="https://github.com/Kishoreabc"
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-mono"
-              >
-                @Kishoreabc <ExternalLink className="w-3 h-3" />
-              </a>
+              {githubLink && (
+                <a
+                  href={githubLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1 font-mono"
+                >
+                  @{githubUsername || "GitHub"} <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
 
             {githubHeatmap ? (
@@ -203,14 +217,16 @@ export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
                 <Code2 className="w-5 h-5 text-amber-500" />
                 <h3 className="font-bold text-sm">LeetCode Submissions</h3>
               </div>
-              <a
-                href={leetcodeUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-mono"
-              >
-                @KISHORE-R <ExternalLink className="w-3 h-3" />
-              </a>
+              {leetcodeLink && (
+                <a
+                  href={leetcodeLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1 font-mono"
+                >
+                  @{leetcodeUsername || "LeetCode"} <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
             </div>
 
             {lcLoading ? (
@@ -326,11 +342,15 @@ export function CodingSection({ config, githubHeatmap }: CodingSectionProps) {
             ) : (
               <div className="space-y-3 py-4 text-center">
                 <p className="text-xs text-muted-foreground">
-                  380+ problem solutions verified on LeetCode profile.
+                  {totalLeetCode > 0
+                    ? `${totalLeetCode}+ problem solutions verified on LeetCode profile.`
+                    : "Problem solutions tracked on LeetCode."}
                 </p>
-                <Button size="sm" variant="outline" className="rounded-full text-xs" render={<a href={leetcodeUrl} target="_blank" rel="noreferrer" />}>
-                  View LeetCode Profile
-                </Button>
+                {leetcodeLink && (
+                  <Button size="sm" variant="outline" className="rounded-full text-xs" render={<a href={leetcodeLink} target="_blank" rel="noreferrer" />}>
+                    View LeetCode Profile
+                  </Button>
+                )}
               </div>
             )}
           </Card>

@@ -67,19 +67,25 @@ export async function generateMessageReplySuggestion({
 }) {
   await requireAdmin();
 
-  const effectiveKey = apiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
+  const config = await prisma.siteConfig.findUnique({
+    where: { id: "singleton" },
+    select: { geminiApiKey: true, geminiModel: true },
+  });
+
+  const effectiveKey = apiKey?.trim() || config?.geminiApiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
   if (!effectiveKey) {
     return {
       success: false,
       needsApiKey: true,
-      error: "Gemini API key is required. Please configure it in AI Settings or .env.local.",
+      error: "Gemini API key is required. Please configure it in Admin Settings (Profile & Config) or .env.local.",
     };
   }
 
   const effectiveModel = (
     model?.trim() ||
+    config?.geminiModel?.trim() ||
     process.env.GEMINI_MODEL?.trim() ||
-    "gemini-3.5-flash-lite"
+    "gemini-2.5-flash"
   ).toLowerCase();
 
   const toneGuidelines: Record<string, string> = {

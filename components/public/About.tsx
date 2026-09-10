@@ -13,7 +13,7 @@ interface AboutProps {
 }
 
 export function About({ config, educationList }: AboutProps) {
-  const [solvedCount, setSolvedCount] = useState<number>(config?.leetcodeTotal ?? 393);
+  const [solvedCount, setSolvedCount] = useState<number>(config?.leetcodeTotal ?? 0);
 
   useEffect(() => {
     async function fetchLatestStats() {
@@ -24,15 +24,13 @@ export function About({ config, educationList }: AboutProps) {
           setSolvedCount(json.data.solvedTotal);
         }
       } catch {
-        // Fallback to initial config value
+        // Keep initial config value
       }
     }
     fetchLatestStats();
   }, []);
 
-  const aboutText =
-    config?.aboutText ||
-    "I am Kishore R, an Artificial Intelligence & Machine Learning engineer and final-year B.Tech student at Bannari Amman Institute of Technology. Focused on building production-ready AI systems across Machine Learning, Retrieval-Augmented Generation (RAG), Multimodal AI, and LLM orchestration. I combine strong DSA fundamentals with modern AI engineering practices to create systems that deliver real-world impact.";
+  const aboutText = config?.aboutText || "";
 
   return (
     <section id="about" className="section-padding bg-card/20 relative border-t border-border/40">

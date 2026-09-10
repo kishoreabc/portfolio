@@ -75,31 +75,38 @@ export function EducationDialog({ education, trigger }: EducationDialogProps) {
       ) : (
         <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Education</Button>} />
       )}
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{education ? "Edit Education Record" : "Add Education Record"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold">Institution *</label>
-            <Input {...register("institution")} placeholder="Bannari Amman Institute of Technology" />
-            {errors.institution && <p className="text-xs text-destructive">{errors.institution.message}</p>}
-          </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4 w-full min-w-0 max-w-full overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">Institution *</label>
+              <Input {...register("institution")} placeholder="Bannari Amman Institute of Technology" />
+              {errors.institution && <p className="text-xs text-destructive">{errors.institution.message}</p>}
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Degree *</label>
               <Input {...register("degree")} placeholder="B.Tech" />
               {errors.degree && <p className="text-xs text-destructive">{errors.degree.message}</p>}
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Field of Study</label>
               <Input {...register("field")} placeholder="AI & ML" />
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">CGPA / Score</label>
+              <Input {...register("score")} placeholder="8.33 CGPA or 84.8%" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Start Date</label>
               <Input type="date" {...register("startDate")} />
@@ -108,13 +115,6 @@ export function EducationDialog({ education, trigger }: EducationDialogProps) {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">End Date (Leave blank if Present)</label>
               <Input type="date" {...register("endDate")} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold">CGPA / Score</label>
-              <Input {...register("score")} placeholder="8.33 CGPA or 84.8%" />
             </div>
 
             <div className="space-y-1.5">

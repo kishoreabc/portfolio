@@ -33,10 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   });
 
-  const title = config?.seoTitle?.trim() || "Kishore R | Aspiring AI/ML & Generative AI Engineer | Portfolio";
+  const title = config?.seoTitle?.trim() || "Kishore R";
   const description =
     config?.seoDescription?.trim() ||
-    "Official portfolio and personal website of Kishore R (Kishore), an AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and experience.";
+    "Official portfolio and personal website of Kishore R (Kishore), Aspiring AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and experience.";
 
   const rawKeywords = config?.seoKeywords?.trim();
   const keywords = rawKeywords
@@ -96,58 +96,14 @@ export default async function HomePage() {
     githubHeatmap = results[7];
   } catch (error) {
     console.warn(
-      "[HomePage] Database or external fetch error during render/build, using fallbacks:",
+      "[HomePage] Database or external fetch error during render/build:",
       error instanceof Error ? error.message : error
     );
   }
 
-  const rawJourneyEntries = (config?.journeyEntries as unknown as JourneyEntry[]) || [
-    {
-      id: "btech",
-      title: "B.Tech in AI & ML",
-      organization: "Bannari Amman Institute of Technology",
-      period: "2023 – Present",
-      description: "Pursuing B.Tech in Artificial Intelligence & Machine Learning (CGPA: 8.33).",
-      type: "education",
-      icon: "graduation-cap",
-    },
-    {
-      id: "genai",
-      title: "Generative AI Development",
-      organization: "Self-driven Projects",
-      period: "2024 – Present",
-      description: "Built RAG pipelines, multimodal search, and voice-first AI agents.",
-      type: "project",
-      icon: "cpu",
-    },
-    {
-      id: "leetcode",
-      title: "LeetCode / DSA Journey",
-      organization: "LeetCode",
-      period: "2023 – Present",
-      description: "Solved 380+ problem algorithms across arrays, trees, and dynamic programming.",
-      type: "achievement",
-      icon: "code",
-    },
-    {
-      id: "nptel",
-      title: "NPTEL — Programming in Java",
-      organization: "SWAYAM NPTEL",
-      period: "2024",
-      description: "Elite + Gold certification with 92% score.",
-      type: "certification",
-      icon: "award",
-    },
-    {
-      id: "ncc",
-      title: "NCC Involvement",
-      organization: "National Cadet Corps",
-      period: "2023 – Present",
-      description: "Active NCC cadet developing leadership, discipline, and teamwork.",
-      type: "activity",
-      icon: "shield",
-    },
-  ];
+  const rawJourneyEntries = (Array.isArray(config?.journeyEntries)
+    ? config.journeyEntries
+    : []) as unknown as JourneyEntry[];
 
   const journeyEntries = sortJourneyEntriesByTimelineDesc(rawJourneyEntries);
 
@@ -161,8 +117,8 @@ export default async function HomePage() {
         <Skills skills={skills} />
         <Projects projects={projects} />
         <Certifications certifications={certifications} />
-        <Blogs blogs={blogs} />
-        <CodingSection config={config} githubHeatmap={githubHeatmap} />
+        <Blogs blogs={blogs} socialLinks={socialLinks} />
+        <CodingSection config={config} githubHeatmap={githubHeatmap} socialLinks={socialLinks} />
         <Journey journeyEntries={journeyEntries} />
         <Contact config={config} />
       </main>

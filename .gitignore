@@ -48,3 +48,5 @@ prisma/migrations/migration_lock.toml
 *.tsbuildinfo
 next-env.d.ts
 .neon
+
+/Prompts

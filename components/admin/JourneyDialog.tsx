@@ -117,18 +117,18 @@ export function JourneyDialog({ entry, trigger }: JourneyDialogProps) {
           }
         />
       )}
-      <DialogContent className="w-[95vw] sm:max-w-lg">
+      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{entry ? "Edit Journey Milestone" : "Add Journey Milestone"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold">Title *</label>
-            <Input {...register("title")} placeholder="e.g. B.Tech in AI & ML" />
-            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
-          </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4 w-full min-w-0 max-w-full overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold">Title *</label>
+              <Input {...register("title")} placeholder="e.g. B.Tech in AI & ML" />
+              {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Organization / Platform *</label>
               <Input {...register("organization")} placeholder="e.g. Bannari Amman Institute" />
@@ -136,15 +136,15 @@ export function JourneyDialog({ entry, trigger }: JourneyDialogProps) {
                 <p className="text-xs text-destructive">{errors.organization.message}</p>
               )}
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Timeline / Period *</label>
               <Input {...register("period")} placeholder="e.g. 2023 – Present" />
               {errors.period && <p className="text-xs text-destructive">{errors.period.message}</p>}
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Type *</label>
               <select

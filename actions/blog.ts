@@ -175,20 +175,26 @@ export async function generateBlogQuickRead({
     };
   }
 
-  const effectiveKey = apiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
+  const config = await prisma.siteConfig.findUnique({
+    where: { id: "singleton" },
+    select: { geminiApiKey: true, geminiModel: true },
+  });
+
+  const effectiveKey = apiKey?.trim() || config?.geminiApiKey?.trim() || process.env.GEMINI_API_KEY?.trim();
   if (!effectiveKey) {
     return {
       success: false,
       needsApiKey: true,
       error:
-        "Gemini API key is required. Please set GEMINI_API_KEY in .env.local or enter it in the dialog.",
+        "Gemini API key is required. Please set it in Admin Settings (Profile & Config) or .env.local.",
     };
   }
 
   const effectiveModel = (
     model?.trim() ||
+    config?.geminiModel?.trim() ||
     process.env.GEMINI_MODEL?.trim() ||
-    "gemini-3.5-flash-lite"
+    "gemini-2.5-flash"
   ).toLowerCase();
 
   try {
@@ -215,7 +221,7 @@ Return ONLY a JSON object with these exact keys:
   "readTime": "4 min read",
   "publishedAt": "YYYY-MM-DD",
   "coverImage": "URL to high-quality relevant tech image if available or empty string",
-  "content": "## Overview & Architecture\\n\\n[Detailed explanation of the problem, why it matters, and high-level architecture]\\n\\n### Key Technical Insights\\n\\n[Deep dive into mechanisms, frameworks, algorithms, or pipelines]\\n\\n### Implementation Details & Trade-offs\\n\\n[Concrete trade-offs, performance nuances, or pseudocode/architecture insights]\\n\\n### Practical Takeaways\\n\\n- [Actionable takeaway 1]\\n- [Actionable takeaway 2]\\n- [Actionable takeaway 3]"
+  "content": "## Overview\\n\\n[Detailed explanation of the problem, why it matters, and high-level architecture]\\n\\n### Key Technical Insights\\n\\n[Deep dive into mechanisms, frameworks, algorithms, or pipelines]\\n\\n### Implementation Details & Trade-offs\\n\\n[Concrete trade-offs, performance nuances, or pseudocode/architecture insights]\\n\\n### Practical Takeaways\\n\\n- [Actionable takeaway 1]\\n- [Actionable takeaway 2]\\n- [Actionable takeaway 3]"
 }`;
 
     const response = await ai.models.generateContent({

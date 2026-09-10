@@ -6,6 +6,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-gei
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { VoiceAgent } from "@/components/ai/VoiceAgent";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.kishoreabc.dev";
@@ -13,11 +14,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.kishoreabc.dev"
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Kishore R | Aspiring AI/ML & Generative AI Engineer | Kishore Portfolio",
+    default: "Kishore R",
     template: "%s | Kishore R",
   },
   description:
-    "Official portfolio and personal website of Kishore R (Kishore), an AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and open-source contributions.",
+    "Official portfolio and personal website of Kishore R (Kishore), Aspiring AI/ML and Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems. Based in Salem, Tamil Nadu, India. Explore Kishore's projects, articles, code, and open-source contributions.",
   keywords: [
     // Primary Name Variations for Search Engines
     "Kishore",
@@ -122,112 +123,82 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": `${siteUrl}/#website`,
-      url: siteUrl,
-      name: "Kishore R — Kishore Portfolio",
-      alternateName: [
-        "Kishore",
-        "Kishore R",
-        "Kishore Portfolio",
-        "Kishore R Portfolio",
-        "Kishore R AI",
-        "kishoreabc",
-        "kishoreabc.dev",
-      ],
-      description:
-        "Official portfolio and personal website of Kishore R, Aspiring AI/ML & Generative AI Engineer.",
-      publisher: {
-        "@id": `${siteUrl}/#person`,
-      },
-      inLanguage: "en-US",
-    },
-    {
-      "@type": "ProfilePage",
-      "@id": `${siteUrl}/#profilepage`,
-      url: siteUrl,
-      name: "Kishore R | Aspiring AI/ML & Generative AI Engineer Profile",
-      isPartOf: {
-        "@id": `${siteUrl}/#website`,
-      },
-      about: {
-        "@id": `${siteUrl}/#person`,
-      },
-      mainEntity: {
-        "@id": `${siteUrl}/#person`,
-      },
-    },
-    {
-      "@type": "Person",
-      "@id": `${siteUrl}/#person`,
-      name: "Kishore R",
-      givenName: "Kishore",
-      familyName: "R",
-      additionalName: "Kishore",
-      alternateName: [
-        "Kishore",
-        "kishore",
-        "kishore r",
-        "kishoreabc",
-        "Kishore AI",
-        "Kishore R AI",
-        "Kishore AI Engineer",
-        "Kishore Salem",
-        "kishorehp134",
-      ],
-      jobTitle: "Aspiring AI/ML & Generative AI Engineer",
-      description:
-        "Kishore R (Kishore) is an Aspiring AI/ML & Generative AI Engineer specializing in RAG pipelines, LLMs, multimodal AI, and intelligent systems engineering.",
-      url: siteUrl,
-      image: `${siteUrl}/icon.svg`,
-      email: "mailto:kishorehp134@gmail.com",
-      telephone: "+918807303469",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Salem",
-        addressRegion: "Tamil Nadu",
-        addressCountry: "IN",
-      },
-      alumniOf: {
-        "@type": "CollegeOrUniversity",
-        name: "Bannari Amman Institute of Technology",
-        url: "https://www.bitsathy.ac.in",
-      },
-      sameAs: [
-        "https://github.com/Kishoreabc",
-        "https://www.linkedin.com/in/kishoreabc/",
-        "https://leetcode.com/u/KISHORE-R/",
-        "https://twitter.com/kishoreabc",
-      ],
-      knowsAbout: [
-        "Artificial Intelligence",
-        "Machine Learning",
-        "Generative AI",
-        "Large Language Models (LLMs)",
-        "Retrieval-Augmented Generation (RAG)",
-        "Multimodal AI",
-        "Deep Learning",
-        "Natural Language Processing",
-        "Next.js",
-        "React",
-        "TypeScript",
-        "Python",
-        "FastAPI",
-        "Data Structures & Algorithms",
-      ],
-    },
-  ],
-};
+import { prisma } from "@/lib/db";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let config = null;
+  let socialLinks: { platform: string; url: string }[] = [];
+  try {
+    const results = await Promise.all([
+      prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
+      prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
+    ]);
+    config = results[0];
+    socialLinks = results[1];
+  } catch {}
+
+  const dynamicSameAs = socialLinks.map((s) => s.url).filter(Boolean);
+  const contactEmail = config?.contactEmail;
+  const phone = config?.phone;
+  const name = config?.name || "Kishore R";
+  const headline = config?.headline || "Aspiring AI/ML & Generative AI Engineer";
+  const bio = config?.bio || config?.aboutText || "";
+  const location = config?.location || "Salem, Tamil Nadu, India";
+  const [city = "Salem", state = "Tamil Nadu", country = "IN"] = location.split(",").map((s) => s.trim());
+
+  const dynamicJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: `${name} — Portfolio`,
+        publisher: {
+          "@id": `${siteUrl}/#person`,
+        },
+        inLanguage: "en-US",
+      },
+      {
+        "@type": "ProfilePage",
+        "@id": `${siteUrl}/#profilepage`,
+        url: siteUrl,
+        name: `${name} | ${headline} Profile`,
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#person`,
+        },
+        mainEntity: {
+          "@id": `${siteUrl}/#person`,
+        },
+      },
+      {
+        "@type": "Person",
+        "@id": `${siteUrl}/#person`,
+        name,
+        jobTitle: headline,
+        description: bio,
+        url: siteUrl,
+        image: config?.avatarUrl || `${siteUrl}/icon.svg`,
+        email: contactEmail ? `mailto:${contactEmail}` : undefined,
+        telephone: phone || undefined,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: city,
+          addressRegion: state,
+          addressCountry: country,
+        },
+        sameAs: dynamicSameAs,
+      },
+    ],
+  };
+
   return (
     <html
       lang="en"
@@ -237,7 +208,7 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(dynamicJsonLd) }}
         />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
@@ -250,6 +221,7 @@ export default function RootLayout({
           <TooltipProvider>
             {children}
             <Toaster richColors position="top-right" closeButton />
+            <VoiceAgent />
           </TooltipProvider>
         </ThemeProvider>
       </body>
