@@ -36,13 +36,17 @@ export async function getEffectiveGeminiConfig(): Promise<{ apiKey: string; mode
     });
 
     const apiKey = config?.geminiApiKey?.trim() || process.env.GEMINI_API_KEY?.trim() || "";
-    const model = config?.geminiModel?.trim() || AI_CONFIG.model;
+    // If GEMINI_LIVE_MODEL is explicitly provided in env, it overrides DB / default
+    const model =
+      process.env.GEMINI_LIVE_MODEL?.trim() ||
+      config?.geminiModel?.trim() ||
+      AI_CONFIG.model;
 
     return { apiKey, model };
   } catch {
     return {
       apiKey: process.env.GEMINI_API_KEY?.trim() || "",
-      model: AI_CONFIG.model,
+      model: process.env.GEMINI_LIVE_MODEL?.trim() || AI_CONFIG.model,
     };
   }
 }

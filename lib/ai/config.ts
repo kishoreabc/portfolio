@@ -21,7 +21,7 @@ function envBool(key: string, fallback: boolean): boolean {
 
 export const AI_CONFIG = {
   // ── Model ────────────────────────────────────────────────────────
-  model: "gemini-3.1-flash-live-preview" as const,
+  model: (process.env.GEMINI_LIVE_MODEL || process.env.GEMINI_MODEL || "gemini-3.1-flash-live-preview").trim(),
 
   // ── Concurrency (voice sessions only) ────────────────────────────
   maxConcurrentVoice: envInt("AI_MAX_CONCURRENT_VOICE", 2),
