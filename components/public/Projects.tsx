@@ -7,7 +7,7 @@ import { ProjectModal } from "@/components/public/ProjectModal";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, GitFork, ArrowUpRight, Cpu } from "lucide-react";
+import { Star, GitFork, ArrowUpRight } from "lucide-react";
 
 interface ProjectsProps {
   projects: Project[];

@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Code2, ExternalLink, Flame, Trophy, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Code2, ExternalLink, Flame, Trophy } from "lucide-react";
 import { SiteConfig, SocialLink } from "@prisma/client";
 import { GitHubHeatmapData, LeetCodeHeatmapData, LeetCodeDay } from "@/types";
 

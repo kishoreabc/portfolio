@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CertificationSchema, CertificationFormData } from "@/lib/validations";
 import { createCertification, updateCertification } from "@/actions/certification";
@@ -47,13 +47,16 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<CertificationFormData>({
     resolver: zodResolver(CertificationSchema),
     defaultValues,
   });
+
+  const imageUrlValue = useWatch({ control, name: "imageUrl" });
+  const publishedValue = useWatch({ control, name: "published" });
 
   const onSubmit = async (data: CertificationFormData) => {
     setLoading(true);
@@ -119,7 +122,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
 
           <CloudinaryUpload
             label="Certificate Image / PDF (Cloudinary)"
-            value={watch("imageUrl") ?? ""}
+            value={imageUrlValue ?? ""}
             onChange={(url) => setValue("imageUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload file or paste Cloudinary URL..."
           />
@@ -133,7 +136,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
           <div className="flex items-center justify-between pt-2 border-t border-border/60">
             <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
               <Switch
-                checked={watch("published")}
+                  checked={publishedValue}
                 onCheckedChange={(val) => setValue("published", val)}
               />
               Published

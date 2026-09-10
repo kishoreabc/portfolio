@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProjectSchema, ProjectFormData } from "@/lib/validations";
 import { createProject, updateProject, generateProjectDetails } from "@/actions/project";
@@ -98,7 +98,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<ProjectFormData>({
@@ -106,10 +106,16 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
     defaultValues,
   });
 
-  const techInput = watch("technologies");
+  const techInput = useWatch({ control, name: "technologies" });
+  const githubUrlValue = useWatch({ control, name: "githubUrl" });
+  const liveUrlValue = useWatch({ control, name: "liveUrl" });
+  const imageUrlValue = useWatch({ control, name: "imageUrl" });
+  const featuredValue = useWatch({ control, name: "featured" });
+  const publishedValue = useWatch({ control, name: "published" });
+  const githubSyncEnabledValue = useWatch({ control, name: "githubSyncEnabled" });
 
   const handleAutoGenerate = async () => {
-    const targetUrl = aiUrl.trim() || watch("githubUrl")?.trim() || watch("liveUrl")?.trim();
+    const targetUrl = aiUrl.trim() || githubUrlValue?.trim() || liveUrlValue?.trim();
     if (!targetUrl || !targetUrl.startsWith("http")) {
       toast.error(
         "Please enter a valid GitHub repository or project link first (starting with http:// or https://)."
@@ -366,7 +372,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
                 value={aiUrl}
                 onChange={(e) => {
                   setAiUrl(e.target.value);
-                  if (e.target.value.includes("github.com") && !watch("githubUrl")) {
+                  if (e.target.value.includes("github.com") && !githubUrlValue) {
                     setValue("githubUrl", e.target.value);
                   }
                 }}
@@ -375,7 +381,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
               />
               <Button
                 type="button"
-                disabled={generating || (!aiUrl.trim() && !watch("githubUrl") && !watch("liveUrl"))}
+                disabled={generating || (!aiUrl.trim() && !githubUrlValue && !liveUrlValue)}
                 onClick={handleAutoGenerate}
                 className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs font-semibold h-9 px-4 cursor-pointer shadow-sm"
               >
@@ -492,7 +498,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
 
           <CloudinaryUpload
             label="Project Cover Image (Cloudinary)"
-            value={watch("imageUrl") ?? ""}
+            value={imageUrlValue ?? ""}
             onChange={(url) => setValue("imageUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload project screenshot or paste Cloudinary URL..."
           />
@@ -518,7 +524,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
-                  checked={watch("featured")}
+                  checked={featuredValue}
                   onCheckedChange={(val) => setValue("featured", val)}
                 />
                 Featured
@@ -526,7 +532,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
 
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
-                  checked={watch("published")}
+                  checked={publishedValue}
                   onCheckedChange={(val) => setValue("published", val)}
                 />
                 Published
@@ -534,7 +540,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
 
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
-                  checked={watch("githubSyncEnabled")}
+                  checked={githubSyncEnabledValue}
                   onCheckedChange={(val) => setValue("githubSyncEnabled", val)}
                 />
                 Sync GitHub Stars

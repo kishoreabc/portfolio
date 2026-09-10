@@ -53,7 +53,7 @@ export async function getKnownPortfolioResources(): Promise<KnownPortfolioResour
         .catch(() => []),
     ]);
 
-    let resumeUrl: string | undefined = config?.resumeUrl?.trim() || undefined;
+    const resumeUrl: string | undefined = config?.resumeUrl?.trim() || undefined;
     let githubUrl: string | undefined = undefined;
     let leetcodeUrl: string | undefined = undefined;
     let linkedinUrl: string | undefined = undefined;

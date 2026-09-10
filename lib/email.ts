@@ -17,6 +17,15 @@ function getResend(): Resend {
   return resend;
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export interface ContactEmailPayload {
   senderName: string;
   senderEmail: string;
@@ -31,9 +40,14 @@ export interface ContactEmailPayload {
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<void> {
   let from = process.env.CONTACT_FROM_EMAIL?.trim();
   if (!from || from.includes("yourdomain.com") || from.includes("example.com")) {
-    from = "Kishore R  <noreply@kishoreabc.dev>";
+    from = "Kishore R <noreply@kishoreabc.dev>";
   }
   const to = (process.env.CONTACT_TO_EMAIL ?? "kishorehp134@gmail.com").trim().toLowerCase();
+
+  const safeName = escapeHtml(payload.senderName);
+  const safeEmail = escapeHtml(payload.senderEmail);
+  const safeSubject = escapeHtml(payload.subject);
+  const safeMessage = escapeHtml(payload.message);
 
   const { error } = await getResend().emails.send({
     from,
@@ -62,13 +76,13 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
             </div>
 
             <div class="label">From</div>
-            <div class="value">${payload.senderName} &lt;${payload.senderEmail}&gt;</div>
+            <div class="value">${safeName} &lt;${safeEmail}&gt;</div>
 
             <div class="label">Subject</div>
-            <div class="value">${payload.subject}</div>
+            <div class="value">${safeSubject}</div>
 
             <div class="label">Message</div>
-            <div class="message-box">${payload.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+            <div class="message-box">${safeMessage}</div>
 
             <div class="footer">
               <p>Sent from your portfolio contact form • ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</p>
@@ -102,7 +116,7 @@ Reply to: ${payload.senderEmail}
  * Sends a direct reply email to the message sender.
  */
 export async function sendDirectReplyEmail({
-  recipientName,
+  recipientName: _recipientName,
   recipientEmail,
   subject,
   message,

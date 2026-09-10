@@ -20,7 +20,6 @@ import { hashIp } from "./security";
 import { prisma } from "@/lib/db";
 
 // Module-level Map — isolated per serverless instance.
-// eslint-disable-next-line no-var
 const sessions = new Map<string, AgentSession>();
 
 // ── Cleanup ──────────────────────────────────────────────────────────────────

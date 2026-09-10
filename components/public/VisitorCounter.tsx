@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useSyncExternalStore } from "react";
 import { motion } from "motion/react";
+
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
 
 /**
  * Hook to smoothly animate a number count-up with ease-out curve
@@ -20,25 +25,25 @@ function useCountUp(target: number | null, duration: number = 1000) {
       return;
     }
 
-    const startTime = performance.now();
+    let startTime: number | null = null;
+    let animationFrameId: number;
 
-    const frame = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      // Exponential ease-out
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const val = Math.round(start + diff * ease);
-      setCurrent(val);
+    const frame = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // Ease out quart
+      const ease = 1 - Math.pow(1 - progress, 4);
+      setCurrent(Math.round(start + diff * ease));
 
       if (progress < 1) {
-        requestAnimationFrame(frame);
+        animationFrameId = requestAnimationFrame(frame);
       } else {
-        setCurrent(target);
         prevTarget.current = target;
       }
     };
 
-    requestAnimationFrame(frame);
+    animationFrameId = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [target, duration]);
 
   return current;
@@ -46,12 +51,10 @@ function useCountUp(target: number | null, duration: number = 1000) {
 
 export function VisitorCounter() {
   const [count, setCount] = useState<number | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const animatedCount = useCountUp(count, 1200);
 
   useEffect(() => {
-    setMounted(true);
-
     const recordVisit = async () => {
       try {
         const DEBOUNCE_KEY = "portfolio_last_visit_time";

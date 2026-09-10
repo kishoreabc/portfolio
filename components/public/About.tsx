@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, MapPin, Mail, Award, BookOpen } from "lucide-react";
+import { GraduationCap, MapPin, Mail } from "lucide-react";
 import { SiteConfig, Education } from "@prisma/client";
 
 interface AboutProps {
@@ -127,7 +127,7 @@ export function About({ config, educationList }: AboutProps) {
             </h3>
 
             <div className="space-y-4 relative before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-border/80">
-              {educationList.map((edu, idx) => (
+              {educationList.map((edu) => (
                 <div key={edu.id} className="relative pl-8 space-y-1 group">
                   <span className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-primary ring-4 ring-background group-hover:scale-125 transition-transform" />
                   <Card className="border-border/70 bg-card/60 p-4 transition-all hover:border-primary/40">

@@ -96,7 +96,7 @@ export function VoiceVisualizer({
   artifacts,
   projects,
   onClearArtifacts,
-  onInterrupt,
+  onInterrupt: _onInterrupt,
   onSelectSuggested,
 }: VoiceVisualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -61,7 +61,7 @@ export interface EphemeralToken {
  * Returns null and logs an error if creation fails — callers must handle null.
  */
 export async function createEphemeralToken(
-  mode: AgentMode
+  _mode: AgentMode
 ): Promise<EphemeralToken | null> {
   try {
     const { apiKey } = await getEffectiveGeminiConfig();
@@ -73,8 +73,15 @@ export async function createEphemeralToken(
 
     // Lightweight single-use token creation (~500ms vs ~11,000ms with heavy constraints).
     // The Live session config (systemInstruction, tools, audio config) is passed cleanly
-    // and securely on connection directly by the client.
-    const response = await (client as any).authTokens.create({
+    const response = await (
+      client as unknown as {
+        authTokens: {
+          create: (options: {
+            config: { uses: number; expireTime: string; newSessionExpireTime: string };
+          }) => Promise<{ name?: string; token?: string }>;
+        };
+      }
+    ).authTokens.create({
       config: {
         uses: 1, // single session
         expireTime: new Date(
@@ -86,7 +93,10 @@ export async function createEphemeralToken(
       },
     });
 
-    const token: string = response?.name ?? response?.token ?? response;
+    const token: string =
+      (typeof response === "string"
+        ? response
+        : response?.name ?? response?.token) ?? "";
     if (!token || typeof token !== "string") {
       console.error("[AI:EphemeralToken] Unexpected token response shape:", response);
       return null;

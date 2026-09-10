@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { JourneyEntrySchema, JourneyEntryFormData } from "@/lib/validations";
 import { createJourneyEntry, updateJourneyEntry } from "@/actions/journey";
@@ -75,7 +75,7 @@ export function JourneyDialog({ entry, trigger }: JourneyDialogProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<JourneyEntryFormData>({
@@ -83,7 +83,7 @@ export function JourneyDialog({ entry, trigger }: JourneyDialogProps) {
     defaultValues,
   });
 
-  const selectedIcon = watch("icon");
+  const selectedIcon = useWatch({ control, name: "icon" });
 
   const onSubmit = async (data: JourneyEntryFormData) => {
     setLoading(true);

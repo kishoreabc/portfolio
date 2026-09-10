@@ -1002,7 +1002,7 @@ export function AgentPanel({
         }
 
         await connectToGemini(data as EphemeralTokenResponse, targetMode, currentGen);
-      } catch (err) {
+      } catch (_err) {
         if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
         setErrorMessage("Could not connect. Please check your connection.");
         setView("error");

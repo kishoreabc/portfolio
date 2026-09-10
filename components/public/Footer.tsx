@@ -1,22 +1,18 @@
-import Link from "next/link";
 import { SocialLink } from "@prisma/client";
-import { Code2 } from "lucide-react";
 
 interface FooterProps {
   socialLinks: SocialLink[];
 }
 
 export function Footer({ socialLinks }: FooterProps) {
-  const year = new Date().getFullYear();
 
   return (
     <footer className="border-t border-border/60 bg-card/40 py-12 text-xs text-muted-foreground">
       <div className="container-portfolio flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
         {/* Brand */}
         <div className="space-y-1">
-          <p className="font-bold text-sm text-foreground">Kishore R</p>
           <p className="text-xs text-muted-foreground">
-            Aspiring AI/ML & Generative AI Engineer • Bannari Amman Institute of Technology
+            Aspiring AI/ML Engineer • Bannari Amman Institute of Technology
           </p>
         </div>
 

@@ -10,12 +10,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sparkles, Mic, MessageSquare, X, ArrowRight, Bot } from "lucide-react";
 import { AgentPanel } from "./AgentPanel";
 import { AudioManager } from "./AudioManager";
 import type { AgentMode } from "@/types/ai";
 
 export function VoiceAgent() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [mode, setMode] = useState<AgentMode>("voice");
@@ -82,6 +84,11 @@ export function VoiceAgent() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isPickerOpen]);
+
+  // Do not render the floating AI launcher on the admin panel
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <>

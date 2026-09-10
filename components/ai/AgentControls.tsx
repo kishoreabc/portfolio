@@ -16,9 +16,7 @@ import {
   Mic,
   MicOff,
   MessageSquare,
-  Volume2,
   SendHorizonal,
-  Unplug,
   RotateCcw,
   Square,
   Loader2,
@@ -51,7 +49,7 @@ export function AgentControls({
   onSwitchMode,
   onSendText,
   onDisconnect,
-  onInterrupt,
+  onInterrupt: _onInterrupt,
   onReconnect,
 }: AgentControlsProps) {
   const [textInput, setTextInput] = useState("");

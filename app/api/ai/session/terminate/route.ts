@@ -1,5 +1,5 @@
 /**
- * DELETE /api/ai/session
+ * DELETE /api/ai/session/terminate
  *
  * Terminates a session: marks AiConversation.endedAt, releases the voice slot,
  * and removes the in-memory session entry.
@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { validateSession, terminateSession } from "@/lib/ai/session-store";
 import { releaseVoiceSlot } from "@/lib/ai/concurrency";
-import { extractIp, isJsonContentType, isOriginAllowed, toSafeErrorMessage } from "@/lib/ai/security";
+import { extractIp, isJsonContentType, isOriginAllowed } from "@/lib/ai/security";
 
 export async function DELETE(request: NextRequest) {
   if (!isJsonContentType(request)) {
@@ -37,9 +37,11 @@ export async function DELETE(request: NextRequest) {
   const session = await validateSession(sessionId, ip);
 
   let wasVoice = session ? session.mode === "voice" : false;
+  let foundInDb = false;
 
   if (session) {
     terminateSession(sessionId);
+    foundInDb = true; // session exists — DB record will also exist
   } else {
     // Fallback to database record if session was already evicted from memory
     try {
@@ -48,8 +50,15 @@ export async function DELETE(request: NextRequest) {
       });
       if (conv && conv.sessionId === sessionId) {
         wasVoice = conv.mode === "voice";
+        foundInDb = true;
       }
     } catch {}
+  }
+
+  // If we found no session in memory AND no matching DB record, the IDs are
+  // completely unknown — return 404 so callers can detect the difference.
+  if (!foundInDb) {
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
   // Mark conversation as ended in DB
@@ -75,3 +84,4 @@ export const POST = DELETE;
 export async function GET() {
   return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
+

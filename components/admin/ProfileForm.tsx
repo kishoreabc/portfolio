@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SiteConfigSchema, SiteConfigFormData } from "@/lib/validations";
 import { updateSiteConfig } from "@/actions/profile";
@@ -50,7 +50,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<SiteConfigFormData>({
@@ -58,6 +58,10 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
     resolver: zodResolver(SiteConfigSchema),
     defaultValues,
   });
+
+  const avatarUrlValue = useWatch({ control, name: "avatarUrl" });
+  const resumeUrlValue = useWatch({ control, name: "resumeUrl" });
+  const ogImageUrlValue = useWatch({ control, name: "ogImageUrl" });
 
   const onSubmit = async (data: SiteConfigFormData) => {
     setLoading(true);
@@ -140,7 +144,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <CloudinaryUpload
               label="Professional Profile Image (Avatar)"
-              value={watch("avatarUrl") ?? ""}
+              value={avatarUrlValue ?? ""}
               onChange={(url) => setValue("avatarUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
               placeholder="Upload portrait photo or paste image URL..."
               accept="image/*"
@@ -149,7 +153,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
 
             <CloudinaryUpload
               label="Resume PDF File"
-              value={watch("resumeUrl") ?? ""}
+              value={resumeUrlValue ?? ""}
               onChange={(url) => setValue("resumeUrl", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
               placeholder="Upload PDF resume or paste Cloudinary URL..."
               accept=".pdf,application/pdf"
@@ -235,7 +239,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
 
           <CloudinaryUpload
             label="Open Graph / Social Share Card Image (og:image)"
-            value={watch("ogImageUrl") ?? ""}
+            value={ogImageUrlValue ?? ""}
             onChange={(url) => setValue("ogImageUrl", url, { shouldValidate: true })}
             placeholder="Upload social banner or leave empty to use avatar..."
             accept="image/*"

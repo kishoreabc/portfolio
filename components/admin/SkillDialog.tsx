@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SkillSchema, SkillFormData } from "@/lib/validations";
 import { createSkill, updateSkill } from "@/actions/skill";
@@ -41,13 +41,16 @@ export function SkillDialog({ skill, trigger }: SkillDialogProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<SkillFormData>({
     resolver: zodResolver(SkillSchema),
     defaultValues,
   });
+
+  const categoryValue = useWatch({ control, name: "category" });
+  const publishedValue = useWatch({ control, name: "published" });
 
   const onSubmit = async (data: SkillFormData) => {
     setLoading(true);
@@ -90,7 +93,7 @@ export function SkillDialog({ skill, trigger }: SkillDialogProps) {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Category *</label>
               <Select
-                defaultValue={watch("category")}
+                defaultValue={categoryValue}
                 onValueChange={(val) => setValue("category", val as SkillFormData["category"])}
               >
                 <SelectTrigger>
@@ -114,7 +117,7 @@ export function SkillDialog({ skill, trigger }: SkillDialogProps) {
           <div className="flex items-center justify-between pt-2 border-t border-border/60">
             <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
               <Switch
-                checked={watch("published")}
+                checked={publishedValue}
                 onCheckedChange={(val) => setValue("published", val)}
               />
               Published

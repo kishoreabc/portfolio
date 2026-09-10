@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+
 import { Project } from "@prisma/client";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Star, GitFork, Cpu, CheckCircle2, AlertCircle, Layers } from "lucide-react";
+import { ExternalLink, Star, Cpu, CheckCircle2, AlertCircle, Layers } from "lucide-react";
 
 interface ProjectModalProps {
   project: Project | null;

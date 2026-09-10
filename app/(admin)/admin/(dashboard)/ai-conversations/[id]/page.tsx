@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Bot, Mic, MessageSquare, Clock, User } from "lucide-react";
+import { ArrowLeft, Bot, Mic, MessageSquare, Clock, User, Hash } from "lucide-react";
 import { getAiConversation } from "@/actions/ai-conversation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RevokeSessionButton } from "@/components/admin/RevokeSessionButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -21,6 +22,8 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
   const conversation = await getAiConversation(id);
 
   if (!conversation) notFound();
+
+  const isActive = conversation.endedAt == null;
 
   const SOURCE_ICONS: Record<string, string> = {
     get_my_profile: "📁",
@@ -41,53 +44,74 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex items-start gap-4">
-        <Button
-          render={<Link href="/admin/ai-conversations" aria-label="Back to conversations list" />}
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 mt-0.5"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Button
+            render={<Link href="/admin/ai-conversations" aria-label="Back to conversations list" />}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 mt-0.5"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-lg font-semibold text-foreground">
-              Conversation Transcript
-            </h1>
-            <Badge
-              variant="outline"
-              className={`text-[10px] gap-1 ${
-                conversation.mode === "voice"
-                  ? "border-violet-500/30 text-violet-500 bg-violet-500/10"
-                  : "border-sky-500/30 text-sky-500 bg-sky-500/10"
-              }`}
-            >
-              {conversation.mode === "voice" ? (
-                <Mic className="h-2.5 w-2.5" />
-              ) : (
-                <MessageSquare className="h-2.5 w-2.5" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg font-semibold text-foreground">
+                Conversation Transcript
+              </h1>
+              <Badge
+                variant="outline"
+                className={`text-[10px] gap-1 ${
+                  conversation.mode === "voice"
+                    ? "border-violet-500/30 text-violet-500 bg-violet-500/10"
+                    : "border-sky-500/30 text-sky-500 bg-sky-500/10"
+                }`}
+              >
+                {conversation.mode === "voice" ? (
+                  <Mic className="h-2.5 w-2.5" />
+                ) : (
+                  <MessageSquare className="h-2.5 w-2.5" />
+                )}
+                {conversation.mode}
+              </Badge>
+
+              {isActive && (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-500/40 text-emerald-500 bg-emerald-500/10 gap-1 text-[10px]"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Active Now
+                </Badge>
               )}
-              {conversation.mode}
-            </Badge>
-          </div>
+            </div>
 
-          <div className="mt-1 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {new Date(conversation.startedAt).toLocaleString([], {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
-            </span>
-            {conversation.durationSeconds != null && (
-              <span>{formatDuration(conversation.durationSeconds)} session</span>
-            )}
-            <span>{conversation.messageCount} messages</span>
-            <span className="font-mono">IP: {conversation.ipHash}</span>
+            <div className="mt-1.5 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {new Date(conversation.startedAt).toLocaleString([], {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </span>
+              {conversation.durationSeconds != null && (
+                <span>{formatDuration(conversation.durationSeconds)} session</span>
+              )}
+              <span>{conversation.messageCount} messages</span>
+              <span className="font-mono flex items-center gap-1 bg-muted/60 px-2 py-0.5 rounded border border-border/60 text-foreground/90 select-all">
+                <Hash className="h-3 w-3 text-muted-foreground" />
+                {conversation.ipHash}
+              </span>
+            </div>
           </div>
         </div>
+
+        {isActive && (
+          <div>
+            <RevokeSessionButton conversationId={conversation.id} variant="detail" />
+          </div>
+        )}
       </div>
 
       {/* Transcript */}

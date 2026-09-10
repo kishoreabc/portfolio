@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowDown, ArrowRight, FileText, Sparkles, Code2, Mail, ExternalLink, MapPin } from "lucide-react";
+import { ArrowDown, ArrowRight, FileText, Sparkles, Code2, Mail, ExternalLink } from "lucide-react";
 import { SiteConfig, SocialLink } from "@prisma/client";
 
 interface HeroProps {
@@ -12,7 +12,7 @@ interface HeroProps {
 }
 
 export function Hero({ config, socialLinks }: HeroProps) {
-  const heroTitle = config?.heroTitle ?? "Building Intelligent Systems That Solve Real Problems.";
+
   const heroSubtitle =
     config?.heroSubtitle ??
     "Aspiring AI/ML & Generative AI Engineer focused on building intelligent, multimodal and production-oriented AI systems.";
@@ -67,8 +67,7 @@ export function Hero({ config, socialLinks }: HeroProps) {
   const avatarUrl = config?.avatarUrl || "";
   const hasAvatar = Boolean(avatarUrl);
   const name = config?.name || "Kishore R";
-  const headline = config?.headline || "Aspiring AI/ML & Generative AI Engineer";
-  const locationText = `${config?.location?.split(",")[0] || "Salem"}, IN`;
+
 
   const githubLink =
     socialLinks.find(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BlogPostSchema, BlogPostFormData } from "@/lib/validations";
 import { createBlogPost, updateBlogPost, generateBlogQuickRead } from "@/actions/blog";
@@ -72,7 +72,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<BlogPostFormData>({
@@ -80,8 +80,12 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
     defaultValues,
   });
 
-  const tagsInput = watch("tags");
-  const canonicalUrlValue = watch("canonicalUrl");
+  const tagsInput = useWatch({ control, name: "tags" });
+  const canonicalUrlValue = useWatch({ control, name: "canonicalUrl" });
+  const coverImageValue = useWatch({ control, name: "coverImage" });
+  const contentValue = useWatch({ control, name: "content" });
+  const featuredValue = useWatch({ control, name: "featured" });
+  const publishedValue = useWatch({ control, name: "published" });
 
   const handleSaveApiKey = (val: string) => {
     setApiKey(val);
@@ -424,7 +428,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
 
           <CloudinaryUpload
             label="Cover Image (Cloudinary Upload)"
-            value={watch("coverImage") ?? ""}
+            value={coverImageValue ?? ""}
             onChange={(url) => setValue("coverImage", url, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
             placeholder="Upload blog cover image or paste URL..."
             accept="image/*"
@@ -475,8 +479,8 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
               />
             ) : (
               <div className="min-h-[280px] w-full p-5 sm:p-7 rounded-xl border border-input bg-card/60 text-xs shadow-xs min-w-0 max-w-full break-words [overflow-wrap:anywhere] overflow-x-hidden">
-                {watch("content") ? (
-                  <MarkdownView content={watch("content") || ""} />
+                {contentValue ? (
+                  <MarkdownView content={contentValue || ""} />
                 ) : (
                   <div className="text-center py-14 text-muted-foreground text-xs italic">
                     No content to preview yet. Switch to &quot;Write&quot; or click &quot;Auto-Generate Quick Read&quot; above.
@@ -505,7 +509,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
-                  checked={watch("featured")}
+                  checked={featuredValue}
                   onCheckedChange={(val) => setValue("featured", val)}
                 />
                 Featured
@@ -513,7 +517,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
 
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
-                  checked={watch("published")}
+                  checked={publishedValue}
                   onCheckedChange={(val) => setValue("published", val)}
                 />
                 Published

@@ -20,7 +20,6 @@ import {
   ZoomOut,
   Maximize2,
   FileText,
-  Download,
   AlertCircle,
   Loader2,
 } from "lucide-react";

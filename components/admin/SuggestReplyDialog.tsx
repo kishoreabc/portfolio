@@ -31,7 +31,6 @@ import { toast } from "sonner";
 import {
   generateMessageReplySuggestion,
   sendReplyEmailAction,
-  markMessageRead,
   markMessageReplied,
 } from "@/actions/message";
 

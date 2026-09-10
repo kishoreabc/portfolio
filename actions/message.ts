@@ -141,11 +141,11 @@ Output ONLY the ready-to-send email body text (no markdown formatting, no JSON w
       replyText,
       modelUsed: effectiveModel,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Gemini reply suggestion error:", err);
     return {
       success: false,
-      error: err?.message || "Failed to generate reply suggestion with Gemini.",
+      error: err instanceof Error ? err.message : "Failed to generate reply suggestion with Gemini.",
     };
   }
 }
@@ -190,13 +190,14 @@ export async function sendReplyEmailAction({
     revalidatePath("/admin/messages");
     revalidatePath("/admin");
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn("Direct Resend email sending failed:", err);
     return {
       success: false,
       error:
-        err?.message ||
-        "Could not send email directly via Resend. You can use 'Open in Email Client' or copy the text to send manually.",
+        err instanceof Error
+          ? err.message
+          : "Could not send email directly via Resend. You can use 'Open in Email Client' or copy the text to send manually.",
     };
   }
 }

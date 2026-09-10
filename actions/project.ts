@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { ProjectSchema, ProjectFormData } from "@/lib/validations";
-import { fetchGitHubRepo } from "@/lib/github";
+import { fetchGitHubRepo, GitHubRepo } from "@/lib/github";
 import { revalidatePath } from "next/cache";
 
 export async function createProject(data: ProjectFormData) {
@@ -148,7 +148,7 @@ async function fetchProjectUrlMetadata(url: string) {
   let description = "";
   let coverImage = "";
   let readmeSnippet = "";
-  let githubInfo: any = null;
+  let githubInfo: GitHubRepo | null = null;
 
   // 1. If it's a GitHub URL, try fetching repo metadata and README
   const githubMatch = url.match(/github\.com\/([^/]+)\/([^/]+)/i);
@@ -382,11 +382,11 @@ Return ONLY a valid JSON object matching these exact keys:
         githubSyncEnabled: Boolean(githubUrl),
       },
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Gemini project generation error:", err);
     return {
       success: false,
-      error: err?.message || "Failed to analyze project with Gemini.",
+      error: err instanceof Error ? err.message : "Failed to analyze project with Gemini.",
     };
   }
 }

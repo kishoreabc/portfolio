@@ -5,29 +5,45 @@
  * Centralised here so the hashing strategy is consistent everywhere.
  */
 
-import { createHash } from "crypto";
 import { AI_CONFIG } from "./config";
 
 /**
- * Hash an IP address with SHA-256 for privacy-safe storage.
- * We never store raw IPs in the DB.
+ * IP address handler. Returns the raw IP address directly without hashing,
+ * e.g. "192.168.0.1" or "127.0.0.1".
  */
 export function hashIp(ip: string): string {
-  return createHash("sha256").update(ip).digest("hex");
+  return ip?.trim() || "127.0.0.1";
 }
 
 /**
- * Extract the visitor's real IP from a Next.js request.
- * Checks headers in priority order, falls back to "unknown".
+ * Extract the visitor's real client IP from a Next.js request.
+ *
+ * Priority order:
+ *  1. x-real-ip          — set by reverse proxy / Vercel
+ *  2. cf-connecting-ip   — set by Cloudflare
+ *  3. x-forwarded-for    — client IP is the first entry
+ *  4. request.ip         — NextRequest standard property
+ *  5. "127.0.0.1"        — default local fallback
  */
 export function extractIp(request: Request): string {
   const headers = request.headers;
-  return (
-    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headers.get("x-real-ip") ??
-    headers.get("cf-connecting-ip") ??
-    "unknown"
-  );
+  const realIp = headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  const cfIp = headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
+
+  const xff = headers.get("x-forwarded-for");
+  if (xff) {
+    const entries = xff.split(",").map((s) => s.trim()).filter(Boolean);
+    if (entries.length > 0) return entries[0];
+  }
+
+  if ("ip" in request && typeof (request as { ip?: string }).ip === "string" && (request as { ip: string }).ip) {
+    return (request as { ip: string }).ip.trim();
+  }
+
+  return "127.0.0.1";
 }
 
 /**

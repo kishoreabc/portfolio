@@ -18,7 +18,6 @@ import {
   Code,
   Globe,
   Mail,
-  Link as LinkIcon,
   BookOpen,
 } from "lucide-react";
 import type { TranscriptEntry, KnownPortfolioResources } from "@/types/ai";

@@ -14,6 +14,7 @@ import { ContactSchema } from "@/lib/validations";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { sendContactEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
+import { extractIp } from "@/lib/ai/security";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,10 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 2. Rate limiting ───────────────────────────────────────
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      req.headers.get("x-real-ip") ??
-      "unknown";
+    const ip = extractIp(req);
 
     const rateLimit = checkRateLimit(ip);
     if (rateLimit.limited) {

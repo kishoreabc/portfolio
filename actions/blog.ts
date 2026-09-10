@@ -292,13 +292,14 @@ Return ONLY a JSON object with these exact keys:
         content: parsed.content || "",
       },
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Gemini blog generation error:", err);
     return {
       success: false,
       error:
-        err?.message ||
-        "Failed to generate Quick Read content with Gemini API. Please verify your API key.",
+        err instanceof Error
+          ? err.message
+          : "Failed to generate Quick Read content with Gemini API. Please verify your API key.",
     };
   }
 }
