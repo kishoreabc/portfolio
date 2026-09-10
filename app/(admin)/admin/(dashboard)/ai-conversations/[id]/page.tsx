@@ -5,6 +5,7 @@ import { getAiConversation } from "@/actions/ai-conversation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RevokeSessionButton } from "@/components/admin/RevokeSessionButton";
+import { DeleteAiConversationButton } from "@/components/admin/DeleteAiConversationButton";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -107,11 +108,16 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {isActive && (
-          <div>
+        <div className="flex items-center gap-2">
+          {isActive && (
             <RevokeSessionButton conversationId={conversation.id} variant="detail" />
-          </div>
-        )}
+          )}
+          <DeleteAiConversationButton
+            conversationId={conversation.id}
+            variant="detail"
+            redirectOnDelete={true}
+          />
+        </div>
       </div>
 
       {/* Transcript */}

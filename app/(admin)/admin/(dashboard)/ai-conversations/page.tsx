@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { RevokeSessionButton, RevokeAllActiveSessionsButton } from "@/components/admin/RevokeSessionButton";
+import { DeleteAiConversationButton } from "@/components/admin/DeleteAiConversationButton";
 
 interface PageProps {
   searchParams: Promise<{
@@ -212,6 +213,7 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
                         >
                           View
                         </Button>
+                        <DeleteAiConversationButton conversationId={conv.id} variant="table" />
                       </div>
                     </td>
                   </tr>

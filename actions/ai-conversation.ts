@@ -197,10 +197,27 @@ export async function revokeAllActiveAiSessions() {
 export async function deleteAiConversation(id: string) {
   await requireAdmin();
 
+  const conversation = await prisma.aiConversation.findUnique({
+    where: { id },
+  });
+
+  if (!conversation) {
+    throw new Error("Conversation not found");
+  }
+
+  // If conversation was active, terminate in-memory session & release voice slot
+  if (!conversation.endedAt) {
+    terminateSession(conversation.sessionId);
+    if (conversation.mode === "voice") {
+      await releaseVoiceSlot();
+    }
+  }
+
   // onDelete: Cascade in schema handles AiMessage deletion
   await prisma.aiConversation.delete({ where: { id } });
 
   revalidatePath("/admin/ai-conversations");
+  revalidatePath(`/admin/ai-conversations/${id}`);
 
   return { success: true };
 }

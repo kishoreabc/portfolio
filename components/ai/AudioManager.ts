@@ -143,10 +143,31 @@ export class AudioManager {
   private lastResampleSample = 0;
 
   private stopped = false;
+  private onPlaybackCompleteCallbacks: Set<() => void> = new Set();
 
   constructor(session: Session, onStateChange: (state: SessionState) => void) {
     this.session = session;
     this.onStateChange = onStateChange;
+  }
+
+  /**
+   * Register a callback triggered whenever all audio playback has completely finished.
+   */
+  public onPlaybackComplete(callback: () => void): () => void {
+    this.onPlaybackCompleteCallbacks.add(callback);
+    return () => {
+      this.onPlaybackCompleteCallbacks.delete(callback);
+    };
+  }
+
+  private notifyPlaybackComplete(): void {
+    for (const cb of Array.from(this.onPlaybackCompleteCallbacks)) {
+      try {
+        cb();
+      } catch (e) {
+        console.error("[AudioManager] Playback complete callback error:", e);
+      }
+    }
   }
 
   /**
@@ -411,6 +432,7 @@ export class AudioManager {
             this.isPlaying = false;
             this.lastResampleSample = 0;
             this.onStateChange("LISTENING");
+            this.notifyPlaybackComplete();
           }
         }, 80);
       }

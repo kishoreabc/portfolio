@@ -69,6 +69,7 @@ export function AgentPanel({
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showLeaveQueueConfirm, setShowLeaveQueueConfirm] = useState(false);
   const [voiceArtifacts, setVoiceArtifacts] = useState<FetchedArtifact[]>([]);
+  const [isCompletingSentence, setIsCompletingSentence] = useState(false);
   const sessionGenerationRef = useRef(0);
 
   const addVoiceArtifact = useCallback(
@@ -285,8 +286,16 @@ export function AgentPanel({
   const currentAssistantTextRef = useRef<string>("");
   const currentUserTurnIdRef = useRef<string | null>(null);
   const currentUserTextRef = useRef<string>("");
+  const stateRef = useRef<SessionState>(state);
+  const pendingTimerDisconnectRef = useRef(false);
+  const isModelTurnActiveRef = useRef(false);
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep refs in sync with state
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   useEffect(() => {
     sessionDataRef.current = sessionData;
   }, [sessionData]);
@@ -301,6 +310,10 @@ export function AgentPanel({
     if (voiceTimerRef.current) {
       clearInterval(voiceTimerRef.current);
       voiceTimerRef.current = null;
+    }
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
     }
     setVoiceSecondsLeft(null);
   }, []);
@@ -443,6 +456,13 @@ export function AgentPanel({
     sessionGenerationRef.current++;
 
     stopVoiceTimer();
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    pendingTimerDisconnectRef.current = false;
+    isModelTurnActiveRef.current = false;
+
     if (chatThinkingTimerRef.current) {
       clearTimeout(chatThinkingTimerRef.current);
       chatThinkingTimerRef.current = null;
@@ -467,6 +487,7 @@ export function AgentPanel({
 
     // Immediately update UI state without waiting for network calls
     if (isMounted.current) {
+      setIsCompletingSentence(false);
       setState("DISCONNECTED");
       setVoiceSecondsLeft(null);
     }
@@ -498,6 +519,33 @@ export function AgentPanel({
     }
   }, [onRequestCloseRef, handleRequestClose]);
 
+  const checkAndExecutePendingDisconnect = useCallback(() => {
+    if (!pendingTimerDisconnectRef.current) return;
+
+    const isPlaying = audioManagerRef.current?.getIsPlaying() ?? false;
+    const isTurnActive = isModelTurnActiveRef.current;
+    const isBusy = stateRef.current === "SPEAKING" || stateRef.current === "THINKING";
+
+    // If still actively playing, receiving turn chunks, or busy generating, keep waiting
+    if (isPlaying || isTurnActive || isBusy) {
+      return;
+    }
+
+    pendingTimerDisconnectRef.current = false;
+    setIsCompletingSentence(false);
+
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+
+    toast.info(
+      "Your voice session has ended (10-minute limit). You can start a new session anytime.",
+      { duration: 6000 }
+    );
+    void handleDisconnect();
+  }, [handleDisconnect]);
+
   const startVoiceTimer = useCallback(
     (totalSeconds: number, warningSeconds: number) => {
       stopVoiceTimer();
@@ -520,7 +568,40 @@ export function AgentPanel({
 
           // Session over
           if (next <= 0) {
-            stopVoiceTimer();
+            if (voiceTimerRef.current) {
+              clearInterval(voiceTimerRef.current);
+              voiceTimerRef.current = null;
+            }
+
+            const isPlaying = audioManagerRef.current?.getIsPlaying() ?? false;
+            const isTurnActive = isModelTurnActiveRef.current;
+            const isBusy = stateRef.current === "SPEAKING" || stateRef.current === "THINKING";
+
+            if (isPlaying || isTurnActive || isBusy) {
+              // Mute mic immediately so user cannot speak or start a new turn
+              audioManagerRef.current?.setMuted(true);
+              setIsMuted(true);
+              pendingTimerDisconnectRef.current = true;
+              setIsCompletingSentence(true);
+              toast.info("Voice time limit reached. Finishing response...", {
+                duration: 5000,
+              });
+
+              // Safety timeout: force disconnect after 25s if response hangs
+              if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
+              safetyTimeoutRef.current = setTimeout(() => {
+                pendingTimerDisconnectRef.current = false;
+                setIsCompletingSentence(false);
+                toast.info(
+                  "Your voice session has ended (10-minute limit). You can start a new session anytime.",
+                  { duration: 6000 }
+                );
+                void handleDisconnect();
+              }, 25000);
+
+              return 0;
+            }
+
             toast.info(
               "Your voice session has ended (10-minute limit). You can start a new session anytime."
             );
@@ -663,6 +744,7 @@ export function AgentPanel({
       let hasModelText = false;
 
       if (candidates) {
+        isModelTurnActiveRef.current = true;
         // As soon as model responds, finalize any speech-to-text user turn
         finalizeUserTurn(conversationId);
 
@@ -671,6 +753,7 @@ export function AgentPanel({
             if (currentMode === "voice") {
               audioManagerRef.current?.enqueueAudio(part.inlineData.data);
               setState("SPEAKING");
+              stateRef.current = "SPEAKING";
             }
           }
           if (part?.text) {
@@ -686,6 +769,7 @@ export function AgentPanel({
       // Transcriptions (user voice speech-to-text)
       const inputTranscription = (msg as any)?.serverContent?.inputTranscription?.text;
       if (inputTranscription?.trim()) {
+        isModelTurnActiveRef.current = true;
         appendUserChunk(inputTranscription);
         checkAndAddArtifactsFromText(inputTranscription);
       }
@@ -723,8 +807,11 @@ export function AgentPanel({
       if ((msg as any)?.serverContent?.interrupted) {
         audioManagerRef.current?.handleInterrupted();
         finalizeAssistantTurn(conversationId);
+        isModelTurnActiveRef.current = false;
         if (currentMode === "voice") {
           setState("LISTENING");
+          stateRef.current = "LISTENING";
+          checkAndExecutePendingDisconnect();
         } else {
           if (chatThinkingTimerRef.current) {
             clearTimeout(chatThinkingTimerRef.current);
@@ -749,13 +836,16 @@ export function AgentPanel({
       if ((msg as any)?.serverContent?.turnComplete) {
         finalizeUserTurn(conversationId);
         finalizeAssistantTurn(conversationId);
+        isModelTurnActiveRef.current = false;
         if (currentAssistantTextRef.current) {
           checkAndAddArtifactsFromText(currentAssistantTextRef.current);
         }
         if (currentMode === "voice") {
           if (!audioManagerRef.current?.getIsPlaying()) {
             setState("LISTENING");
+            stateRef.current = "LISTENING";
           }
+          checkAndExecutePendingDisconnect();
         } else {
           if (chatThinkingTimerRef.current) {
             clearTimeout(chatThinkingTimerRef.current);
@@ -768,7 +858,9 @@ export function AgentPanel({
       // Tool calls
       const toolCall = (msg as any)?.toolCall;
       if (toolCall?.functionCalls?.length) {
+        isModelTurnActiveRef.current = true;
         setState("THINKING");
+        stateRef.current = "THINKING";
         const activeSession = sessionRef.current;
         if (activeSession) {
           handleToolCalls(
@@ -786,6 +878,7 @@ export function AgentPanel({
       appendUserChunk,
       finalizeUserTurn,
       checkAndAddArtifactsFromText,
+      checkAndExecutePendingDisconnect,
     ]
   );
 
@@ -893,6 +986,15 @@ export function AgentPanel({
           const audio = new AudioManager(session, (nextState) => {
             if (isMounted.current && currentGen === sessionGenerationRef.current) {
               setState(nextState);
+              stateRef.current = nextState;
+              if (nextState === "LISTENING") {
+                checkAndExecutePendingDisconnect();
+              }
+            }
+          });
+          audio.onPlaybackComplete(() => {
+            if (isMounted.current && currentGen === sessionGenerationRef.current) {
+              checkAndExecutePendingDisconnect();
             }
           });
           audioManagerRef.current = audio;
@@ -924,7 +1026,7 @@ export function AgentPanel({
         setView("error");
       }
     },
-    [handleMessage, startVoiceTimer, stopVoiceTimer]
+    [handleMessage, startVoiceTimer, stopVoiceTimer, checkAndExecutePendingDisconnect]
   );
 
   // ── Session Lifecycle ───────────────────────────────────────────────────────
@@ -935,6 +1037,14 @@ export function AgentPanel({
 
       // Invalidate any existing in-flight startup or callbacks
       const currentGen = ++sessionGenerationRef.current;
+
+      pendingTimerDisconnectRef.current = false;
+      isModelTurnActiveRef.current = false;
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current);
+        safetyTimeoutRef.current = null;
+      }
+      setIsCompletingSentence(false);
 
       // Immediately tear down previous audio & socket
       stopVoiceTimer();
@@ -1137,7 +1247,7 @@ export function AgentPanel({
 
   const isTimerVisible =
     mode === "voice" &&
-    voiceSecondsLeft !== null &&
+    (voiceSecondsLeft !== null || isCompletingSentence) &&
     ["LISTENING", "SPEAKING", "THINKING"].includes(state);
 
   return (
@@ -1162,19 +1272,21 @@ export function AgentPanel({
         </div>
         <div className="flex flex-col flex-1 min-w-0">
           <span className="text-sm font-semibold text-foreground leading-tight truncate">
-            Kishore's AI Assistant
+            Kishore&apos;s AI Assistant
           </span>
           <span className="text-[10px] text-muted-foreground capitalize">
             {mode} mode
             {isTimerVisible && (
               <span
                 className={
-                  voiceSecondsLeft < 120
+                  isCompletingSentence
+                    ? "text-amber-500 font-medium ml-1 animate-pulse"
+                    : voiceSecondsLeft !== null && voiceSecondsLeft < 120
                     ? "text-destructive font-medium ml-1"
                     : "ml-1 font-mono"
                 }
               >
-                · {formatDuration(voiceSecondsLeft)} left
+                · {isCompletingSentence ? "Finishing sentence..." : `${formatDuration(voiceSecondsLeft ?? 0)} left`}
               </span>
             )}
           </span>
@@ -1235,8 +1347,8 @@ export function AgentPanel({
             onReady={(data) => connectToGemini(data, "voice")}
             onLeave={handleQueueLeave}
           />
-        ) : view === "error" ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
+        ) : view === "error" || state === "ERROR" ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
             <span className="text-3xl">⚠️</span>
             <p className="text-sm text-muted-foreground">{errorMessage}</p>
             <Button size="sm" variant="outline" onClick={() => startSession(mode)}>
@@ -1257,6 +1369,7 @@ export function AgentPanel({
               setState("LISTENING");
             }}
             onSelectSuggested={(query) => {
+              if (isCompletingSentence) return;
               if (state !== "LISTENING" && state !== "SPEAKING" && state !== "THINKING") return;
               checkAndAddArtifactsFromText(query);
               if (sessionRef.current) {
@@ -1286,6 +1399,7 @@ export function AgentPanel({
           isMuted={isMuted}
           disabled={false}
           onToggleMute={() => {
+            if (isCompletingSentence) return;
             const next = !isMuted;
             setIsMuted(next);
             audioManagerRef.current?.setMuted(next);
