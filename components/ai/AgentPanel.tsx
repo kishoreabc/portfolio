@@ -1086,7 +1086,6 @@ export function AgentPanel({
           callbacks: {
             onopen: () => {
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
-              console.log("[AgentPanel] Live WebSocket connected");
               // Advance the connecting UI to the audio setup stage
               setConnectingStage("audio");
             },
@@ -1118,8 +1117,7 @@ export function AgentPanel({
               setErrorMessage("Connection error. Please try again.");
               setView("error");
             },
-            onclose: (e: unknown) => {
-              console.log("[AgentPanel] WebSocket closed:", e);
+            onclose: (_e: unknown) => {
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
               stopVoiceTimer();
               stopSessionHeartbeat();

@@ -92,9 +92,6 @@ export async function executeTool(
     const result = await dispatch(allowedTool, args);
 
     const durationMs = Date.now() - startMs;
-    console.log(
-      `[AI:Tool] ${allowedTool} completed in ${durationMs}ms for session ${session.sessionId}`
-    );
 
     // Record the call in the in-memory session (increments counters)
     recordToolCall(session.sessionId, isSearchTool);
