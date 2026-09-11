@@ -207,8 +207,8 @@ export function AdminSidebar({
               }
             />
             <SheetContent
-              side="left"
-              className="w-[84vw] max-w-xs p-0 flex flex-col justify-between h-full bg-card/95 backdrop-blur-2xl border-r border-border/80 shadow-2xl"
+              side="right"
+              className="w-[84vw] max-w-xs p-0 flex flex-col justify-between h-full bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
             >
               <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
               <SheetDescription className="sr-only">
@@ -217,7 +217,7 @@ export function AdminSidebar({
 
               <div className="overflow-y-auto">
                 {/* Brand header */}
-                <div className="p-5 border-b border-border/60 flex items-center justify-between">
+                <div className="p-5 pr-12 border-b border-border/60 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-xs">
                       K
