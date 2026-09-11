@@ -22,7 +22,7 @@ import { buildSystemPrompt } from "@/lib/ai/system-prompt";
 import { createSession } from "@/lib/ai/session-store";
 import { checkDailyBudget, incrementSessionCount } from "@/lib/ai/usage-limit";
 import { checkVoiceSessionRateLimit } from "@/lib/ai/rate-limiter";
-import { tryAcquireVoiceSlot } from "@/lib/ai/concurrency";
+import { tryAcquireVoiceSlot, releaseVoiceSlot } from "@/lib/ai/concurrency";
 import { extractIp, isOriginAllowed, isJsonContentType, hashIp, toSafeErrorMessage } from "@/lib/ai/security";
 import { AI_CONFIG } from "@/lib/ai/config";
 import { getKnownPortfolioResources } from "@/lib/ai/resources";
@@ -147,6 +147,11 @@ export async function POST(request: NextRequest) {
         data: { endedAt: new Date() },
       })
       .catch(() => {});
+
+    if (mode === "voice") {
+      void releaseVoiceSlot();
+    }
+
     return NextResponse.json(
       { error: toSafeErrorMessage("GEMINI_UNAVAILABLE") },
       { status: 503 }

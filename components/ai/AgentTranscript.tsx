@@ -231,6 +231,43 @@ export function AgentTranscript({ entries, resources }: AgentTranscriptProps) {
       className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 scroll-smooth"
     >
       {entries.map((entry) => {
+        const isNotice =
+          entry.id.startsWith("inactivity-") ||
+          entry.id.startsWith("timelimit-") ||
+          entry.id.startsWith("revoked-");
+
+        if (isNotice) {
+          const isRevoked = entry.id.startsWith("revoked-");
+          const isTimeLimit = entry.id.startsWith("timelimit-");
+          return (
+            <div key={entry.id} className="flex justify-center my-2 px-1 animate-in fade-in duration-300">
+              <div
+                className={`flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs text-left max-w-[94%] shadow-xs ${
+                  isRevoked
+                    ? "border-destructive/40 bg-destructive/10 text-destructive-foreground"
+                    : "border-amber-500/40 bg-amber-500/10 text-amber-200"
+                }`}
+              >
+                <span className="text-base shrink-0 mt-0.5">
+                  {isRevoked ? "⚠️" : isTimeLimit ? "⏳" : "⏱️"}
+                </span>
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-foreground text-xs">
+                    {isRevoked
+                      ? "Session Ended by Administrator"
+                      : isTimeLimit
+                      ? "Voice Session Time Limit Reached"
+                      : "Session Closed Due to Inactivity"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {entry.content}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
         const isUser = entry.role === "user";
         const sourceInfo =
           entry.source && entry.source !== "none"

@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { terminateSession } from "@/lib/ai/session-store";
+import { releaseVoiceSlot } from "@/lib/ai/concurrency";
 import { isOriginAllowed } from "@/lib/ai/security";
 import { AI_CONFIG } from "@/lib/ai/config";
 
@@ -32,30 +33,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const conv = await prisma.aiConversation.findFirst({
-      where: {
-        OR: [
-          ...(sessionId ? [{ sessionId }] : []),
-          ...(conversationId ? [{ id: conversationId }] : []),
-        ],
-      },
+    // ── Check Database (cross-instance source of truth) ────────────────────
+    const conv = await prisma.aiConversation.findUnique({
+      where: conversationId ? { id: conversationId } : { sessionId: sessionId! },
       select: {
         id: true,
         sessionId: true,
+        ipHash: true,
         endedAt: true,
         mode: true,
         startedAt: true,
         messages: {
-          select: { createdAt: true },
           orderBy: { createdAt: "desc" },
           take: 1,
+          select: { createdAt: true },
         },
       },
     });
 
-    // If conversation record was deleted or not found
     if (!conv) {
-      if (sessionId) terminateSession(sessionId);
+      // Conversation not found in DB — session was wiped or never existed
       return NextResponse.json(
         { active: false, revoked: true, reason: "DELETED" },
         { status: 200, headers: NO_CACHE }
@@ -65,14 +62,42 @@ export async function GET(request: NextRequest) {
     // If already marked ended by any previous action
     if (conv.endedAt !== null) {
       terminateSession(conv.sessionId);
-      // Distinguish between admin revoke and idle/timer expiry.
-      // Sessions ended by the session-store purge or voice timer have
-      // endedAt set without admin action; we can't tell definitively at this
-      // layer, so we use the reason stored on the record if available.
+      if (conv.mode === "voice") {
+        await releaseVoiceSlot();
+      }
       return NextResponse.json(
-        { active: false, revoked: true, reason: "REVOKED", endedAt: conv.endedAt },
+        { active: false, revoked: true, reason: "IDLE_TIMEOUT", endedAt: conv.endedAt },
         { status: 200, headers: NO_CACHE }
       );
+    }
+
+    // ── Proactive voice idle timeout detection ─────────────────────────────
+    if (conv.mode === "voice") {
+      const voiceHardLimitMs = AI_CONFIG.maxVoiceSessionSeconds * 1000;
+      const elapsedMs = Date.now() - conv.startedAt.getTime();
+      const lastMessageAt = conv.messages[0]?.createdAt ?? null;
+      const lastActivityMs = lastMessageAt
+        ? lastMessageAt.getTime()
+        : conv.startedAt.getTime();
+      const idleMs = Date.now() - lastActivityMs;
+      // 3 minutes (180s) of silence/inactivity in voice mode
+      const voiceIdleLimitMs = 180 * 1000;
+
+      if (elapsedMs > voiceHardLimitMs || idleMs > voiceIdleLimitMs) {
+        await prisma.aiConversation
+          .update({
+            where: { id: conv.id },
+            data: { endedAt: new Date() },
+          })
+          .catch(() => {});
+
+        terminateSession(conv.sessionId);
+        await releaseVoiceSlot();
+        return NextResponse.json(
+          { active: false, revoked: true, reason: "IDLE_TIMEOUT" },
+          { status: 200, headers: NO_CACHE }
+        );
+      }
     }
 
     // ── Proactive chat idle timeout detection ──────────────────────────────

@@ -251,26 +251,26 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
     <Card className="border-border/80 bg-card/60 backdrop-blur-sm overflow-hidden shadow-sm">
       {/* ── Header & Controls ──────────────────────────────────────────────── */}
       <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
                 <Mic className="h-4 w-4 text-violet-400" />
               </div>
-              <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
-                Voice Agent Live Monitor
+              <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-2 flex-wrap">
+                <span>Voice Agent Live Monitor</span>
                 {activeSessions.length > 0 ? (
                   <Badge
                     variant="outline"
-                    className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 gap-1.5 text-xs font-semibold px-2 py-0.5"
+                    className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 gap-1.5 text-xs font-semibold px-2 py-0.5 whitespace-nowrap shrink-0"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                     {activeSessions.length} Active Voice Call{activeSessions.length !== 1 ? "s" : ""}
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
-                    className="border-border text-muted-foreground bg-muted/40 text-xs font-normal px-2 py-0.5"
+                    className="border-border text-muted-foreground bg-muted/40 text-xs font-normal px-2 py-0.5 whitespace-nowrap shrink-0"
                   >
                     No Active Calls
                   </Badge>
@@ -278,35 +278,35 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                 {data.waitingCount > 0 && (
                   <Badge
                     variant="outline"
-                    className="border-amber-500/40 text-amber-500 bg-amber-500/10 gap-1.5 text-xs font-semibold px-2 py-0.5"
+                    className="border-amber-500/40 text-amber-500 bg-amber-500/10 gap-1.5 text-xs font-semibold px-2 py-0.5 whitespace-nowrap shrink-0"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
                     {data.waitingCount} in Queue
                   </Badge>
                 )}
               </CardTitle>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Real-time active check &amp; concurrency monitor for Gemini Live Voice Agent. Detects newly arrived voice users and waiting queue live.
             </p>
           </div>
 
           {/* Quick Metrics & Controls */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             {/* Active Voice Concurrency Gauge */}
-            <div className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 px-3 py-1.5 text-xs">
-              <Activity className="h-3.5 w-3.5 text-violet-400" />
+            <div className="h-8 inline-flex items-center gap-2 rounded-lg border border-border/80 bg-background/80 px-3 text-xs whitespace-nowrap shrink-0">
+              <Activity className="h-3.5 w-3.5 text-violet-400 shrink-0" />
               <span className="text-muted-foreground">Concurrency:</span>
               <span
-                className={`font-semibold ${
+                className={`font-semibold font-mono whitespace-nowrap ${
                   isAtCapacity ? "text-amber-400 font-bold" : "text-emerald-400"
                 }`}
               >
                 {data.activeVoiceCount} / {data.maxConcurrentVoice}
               </span>
               {isAtCapacity && (
-                <span className="text-[10px] text-amber-500 uppercase tracking-wider font-semibold ml-0.5">
-                  (Full)
+                <span className="text-[10px] text-amber-500 uppercase tracking-wider font-bold whitespace-nowrap">
+                  (FULL)
                 </span>
               )}
             </div>
@@ -316,7 +316,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
               variant="outline"
               size="sm"
               onClick={() => setAutoRefresh((prev) => !prev)}
-              className={`h-8 text-xs gap-1.5 transition-all ${
+              className={`h-8 text-xs gap-1.5 transition-all shrink-0 whitespace-nowrap ${
                 autoRefresh
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
                   : "border-border text-muted-foreground hover:text-foreground"
@@ -324,7 +324,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
               title={autoRefresh ? "Active check running live" : "Active check paused"}
             >
               <span
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2 w-2 rounded-full shrink-0 ${
                   autoRefresh ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
                 }`}
               />
@@ -337,7 +337,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
               size="sm"
               onClick={() => refreshQueue(true)}
               disabled={isRefreshing}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
               title="Check now"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
@@ -349,31 +349,31 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                 variant="destructive"
                 size="sm"
                 onClick={() => setClearConfirmOpen(true)}
-                className="h-8 text-xs gap-1 px-2.5"
+                className="h-8 text-xs gap-1 px-2.5 shrink-0 whitespace-nowrap"
                 title="Clear all waiting visitors"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Clear Queue</span>
+                <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                <span>Clear Queue</span>
               </Button>
             )}
           </div>
         </div>
 
         {/* ── Sub-navigation Tabs: [Active Voice Users (N)] | [Waiting Queue (N)] ─ */}
-        <div className="flex items-center gap-2 pt-4 mt-2 border-t border-border/40">
+        <div className="flex items-center gap-2 pt-3 mt-3 border-t border-border/40 overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("active")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "active"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            <Radio className="h-3.5 w-3.5" />
+            <Radio className="h-3.5 w-3.5 shrink-0" />
             <span>Active Voice Users</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold shrink-0 ${
                 activeTab === "active"
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : activeSessions.length > 0
@@ -388,16 +388,16 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
           <button
             type="button"
             onClick={() => setActiveTab("queue")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "queue"
                 ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            <Users className="h-3.5 w-3.5" />
+            <Users className="h-3.5 w-3.5 shrink-0" />
             <span>Waiting Queue</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold shrink-0 ${
                 activeTab === "queue"
                   ? "bg-primary-foreground/20 text-primary-foreground"
                   : data.waitingCount > 0
@@ -435,22 +435,22 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                 <table className="w-full text-sm min-w-[700px]">
                   <thead>
                     <tr className="border-b border-border/80 bg-muted/40 text-left">
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground w-28">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap w-28">
                         Stream Status
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Visitor IP Address
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Live Duration
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Started
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Messages
                       </th>
-                      <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Actions
                       </th>
                     </tr>
@@ -468,7 +468,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors"
                         >
                           {/* Stream Status & Equalizer */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                                 {/* Equalizer sound bars */}
@@ -491,7 +491,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* IP Address */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <span className="font-mono text-xs font-semibold text-foreground tracking-wide bg-background/90 px-2 py-1 rounded border border-border/80 select-all">
                                 {session.ip}
@@ -512,7 +512,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Live Ticking Duration */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5 text-primary" />
                               <span className="font-mono text-xs font-bold text-foreground">
@@ -525,7 +525,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Started At */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-xs text-foreground font-medium">
                               {formatTimeAgo(session.startedAt)}
                             </div>
@@ -539,7 +539,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Message Count */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                               <MessageSquare className="w-3 h-3 text-muted-foreground" />
                               {session.messageCount} turns
@@ -547,7 +547,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Action Controls */}
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
                               <Button
                                 variant="outline"
@@ -609,25 +609,25 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                 <table className="w-full text-sm min-w-[700px]">
                   <thead>
                     <tr className="border-b border-border/80 bg-muted/40 text-left">
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground w-16">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap w-16">
                         Position
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         IP Address
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Status
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Joined
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Last Polled
                       </th>
-                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Est. Wait
                       </th>
-                      <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground">
+                      <th className="px-4 py-2.5 text-right text-xs font-medium text-muted-foreground whitespace-nowrap">
                         Actions
                       </th>
                     </tr>
@@ -643,7 +643,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           className="border-b border-border/60 last:border-0 hover:bg-muted/20 transition-colors"
                         >
                           {/* Queue Position */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {item.promoted ? (
                               <Badge
                                 variant="outline"
@@ -661,7 +661,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* IP Address */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-2 group">
                               <span className="font-mono text-xs font-semibold text-foreground tracking-wide bg-background/90 px-2 py-1 rounded border border-border/80 select-all">
                                 {item.ip}
@@ -682,7 +682,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Status */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {item.promoted ? (
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -697,7 +697,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Joined At */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-xs text-foreground font-medium">
                               {formatTimeAgo(item.joinedAt)}
                             </div>
@@ -711,7 +711,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Last Polled (Heartbeat) */}
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                               <span>{formatTimeAgo(item.lastPolledAt)}</span>
@@ -719,7 +719,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Estimated Wait */}
-                          <td className="px-4 py-3 text-xs text-muted-foreground">
+                          <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                             {item.promoted ? (
                               <span className="text-emerald-400 font-medium">Now</span>
                             ) : (
@@ -728,7 +728,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                           </td>
 
                           {/* Actions */}
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
                               {!item.promoted && (
                                 <Button

@@ -42,6 +42,8 @@ export interface AgentSession {
   webSearchCount: number;
   voiceStartedAt: Date | null; // null for chat mode
   state: SessionState;
+  revoked?: boolean;
+  revokeReason?: string;
 }
 
 export interface KnownPortfolioProject {

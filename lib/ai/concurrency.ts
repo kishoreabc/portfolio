@@ -37,90 +37,185 @@ export type AcquireResult =
       estimatedWaitSeconds: number;
     };
 
-const STALE_QUEUE_TIMEOUT_MS = 180 * 1000; // 3 minutes
+export const WAITING_STALE_TIMEOUT_MS = 60 * 1000; // 60 seconds without heartbeat polling = abandoned waiting spot
+export const PROMOTED_CLAIM_TIMEOUT_MS = 45 * 1000; // 45 seconds to claim a promoted slot before it rolls over
 
 /**
- * Clean up stale queue entries (stopped polling > 3m ago, or promoted > 3m ago without claiming).
+ * Clean up stale queue entries:
+ * - Unpromoted visitors who stopped polling > 60s ago
+ * - Promoted visitors who did not claim their slot within 45s
+ * - Zombie voice conversations that exceeded max duration limit
  */
 export async function purgeStaleQueueEntries(): Promise<void> {
   try {
-    const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
+    const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
+    const promotedThreshold = new Date(Date.now() - PROMOTED_CLAIM_TIMEOUT_MS);
+
     await prisma.aiQueue.deleteMany({
       where: {
         OR: [
-          { promoted: false, lastPolledAt: { lt: staleThreshold } },
-          { promoted: true, promotedAt: { lt: staleThreshold } },
+          { promoted: false, lastPolledAt: { lt: waitingThreshold } },
+          { promoted: true, promotedAt: { lt: promotedThreshold } },
         ],
       },
     });
+
+    // Proactively clean up any zombie DB voice sessions that exceeded hard limit
+    const hardVoiceLimit = new Date(
+      Date.now() - (AI_CONFIG.maxVoiceSessionSeconds * 1000 + 30_000)
+    );
+    await prisma.aiConversation
+      .updateMany({
+        where: {
+          mode: "voice",
+          endedAt: null,
+          startedAt: { lt: hardVoiceLimit },
+        },
+        data: { endedAt: new Date() },
+      })
+      .catch(() => {});
   } catch (err) {
     console.error("[AI:Concurrency] Failed to purge stale queue entries:", err);
   }
 }
 
 /**
- * Try to acquire a voice session slot for the given IP.
- * If no slot is available, creates or reuses a queue entry and returns position.
+ * Terminate all existing voice sessions for a given IP in both memory and database.
+ * Enforces the invariant: 1 IP address = maximum 1 active voice session.
  */
+export async function terminateExistingVoiceSessionsForIp(ipHash: string): Promise<void> {
+  try {
+    terminateSessionsForIp(ipHash);
+
+    await prisma.aiConversation.updateMany({
+      where: {
+        ipHash,
+        mode: "voice",
+        endedAt: null,
+      },
+      data: {
+        endedAt: new Date(),
+      },
+    });
+  } catch (err) {
+    console.error("[AI:Concurrency] Failed to terminate existing voice sessions for IP:", err);
+  }
+}
+
 /**
  * Count active voice sessions using the DB as the source of truth.
- * This works correctly across multiple serverless instances, unlike the
- * in-memory session map which is isolated per-worker.
+ * Bounded by maxVoiceSessionSeconds so dead sessions never permanently consume slots.
  */
 export async function getActiveVoiceSessionCountFromDb(): Promise<number> {
   try {
+    const hardVoiceLimit = new Date(
+      Date.now() - (AI_CONFIG.maxVoiceSessionSeconds * 1000 + 30_000)
+    );
     return await prisma.aiConversation.count({
       where: {
         mode: "voice",
         endedAt: null,
-        // Only count sessions started in the last 2× the max duration as a safety bound.
-        // Prevents permanently leaked records from blocking all new sessions.
-        startedAt: {
-          gte: new Date(Date.now() - AI_CONFIG.maxVoiceSessionSeconds * 2 * 1000),
-        },
+        startedAt: { gte: hardVoiceLimit },
       },
     });
   } catch (err) {
     console.error("[AI:Concurrency] Failed to count active voice sessions from DB:", err);
-    // Fall back to 0 on DB error so we don't permanently block new sessions.
     return 0;
   }
 }
 
-export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
-  await purgeStaleQueueEntries();
+/**
+ * Automatically promote the oldest waiting visitors if slots are currently available.
+ * Computes: occupiedSlots = activeDbSessions + pendingPromotedReservations.
+ * Available slots = max(0, MAX_CONCURRENT_VOICE - occupiedSlots).
+ *
+ * Promotes up to availableSlots visitors in strict FIFO order (joinedAt ASC).
+ */
+export async function autoPromoteWaitingVisitors(): Promise<number> {
+  try {
+    await purgeStaleQueueEntries();
 
+    const activeCount = await getActiveVoiceSessionCountFromDb();
+    const claimThreshold = new Date(Date.now() - PROMOTED_CLAIM_TIMEOUT_MS);
+    const pendingPromotedCount = await prisma.aiQueue.count({
+      where: {
+        promoted: true,
+        promotedAt: { gte: claimThreshold },
+      },
+    });
+
+    const occupiedSlots = activeCount + pendingPromotedCount;
+    const availableSlots = Math.max(0, AI_CONFIG.maxConcurrentVoice - occupiedSlots);
+
+    if (availableSlots <= 0) {
+      return 0;
+    }
+
+    const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
+    const eligibleWaiting = await prisma.aiQueue.findMany({
+      where: {
+        promoted: false,
+        lastPolledAt: { gte: waitingThreshold },
+      },
+      orderBy: { joinedAt: "asc" },
+      take: availableSlots,
+    });
+
+    if (eligibleWaiting.length === 0) {
+      return 0;
+    }
+
+    const ids = eligibleWaiting.map((e) => e.id);
+    const now = new Date();
+
+    await prisma.aiQueue.updateMany({
+      where: { id: { in: ids } },
+      data: {
+        promoted: true,
+        promotedAt: now,
+      },
+    });
+
+    return ids.length;
+  } catch (err) {
+    console.error("[AI:Concurrency] Failed to auto-promote waiting visitors:", err);
+    return 0;
+  }
+}
+
+/**
+ * Try to acquire a voice session slot for the given IP.
+ * - Terminates any previous un-ended voice session for this IP (no multi-slot leaks).
+ * - Enforces strict FIFO: new visitors cannot jump ahead if visitors are waiting.
+ * - Auto-promotes queued visitors if slots are free.
+ */
+export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
   const ipHash = hashIp(ip);
 
-  // If this visitor already has an orphaned active session in memory (e.g. page reload),
-  // clear it so they don't block themselves. We do this AFTER reading the count so we
-  // don't deflate it before the check.
-  const activeCount = await getActiveVoiceSessionCountFromDb();
+  // 1. Terminate any previous voice session for this IP in both memory & DB
+  await terminateExistingVoiceSessionsForIp(ipHash);
 
-  if (activeCount < AI_CONFIG.maxConcurrentVoice) {
-    // Slot available — caller will create the session.
-    // Clear any orphaned in-memory session for this IP (page reload scenario).
-    terminateSessionsForIp(ipHash);
-    // Clean up any leftover queue entry for this IP.
-    await prisma.aiQueue.deleteMany({ where: { ipHash } }).catch(() => {});
-    return { acquired: true };
-  }
+  // 2. Reconcile and auto-promote any waiting visitors if slots are free
+  await autoPromoteWaitingVisitors();
 
-  // Over limit — also clear the in-memory record to avoid a stale slot accumulation.
-  terminateSessionsForIp(ipHash);
+  const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
+  const claimThreshold = new Date(Date.now() - PROMOTED_CLAIM_TIMEOUT_MS);
 
-  // Check if this visitor already has an active queue entry (prevents race-condition wipes)
-  const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
+  // 3. Check if THIS visitor already has a queue entry
   const existing = await prisma.aiQueue.findFirst({
     where: {
       ipHash,
-      lastPolledAt: { gte: staleThreshold },
+      OR: [
+        { promoted: false, lastPolledAt: { gte: waitingThreshold } },
+        { promoted: true, promotedAt: { gte: claimThreshold } },
+      ],
     },
     orderBy: { joinedAt: "asc" },
   });
 
   if (existing) {
     if (existing.promoted) {
+      // Slot ready and granted to this queued visitor!
       await prisma.aiQueue.delete({ where: { id: existing.id } }).catch(() => {});
       return { acquired: true };
     }
@@ -137,7 +232,7 @@ export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
       where: {
         promoted: false,
         joinedAt: { lt: existing.joinedAt },
-        lastPolledAt: { gte: staleThreshold },
+        lastPolledAt: { gte: waitingThreshold },
       },
     });
 
@@ -146,7 +241,33 @@ export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
     return { acquired: false, queueId: existing.queueId, position, estimatedWaitSeconds };
   }
 
-  // No existing entry — add to queue
+  // 4. Visitor is NOT in the queue yet.
+  // Count active sessions and pending promoted reservations
+  const activeCount = await getActiveVoiceSessionCountFromDb();
+  const pendingPromotedCount = await prisma.aiQueue.count({
+    where: {
+      promoted: true,
+      promotedAt: { gte: claimThreshold },
+    },
+  });
+  const occupiedSlots = activeCount + pendingPromotedCount;
+
+  // Check if anyone else is already waiting in line
+  const waitingAheadCount = await prisma.aiQueue.count({
+    where: {
+      promoted: false,
+      lastPolledAt: { gte: waitingThreshold },
+    },
+  });
+
+  // Strict Concurrency & FIFO:
+  // Only grant instant slot if free slots exist AND no one is waiting ahead
+  if (occupiedSlots < AI_CONFIG.maxConcurrentVoice && waitingAheadCount === 0) {
+    await prisma.aiQueue.deleteMany({ where: { ipHash } }).catch(() => {});
+    return { acquired: true };
+  }
+
+  // Otherwise, all slots are occupied OR visitors are waiting ahead: Enqueue at back of line
   const queueId = crypto.randomUUID();
 
   try {
@@ -162,50 +283,43 @@ export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
     console.error("[AI:Concurrency] Failed to create queue entry:", err);
   }
 
-  const position = await getQueueLength();
-  const estimatedWaitSeconds =
-    position * AI_CONFIG.estimatedSessionDurationSeconds;
+  // Re-check auto-promotion in case a slot became available during enqueuing
+  await autoPromoteWaitingVisitors();
+
+  const newlyCreated = await prisma.aiQueue.findUnique({
+    where: { queueId },
+  });
+
+  if (newlyCreated?.promoted) {
+    await prisma.aiQueue.delete({ where: { queueId } }).catch(() => {});
+    return { acquired: true };
+  }
+
+  const aheadCount = await prisma.aiQueue.count({
+    where: {
+      promoted: false,
+      joinedAt: { lt: newlyCreated?.joinedAt ?? new Date() },
+      lastPolledAt: { gte: waitingThreshold },
+    },
+  });
+
+  const position = aheadCount + 1;
+  const estimatedWaitSeconds = position * AI_CONFIG.estimatedSessionDurationSeconds;
 
   return { acquired: false, queueId, position, estimatedWaitSeconds };
 }
 
 /**
- * Called when a voice session ends or a promoted user leaves.
- * Marks the oldest actively-waiting visitor as promoted = true.
- * The browser polling /api/ai/queue/:queueId will see ready: true.
+ * Called when a voice session ends or a user leaves.
+ * Reconciles the queue and promotes next waiting visitors.
  */
 export async function releaseVoiceSlot(): Promise<void> {
-  try {
-    await purgeStaleQueueEntries();
-
-    const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
-
-    // Promote the oldest actively polling waiting visitor
-    const next = await prisma.aiQueue.findFirst({
-      where: {
-        promoted: false,
-        lastPolledAt: { gte: staleThreshold },
-      },
-      orderBy: { joinedAt: "asc" },
-    });
-
-    if (next) {
-      await prisma.aiQueue.update({
-        where: { id: next.id },
-        data: {
-          promoted: true,
-          promotedAt: new Date(),
-        },
-      });
-    }
-  } catch (err) {
-    console.error("[AI:Concurrency] Failed to release slot:", err);
-  }
+  await autoPromoteWaitingVisitors();
 }
 
 /**
  * Leave the queue explicitly.
- * Deletes the visitor's queue entry and passes the slot if already promoted.
+ * Deletes the visitor's queue entry and passes the slot to the next waiting visitor.
  */
 export async function leaveQueue(queueId: string, ip: string): Promise<boolean> {
   try {
@@ -219,10 +333,8 @@ export async function leaveQueue(queueId: string, ip: string): Promise<boolean> 
 
     await prisma.aiQueue.delete({ where: { queueId } });
 
-    // If this visitor was already promoted, promote the next waiting visitor
-    if (entry.promoted) {
-      void releaseVoiceSlot();
-    }
+    // Promote the next waiting visitor
+    await autoPromoteWaitingVisitors();
 
     return true;
   } catch (err) {
@@ -240,10 +352,13 @@ export type QueuePollResult =
 /**
  * Check the current status of a queued visitor.
  * Called by GET /api/ai/queue/:queueId.
+ * Auto-promotes waiting visitors so that as soon as a slot is free,
+ * the polling client gets ready: true without getting stuck.
  */
 export async function getQueueStatus(queueId: string, ip: string): Promise<QueuePollResult | null> {
   try {
-    await purgeStaleQueueEntries();
+    // 1. Auto-promote eligible visitors
+    await autoPromoteWaitingVisitors();
 
     const entry = await prisma.aiQueue.findUnique({ where: { queueId } });
     if (!entry) return null;
@@ -252,7 +367,7 @@ export async function getQueueStatus(queueId: string, ip: string): Promise<Queue
     if (entry.ipHash !== hashIp(ip)) return null;
 
     if (entry.promoted) {
-      // Cleanup — remove from queue once admitted
+      // Slot ready! Remove from queue once admitted
       await prisma.aiQueue.delete({ where: { queueId } }).catch(() => {});
       return { ready: true };
     }
@@ -265,14 +380,14 @@ export async function getQueueStatus(queueId: string, ip: string): Promise<Queue
       })
       .catch(() => {});
 
-    const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
+    const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
 
-    // Count how many non-promoted entries ahead of this one are actively waiting
+    // Count non-promoted entries ahead of this one that are actively waiting
     const aheadCount = await prisma.aiQueue.count({
       where: {
         promoted: false,
         joinedAt: { lt: entry.joinedAt },
-        lastPolledAt: { gte: staleThreshold },
+        lastPolledAt: { gte: waitingThreshold },
       },
     });
 
@@ -290,11 +405,11 @@ export async function getQueueStatus(queueId: string, ip: string): Promise<Queue
 
 async function getQueueLength(): Promise<number> {
   try {
-    const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
+    const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
     return await prisma.aiQueue.count({
       where: {
         promoted: false,
-        lastPolledAt: { gte: staleThreshold },
+        lastPolledAt: { gte: waitingThreshold },
       },
     });
   } catch {

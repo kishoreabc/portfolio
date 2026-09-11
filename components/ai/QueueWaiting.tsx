@@ -82,6 +82,8 @@ export function QueueWaiting({
       }
     };
 
+    // Immediate poll on mount so visitors don't wait pollIntervalMs if a slot just opened
+    void poll();
     pollRef.current = setInterval(poll, pollIntervalMs);
 
     return () => {

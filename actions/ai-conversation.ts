@@ -7,6 +7,9 @@ import {
   releaseVoiceSlot,
   purgeStaleQueueEntries,
   getActiveVoiceSessionCountFromDb,
+  autoPromoteWaitingVisitors,
+  WAITING_STALE_TIMEOUT_MS,
+  PROMOTED_CLAIM_TIMEOUT_MS,
 } from "@/lib/ai/concurrency";
 import { AI_CONFIG } from "@/lib/ai/config";
 import { revalidatePath } from "next/cache";
@@ -232,16 +235,20 @@ export async function deleteAiConversation(id: string) {
 export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
   await requireAdmin();
 
-  // Purge any stale entries first (> 3 mins without polling)
-  await purgeStaleQueueEntries();
+  // Reconcile and auto-promote any eligible waiting visitors whenever admin monitor checks
+  await autoPromoteWaitingVisitors();
 
-  const staleThreshold = new Date(Date.now() - 180 * 1000);
-  const activeVoiceThreshold = new Date(Date.now() - AI_CONFIG.maxVoiceSessionSeconds * 2 * 1000);
+  const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
+  const claimThreshold = new Date(Date.now() - PROMOTED_CLAIM_TIMEOUT_MS);
+  const activeVoiceThreshold = new Date(Date.now() - (AI_CONFIG.maxVoiceSessionSeconds * 1000 + 30_000));
 
   const [queueEntries, activeVoiceCount, activeDbConversations] = await Promise.all([
     prisma.aiQueue.findMany({
       where: {
-        lastPolledAt: { gte: staleThreshold },
+        OR: [
+          { promoted: false, lastPolledAt: { gte: waitingThreshold } },
+          { promoted: true, promotedAt: { gte: claimThreshold } },
+        ],
       },
       orderBy: { joinedAt: "asc" },
     }),
@@ -348,12 +355,10 @@ export async function removeFromVoiceQueueAction(queueId: string) {
 
   await prisma.aiQueue.delete({
     where: { queueId },
-  });
+  }).catch(() => {});
 
-  // If this entry was already promoted, promote the next waiting visitor
-  if (entry.promoted) {
-    await releaseVoiceSlot();
-  }
+  // Reconcile and promote next waiting visitor
+  await autoPromoteWaitingVisitors();
 
   revalidatePath("/admin/ai-conversations");
   return { success: true };

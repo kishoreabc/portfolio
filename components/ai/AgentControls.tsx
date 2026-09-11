@@ -30,6 +30,7 @@ import type { SessionState, AgentMode } from "@/types/ai";
 interface AgentControlsProps {
   mode: AgentMode;
   state: SessionState;
+  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | string | null;
   isMuted: boolean;
   disabled: boolean;
   onToggleMute: () => void;
@@ -43,6 +44,7 @@ interface AgentControlsProps {
 export function AgentControls({
   mode,
   state,
+  disconnectReason,
   isMuted,
   disabled,
   onToggleMute,
@@ -86,7 +88,7 @@ export function AgentControls({
     <div className="flex flex-col gap-2 border-t border-border p-3">
       {/* Status + Mode toggle row */}
       <div className="flex items-center justify-between">
-        <AgentStatusBadge state={state} />
+        <AgentStatusBadge state={state} disconnectReason={disconnectReason} />
         <Button
           id="ai-mode-toggle"
           variant="ghost"
@@ -168,7 +170,17 @@ export function AgentControls({
             {state === "LISTENING" && !isMuted ? "Listening for your voice..." : ""}
             {state === "THINKING" ? "Processing..." : ""}
             {state === "SPEAKING" ? "Kishore's assistant is speaking" : ""}
-            {state === "DISCONNECTED" ? "Session disconnected" : ""}
+            {state === "DISCONNECTED" ? (
+              disconnectReason === "IDLE_TIMEOUT" ? (
+                <span className="text-amber-400 font-medium">Session closed due to inactivity</span>
+              ) : disconnectReason === "REVOKED" ? (
+                <span className="text-destructive font-medium">Session ended by admin</span>
+              ) : disconnectReason === "TIME_LIMIT" ? (
+                <span className="text-amber-400 font-medium">Session limit reached (10 min)</span>
+              ) : (
+                "Session disconnected"
+              )
+            ) : null}
             {isMuted && canInteractVoice ? "Microphone muted" : ""}
           </span>
 
@@ -218,7 +230,11 @@ export function AgentControls({
             onKeyDown={handleKeyDown}
             placeholder={
               state === "DISCONNECTED"
-                ? "Session disconnected"
+                ? disconnectReason === "IDLE_TIMEOUT"
+                  ? "Session closed due to inactivity"
+                  : disconnectReason === "REVOKED"
+                  ? "Session ended by admin"
+                  : "Session disconnected"
                 : state === "CONNECTING"
                 ? "Connecting..."
                 : state === "THINKING"

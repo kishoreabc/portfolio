@@ -72,6 +72,8 @@ export function AgentPanel({
   const [isCompletingSentence, setIsCompletingSentence] = useState(false);
   // Progressive connecting sub-stage: shown while view === 'connecting'
   const [connectingStage, setConnectingStage] = useState<"requesting" | "audio">("requesting");
+  const [disconnectReason, setDisconnectReason] = useState<"IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | null>(null);
+  const isManualDisconnectRef = useRef(false);
   const sessionGenerationRef = useRef(0);
 
   const addVoiceArtifact = useCallback(
@@ -294,6 +296,7 @@ export function AgentPanel({
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionHeartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isRevokedRef = useRef(false);
+  const isStartingSessionRef = useRef(false);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -512,6 +515,8 @@ export function AgentPanel({
 
     // Immediately update UI state without waiting for network calls
     if (isMounted.current) {
+      isManualDisconnectRef.current = true;
+      setDisconnectReason(null);
       setIsCompletingSentence(false);
       setState("DISCONNECTED");
       setVoiceSecondsLeft(null);
@@ -570,18 +575,37 @@ export function AgentPanel({
     setSessionData(null);
 
     if (isMounted.current) {
+      setDisconnectReason(reason === "IDLE_TIMEOUT" ? "IDLE_TIMEOUT" : "REVOKED");
       setIsCompletingSentence(false);
       setState("DISCONNECTED");
       setVoiceSecondsLeft(null);
     }
 
-    // Show a context-appropriate message with a fixed toast ID so Sonner deduplicates.
+    // Show a context-appropriate message in transcript and toast
     if (reason === "IDLE_TIMEOUT") {
-      toast.info("Your session ended due to inactivity.", {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `inactivity-${Date.now()}`,
+          role: "assistant",
+          content: "Your session was automatically closed due to inactivity. Click Reconnect below anytime to continue chatting.",
+          timestamp: new Date(),
+        },
+      ]);
+      toast.info("Session closed due to inactivity.", {
         id: "session-revoked-toast",
         duration: 7000,
       });
     } else {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `revoked-${Date.now()}`,
+          role: "assistant",
+          content: "Your session has been ended by the administrator. Feel free to start a new session anytime.",
+          timestamp: new Date(),
+        },
+      ]);
       toast.error("Your session has been ended by the administrator.", {
         id: "session-revoked-toast",
         duration: 8000,
@@ -683,6 +707,16 @@ export function AgentPanel({
       safetyTimeoutRef.current = null;
     }
 
+    setDisconnectReason("TIME_LIMIT");
+    setTranscript((prev) => [
+      ...prev,
+      {
+        id: `timelimit-${Date.now()}`,
+        role: "assistant",
+        content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+        timestamp: new Date(),
+      },
+    ]);
     toast.info(
       "Your voice session has ended (10-minute limit). You can start a new session anytime.",
       { duration: 6000 }
@@ -736,6 +770,16 @@ export function AgentPanel({
               safetyTimeoutRef.current = setTimeout(() => {
                 pendingTimerDisconnectRef.current = false;
                 setIsCompletingSentence(false);
+                setDisconnectReason("TIME_LIMIT");
+                setTranscript((prev) => [
+                  ...prev,
+                  {
+                    id: `timelimit-${Date.now()}`,
+                    role: "assistant",
+                    content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+                    timestamp: new Date(),
+                  },
+                ]);
                 toast.info(
                   "Your voice session has ended (10-minute limit). You can start a new session anytime.",
                   { duration: 6000 }
@@ -746,6 +790,16 @@ export function AgentPanel({
               return 0;
             }
 
+            setDisconnectReason("TIME_LIMIT");
+            setTranscript((prev) => [
+              ...prev,
+              {
+                id: `timelimit-${Date.now()}`,
+                role: "assistant",
+                content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+                timestamp: new Date(),
+              },
+            ]);
             toast.info(
               "Your voice session has ended (10-minute limit). You can start a new session anytime."
             );
@@ -1127,6 +1181,25 @@ export function AgentPanel({
               }
               sessionRef.current = null;
               setState("DISCONNECTED");
+
+              // If closed unexpectedly without intentional user disconnect or admin revoke,
+              // it timed out due to Gemini Live inactivity/silence.
+              if (!isManualDisconnectRef.current && !isRevokedRef.current) {
+                setDisconnectReason("IDLE_TIMEOUT");
+                setTranscript((prev) => [
+                  ...prev,
+                  {
+                    id: `inactivity-${Date.now()}`,
+                    role: "assistant",
+                    content: "Your session was closed due to silence or inactivity. Click Reconnect below anytime to continue.",
+                    timestamp: new Date(),
+                  },
+                ]);
+                toast.info("Session closed due to inactivity.", {
+                  id: "session-revoked-toast",
+                  duration: 7000,
+                });
+              }
             },
           },
         });
@@ -1205,58 +1278,84 @@ export function AgentPanel({
 
   const startSession = useCallback(
     async (targetMode: AgentMode) => {
-      if (!isMounted.current) return;
-
-      // Invalidate any existing in-flight startup or callbacks
-      const currentGen = ++sessionGenerationRef.current;
-
-      pendingTimerDisconnectRef.current = false;
-      isModelTurnActiveRef.current = false;
-      if (safetyTimeoutRef.current) {
-        clearTimeout(safetyTimeoutRef.current);
-        safetyTimeoutRef.current = null;
-      }
-      setIsCompletingSentence(false);
-
-      // Immediately tear down previous audio & socket
-      stopVoiceTimer();
-      stopSessionHeartbeat();
-      if (chatThinkingTimerRef.current) {
-        clearTimeout(chatThinkingTimerRef.current);
-        chatThinkingTimerRef.current = null;
-      }
-      if (audioManagerRef.current) {
-        audioManagerRef.current.stop();
-        audioManagerRef.current = null;
-      }
-      if (sessionRef.current) {
-        try {
-          void (sessionRef.current as any)?.close?.();
-        } catch {}
-        sessionRef.current = null;
-      }
-
-      isRevokedRef.current = false;
-      setMode(targetMode);
-      setConnectingStage("requesting");
-      if (targetMode === "voice") {
-        AudioManager.unlock();
-      }
-
-      setState("CONNECTING");
-      setView("connecting");
-      currentAssistantTurnIdRef.current = null;
-      currentAssistantTextRef.current = "";
-      currentUserTurnIdRef.current = null;
-      currentUserTextRef.current = "";
-      setTranscript([]);
-      setVoiceArtifacts([]);
+      if (!isMounted.current || isStartingSessionRef.current) return;
+      isStartingSessionRef.current = true;
 
       try {
+        // If an existing session is running, terminate it on server before starting new one
+        if (sessionDataRef.current) {
+          void terminateCurrentSession();
+        }
+
+        // Invalidate any existing in-flight startup or callbacks
+        const currentGen = ++sessionGenerationRef.current;
+
+        pendingTimerDisconnectRef.current = false;
+        isModelTurnActiveRef.current = false;
+        isManualDisconnectRef.current = false;
+        isRevokedRef.current = false;
+        setDisconnectReason(null);
+        if (safetyTimeoutRef.current) {
+          clearTimeout(safetyTimeoutRef.current);
+          safetyTimeoutRef.current = null;
+        }
+        setIsCompletingSentence(false);
+
+        // Immediately tear down previous audio & socket
+        stopVoiceTimer();
+        stopSessionHeartbeat();
+        if (chatThinkingTimerRef.current) {
+          clearTimeout(chatThinkingTimerRef.current);
+          chatThinkingTimerRef.current = null;
+        }
+        if (audioManagerRef.current) {
+          audioManagerRef.current.stop();
+          audioManagerRef.current = null;
+        }
+        if (sessionRef.current) {
+          try {
+            void (sessionRef.current as any)?.close?.();
+          } catch {}
+          sessionRef.current = null;
+        }
+
+        isRevokedRef.current = false;
+        let effectiveMode = targetMode;
+
+        // Pre-flight microphone check for voice mode:
+        // Request browser microphone access BEFORE requesting a server concurrency slot.
+        // This ensures that delays while the user reviews the permission popup or if permission
+        // is denied/blocked never consumes or locks up a server voice concurrency slot!
+        if (effectiveMode === "voice") {
+          AudioManager.unlock();
+          if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+            try {
+              const preflightStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              preflightStream.getTracks().forEach((track) => track.stop());
+            } catch (micErr) {
+              console.warn("[AgentPanel] Microphone access denied or dismissed:", micErr);
+              toast.warning("Microphone access is required for Voice Agent. Switched to Chat mode.");
+              effectiveMode = "chat";
+            }
+          }
+        }
+
+        setMode(effectiveMode);
+        setConnectingStage("requesting");
+
+        setState("CONNECTING");
+        setView("connecting");
+        currentAssistantTurnIdRef.current = null;
+        currentAssistantTextRef.current = "";
+        currentUserTurnIdRef.current = null;
+        currentUserTextRef.current = "";
+        setTranscript([]);
+        setVoiceArtifacts([]);
+
         const res = await fetch("/api/ai/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: targetMode }),
+          body: JSON.stringify({ mode: effectiveMode }),
         });
 
         if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
@@ -1286,15 +1385,17 @@ export function AgentPanel({
           return;
         }
 
-        await connectToGemini(data as EphemeralTokenResponse, targetMode, currentGen);
+        await connectToGemini(data as EphemeralTokenResponse, effectiveMode, currentGen);
       } catch (_err) {
-        if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
+        if (!isMounted.current) return;
         setErrorMessage("Could not connect. Please check your connection.");
         setView("error");
         setState("ERROR");
+      } finally {
+        isStartingSessionRef.current = false;
       }
     },
-    [connectToGemini, stopVoiceTimer]
+    [connectToGemini, stopVoiceTimer, stopSessionHeartbeat, terminateCurrentSession]
   );
 
   // ── Mode Switch ─────────────────────────────────────────────────────────────
@@ -1604,6 +1705,7 @@ export function AgentPanel({
         <AgentControls
           mode={mode}
           state={state}
+          disconnectReason={disconnectReason}
           isMuted={isMuted}
           disabled={false}
           onToggleMute={() => {

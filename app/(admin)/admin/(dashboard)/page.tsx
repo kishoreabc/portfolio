@@ -49,7 +49,7 @@ export default async function AdminDashboardPage() {
     prisma.aiQueue.count({
       where: {
         promoted: false,
-        lastPolledAt: { gte: new Date(Date.now() - 180 * 1000) },
+        lastPolledAt: { gte: new Date(Date.now() - 60 * 1000) },
       },
     }),
     prisma.aiConversation.count({

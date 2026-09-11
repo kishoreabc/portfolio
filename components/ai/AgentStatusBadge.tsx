@@ -11,6 +11,7 @@ import type { SessionState } from "@/types/ai";
 
 interface AgentStatusBadgeProps {
   state: SessionState;
+  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | string | null;
   compact?: boolean; // If true, show dot + text. If false, show full badge.
 }
 
@@ -68,8 +69,33 @@ const STATE_CONFIG: Record<
   },
 };
 
-export function AgentStatusBadge({ state, compact = false }: AgentStatusBadgeProps) {
-  const config = STATE_CONFIG[state];
+export function AgentStatusBadge({ state, disconnectReason, compact = false }: AgentStatusBadgeProps) {
+  let config = STATE_CONFIG[state];
+
+  if (state === "DISCONNECTED") {
+    if (disconnectReason === "IDLE_TIMEOUT") {
+      config = {
+        label: "Closed (Inactive)",
+        color: "text-amber-400",
+        dotColor: "bg-amber-400",
+        animate: false,
+      };
+    } else if (disconnectReason === "REVOKED") {
+      config = {
+        label: "Closed (Admin)",
+        color: "text-destructive",
+        dotColor: "bg-destructive",
+        animate: false,
+      };
+    } else if (disconnectReason === "TIME_LIMIT") {
+      config = {
+        label: "Limit Reached",
+        color: "text-amber-400",
+        dotColor: "bg-amber-400",
+        animate: false,
+      };
+    }
+  }
 
   return (
     <span
