@@ -29,6 +29,31 @@ interface CertificationDialogProps {
 
 export function CertificationDialog({ certification, trigger }: CertificationDialogProps) {
   const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {trigger ? (
+        <DialogTrigger render={trigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Certification</Button>} />
+      )}
+      {open && (
+        <CertificationDialogContent
+          certification={certification}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </Dialog>
+  );
+}
+
+function CertificationDialogContent({
+  certification,
+  onClose,
+}: {
+  certification?: Certification;
+  onClose: () => void;
+}) {
   const [loading, setLoading] = useState(false);
 
   const defaultValues: Partial<CertificationFormData> = {
@@ -68,7 +93,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
         await createCertification(data);
         toast.success("Certification added");
       }
-      setOpen(false);
+      onClose();
       reset();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save certification");
@@ -78,13 +103,7 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-        <DialogTrigger render={trigger as React.ReactElement} />
-      ) : (
-        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Certification</Button>} />
-      )}
-      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
+    <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{certification ? "Edit Certification" : "Add Certification"}</DialogTitle>
         </DialogHeader>
@@ -149,6 +168,5 @@ export function CertificationDialog({ certification, trigger }: CertificationDia
           </div>
         </form>
       </DialogContent>
-    </Dialog>
   );
 }

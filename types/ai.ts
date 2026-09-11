@@ -361,12 +361,23 @@ export interface VoiceQueueItem {
   estimatedWaitSeconds: number;
 }
 
+export interface ActiveVoiceSessionItem {
+  id: string;
+  sessionId: string;
+  ip: string; // raw IP address e.g. "192.168.0.1"
+  startedAt: string; // ISO string
+  durationSeconds: number;
+  messageCount: number;
+  isNew: boolean; // connected within last 60 seconds
+}
+
 export interface VoiceQueueData {
   queue: VoiceQueueItem[];
   waitingCount: number;
   promotedCount: number;
   activeVoiceCount: number;
   maxConcurrentVoice: number;
+  activeSessions: ActiveVoiceSessionItem[];
 }
 
 // ─────────────────────────────────────────────

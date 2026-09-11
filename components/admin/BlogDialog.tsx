@@ -29,6 +29,26 @@ interface BlogDialogProps {
 
 export function BlogDialog({ blog, trigger }: BlogDialogProps) {
   const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {trigger ? (
+        <DialogTrigger render={trigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Blog Post</Button>} />
+      )}
+      {open && <BlogDialogContent blog={blog} onClose={() => setOpen(false)} />}
+    </Dialog>
+  );
+}
+
+function BlogDialogContent({
+  blog,
+  onClose,
+}: {
+  blog?: BlogPost;
+  onClose: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [apiKey, setApiKey] = useState("");
@@ -176,7 +196,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
         await createBlogPost(data);
         toast.success("Blog post published successfully");
       }
-      setOpen(false);
+      onClose();
       reset();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save blog post");
@@ -188,13 +208,7 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
   const displayModelName = model === "custom" && customModel ? customModel : model;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-        <DialogTrigger render={trigger as React.ReactElement} />
-      ) : (
-        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Blog Post</Button>} />
-      )}
-      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
+    <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{blog ? "Edit Blog Post" : "Create New Blog Post"}</DialogTitle>
         </DialogHeader>
@@ -531,6 +545,5 @@ export function BlogDialog({ blog, trigger }: BlogDialogProps) {
           </div>
         </form>
       </DialogContent>
-    </Dialog>
   );
 }

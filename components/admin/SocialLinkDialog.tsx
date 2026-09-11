@@ -26,6 +26,26 @@ interface SocialLinkDialogProps {
 
 export function SocialLinkDialog({ socialLink, trigger }: SocialLinkDialogProps) {
   const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {trigger ? (
+        <DialogTrigger render={trigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Social Profile</Button>} />
+      )}
+      {open && <SocialLinkDialogContent socialLink={socialLink} onClose={() => setOpen(false)} />}
+    </Dialog>
+  );
+}
+
+function SocialLinkDialogContent({
+  socialLink,
+  onClose,
+}: {
+  socialLink?: SocialLink;
+  onClose: () => void;
+}) {
   const [loading, setLoading] = useState(false);
 
   const defaultValues: Partial<SocialLinkFormData> = {
@@ -58,7 +78,7 @@ export function SocialLinkDialog({ socialLink, trigger }: SocialLinkDialogProps)
         await createSocialLink(data);
         toast.success("Social link added");
       }
-      setOpen(false);
+      onClose();
       reset();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to save social link");
@@ -68,13 +88,7 @@ export function SocialLinkDialog({ socialLink, trigger }: SocialLinkDialogProps)
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-        <DialogTrigger render={trigger as React.ReactElement} />
-      ) : (
-        <DialogTrigger render={<Button size="sm"><Plus className="w-4 h-4 mr-2" /> Add Social Profile</Button>} />
-      )}
-      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
+    <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader>
           <DialogTitle>{socialLink ? "Edit Social Profile" : "Add Social Profile"}</DialogTitle>
         </DialogHeader>
@@ -114,6 +128,5 @@ export function SocialLinkDialog({ socialLink, trigger }: SocialLinkDialogProps)
           </div>
         </form>
       </DialogContent>
-    </Dialog>
   );
 }

@@ -5,6 +5,7 @@ import {
   moveJourneyEntry,
   sortAllJourneyEntriesByTimelineDesc,
 } from "@/actions/journey";
+import { AdminRowDeleteButton } from "@/components/admin/AdminRowDeleteButton";
 import { JourneyEntry } from "@/types";
 import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Edit,
-  Trash2,
   ChevronUp,
   ChevronDown,
   ArrowDownNarrowWide,
@@ -236,22 +236,11 @@ export default async function AdminJourneyPage() {
                             }
                           />
 
-                          <form
-                            action={async () => {
-                              "use server";
-                              await deleteJourneyEntry(entry.id);
-                            }}
-                          >
-                            <Button
-                              type="submit"
-                              variant="ghost"
-                              size="icon"
-                              className="w-8 h-8 text-destructive"
-                              title="Delete Milestone"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </form>
+                          <AdminRowDeleteButton
+                            itemTitle={entry.title}
+                            itemType="journey milestone"
+                            onDelete={deleteJourneyEntry.bind(null, entry.id)}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

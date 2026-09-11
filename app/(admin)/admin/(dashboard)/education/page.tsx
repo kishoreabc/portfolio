@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
 import { EducationDialog } from "@/components/admin/EducationDialog";
 import { deleteEducation } from "@/actions/education";
+import { AdminRowDeleteButton } from "@/components/admin/AdminRowDeleteButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit } from "lucide-react";
 
 export const metadata = {
   title: "Manage Education | Admin",
@@ -74,16 +75,11 @@ export default async function AdminEducationPage() {
                           }
                         />
 
-                        <form
-                          action={async () => {
-                            "use server";
-                            await deleteEducation(e.id);
-                          }}
-                        >
-                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </form>
+                        <AdminRowDeleteButton
+                          itemTitle={`${e.degree} at ${e.institution}`}
+                          itemType="education record"
+                          onDelete={deleteEducation.bind(null, e.id)}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

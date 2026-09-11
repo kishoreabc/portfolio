@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { CertificationDialog } from "@/components/admin/CertificationDialog";
-import { deleteCertification, toggleCertificationPublished } from "@/actions/certification";
+import { deleteCertification } from "@/actions/certification";
+import { AdminRowDeleteButton } from "@/components/admin/AdminRowDeleteButton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, ExternalLink, Eye } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 
 export const metadata = {
   title: "Manage Certifications | Admin",
@@ -92,16 +93,11 @@ export default async function AdminCertificationsPage() {
                           }
                         />
 
-                        <form
-                          action={async () => {
-                            "use server";
-                            await deleteCertification(c.id);
-                          }}
-                        >
-                          <Button variant="ghost" size="icon" className="w-8 h-8 text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </form>
+                        <AdminRowDeleteButton
+                          itemTitle={c.title}
+                          itemType="certification"
+                          onDelete={deleteCertification.bind(null, c.id)}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>

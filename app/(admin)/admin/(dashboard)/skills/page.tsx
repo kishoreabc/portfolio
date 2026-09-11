@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { SkillDialog } from "@/components/admin/SkillDialog";
 import { deleteSkill } from "@/actions/skill";
+import { AdminRowDeleteButton } from "@/components/admin/AdminRowDeleteButton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit } from "lucide-react";
 
 export const metadata = {
   title: "Manage Skills | Admin",
@@ -74,16 +75,12 @@ export default async function AdminSkillsPage() {
                                   </Button>
                                 }
                               />
-                              <form
-                                action={async () => {
-                                  "use server";
-                                  await deleteSkill(s.id);
-                                }}
-                              >
-                                <Button variant="ghost" size="icon" className="w-7 h-7 text-destructive">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                              </form>
+                              <AdminRowDeleteButton
+                                itemTitle={s.name}
+                                itemType="skill badge"
+                                className="w-7 h-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onDelete={deleteSkill.bind(null, s.id)}
+                              />
                             </div>
                           </TableCell>
                         </TableRow>

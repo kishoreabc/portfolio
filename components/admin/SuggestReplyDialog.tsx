@@ -61,6 +61,36 @@ const TONES: { id: ToneType; label: string; emoji: string }[] = [
 
 export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps) {
   const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {trigger ? (
+        <DialogTrigger render={trigger as React.ReactElement} />
+      ) : (
+        <DialogTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs h-8 border-primary/40 hover:border-primary text-primary"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Suggest Reply
+            </Button>
+          }
+        />
+      )}
+      {open && <SuggestReplyDialogContent message={message} onClose={() => setOpen(false)} />}
+    </Dialog>
+  );
+}
+
+function SuggestReplyDialogContent({
+  message,
+  onClose,
+}: {
+  message: SuggestReplyDialogProps["message"];
+  onClose: () => void;
+}) {
   const [tone, setTone] = useState<ToneType>("professional");
   const [customInstruction, setCustomInstruction] = useState("");
   const [replyText, setReplyText] = useState("");
@@ -178,7 +208,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
 
       if (res.success) {
         toast.success(`Email reply sent directly to ${message.email} and moved to Replied tab!`);
-        setOpen(false);
+        onClose();
       } else {
         toast.error(res.error || "Direct send failed. You can use 'Open Mail App' instead.");
       }
@@ -200,7 +230,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
           ? "Moved back to Inbox"
           : "Marked as Replied & moved to Replied tab"
       );
-      setOpen(false);
+      onClose();
     } catch {
       toast.error("Failed to update reply status");
     } finally {
@@ -221,24 +251,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-        <DialogTrigger render={trigger as React.ReactElement} />
-      ) : (
-        <DialogTrigger
-          render={
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs h-8 border-primary/40 hover:border-primary text-primary"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Suggest Reply
-            </Button>
-          }
-        />
-      )}
-
-      <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
+    <DialogContent className="sm:max-w-4xl lg:max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto overflow-x-hidden p-6 sm:p-8">
         <DialogHeader className="space-y-1.5 border-b border-border/60 pb-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
@@ -565,7 +578,7 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setOpen(false)}
+                onClick={onClose}
                 className="text-xs cursor-pointer"
               >
                 Close
@@ -574,6 +587,5 @@ export function SuggestReplyDialog({ message, trigger }: SuggestReplyDialogProps
           </div>
         </div>
       </DialogContent>
-    </Dialog>
   );
 }

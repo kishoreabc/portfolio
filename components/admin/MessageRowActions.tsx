@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { markMessageRead, markMessageReplied, softDeleteMessage, restoreMessage } from "@/actions/message";
 import { Button } from "@/components/ui/button";
-import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles, CheckCircle2 } from "lucide-react";
+import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
 
@@ -27,61 +28,104 @@ export function MessageRowActions({
   messageText?: string;
   createdAt?: Date;
 }) {
-  const handleToggleRead = async () => {
-    try {
-      await markMessageRead(id, !read);
-      toast.success(read ? "Marked as unread" : "Marked as read");
-    } catch {
-      toast.error("Failed to update message status");
-    }
+  const [optimisticRead, setOptimisticRead] = useState(read);
+  const [optimisticReplied, setOptimisticReplied] = useState(replied);
+  const [optimisticDeleted, setOptimisticDeleted] = useState(!!deletedAt);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  const handleToggleRead = () => {
+    const nextRead = !optimisticRead;
+    setOptimisticRead(nextRead);
+    setPendingAction("read");
+    startTransition(async () => {
+      try {
+        await markMessageRead(id, nextRead);
+        toast.success(nextRead ? "Marked as read" : "Marked as unread");
+      } catch {
+        setOptimisticRead(!nextRead);
+        toast.error("Failed to update message status");
+      } finally {
+        setPendingAction(null);
+      }
+    });
   };
 
-  const handleSoftDelete = async () => {
-    try {
-      await softDeleteMessage(id);
-      toast.success("Message moved to trash");
-    } catch {
-      toast.error("Failed to move to trash");
-    }
+  const handleSoftDelete = () => {
+    setOptimisticDeleted(true);
+    setPendingAction("delete");
+    startTransition(async () => {
+      try {
+        await softDeleteMessage(id);
+        toast.success("Message moved to trash");
+      } catch {
+        setOptimisticDeleted(false);
+        toast.error("Failed to move to trash");
+      } finally {
+        setPendingAction(null);
+      }
+    });
   };
 
-  const handleRestore = async () => {
-    try {
-      await restoreMessage(id);
-      toast.success("Message restored");
-    } catch {
-      toast.error("Failed to restore message");
-    }
+  const handleRestore = () => {
+    setOptimisticDeleted(false);
+    setPendingAction("restore");
+    startTransition(async () => {
+      try {
+        await restoreMessage(id);
+        toast.success("Message restored");
+      } catch {
+        setOptimisticDeleted(true);
+        toast.error("Failed to restore message");
+      } finally {
+        setPendingAction(null);
+      }
+    });
   };
 
-  const handleToggleReplied = async () => {
-    try {
-      await markMessageReplied(id, !replied);
-      toast.success(replied ? "Moved back to Inbox" : "Marked as Replied & moved to Replied tab");
-    } catch {
-      toast.error("Failed to update reply status");
-    }
+  const handleToggleReplied = () => {
+    const nextReplied = !optimisticReplied;
+    setOptimisticReplied(nextReplied);
+    setPendingAction("reply");
+    startTransition(async () => {
+      try {
+        await markMessageReplied(id, nextReplied);
+        toast.success(nextReplied ? "Marked as Replied & moved to Replied tab" : "Moved back to Inbox");
+      } catch {
+        setOptimisticReplied(!nextReplied);
+        toast.error("Failed to update reply status");
+      } finally {
+        setPendingAction(null);
+      }
+    });
   };
 
   return (
     <div className="flex items-center justify-end gap-1">
       {/* Mark as Replied / Move to Inbox Toggle */}
-      {!deletedAt && (
+      {!optimisticDeleted && (
         <Button
           variant="ghost"
           size="icon"
+          disabled={pendingAction === "reply"}
           className={`w-8 h-8 cursor-pointer ${
-            replied ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10" : "text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
+            optimisticReplied
+              ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+              : "text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10"
           }`}
           onClick={handleToggleReplied}
-          title={replied ? "Marked as Replied. Click to move back to Inbox." : "Mark as Replied (moves to Replied tab)"}
+          title={optimisticReplied ? "Marked as Replied. Click to move back to Inbox." : "Mark as Replied (moves to Replied tab)"}
         >
-          <CheckCircle2 className={`w-4 h-4 ${replied ? "fill-emerald-500/20" : ""}`} />
+          {pendingAction === "reply" ? (
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
+          ) : (
+            <CheckCircle2 className={`w-4 h-4 ${optimisticReplied ? "fill-emerald-500/20" : ""}`} />
+          )}
         </Button>
       )}
 
       {/* AI Suggest Reply Dialog */}
-      {!deletedAt && (
+      {!optimisticDeleted && (
         <SuggestReplyDialog
           message={{
             id,
@@ -90,8 +134,8 @@ export function MessageRowActions({
             subject,
             message: messageText,
             createdAt,
-            read,
-            replied,
+            read: optimisticRead,
+            replied: optimisticReplied,
           }}
           trigger={
             <Button
@@ -127,37 +171,51 @@ export function MessageRowActions({
         variant="ghost"
         size="icon"
         className="w-8 h-8"
+        disabled={pendingAction === "read"}
         onClick={handleToggleRead}
-        title={read ? "Mark as unread" : "Mark as read"}
+        title={optimisticRead ? "Mark as unread" : "Mark as read"}
       >
-        {read ? (
+        {pendingAction === "read" ? (
+          <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+        ) : optimisticRead ? (
           <Mail className="w-4 h-4 text-muted-foreground" />
         ) : (
           <MailOpen className="w-4 h-4 text-primary" />
         )}
       </Button>
 
-      {deletedAt ? (
+      {optimisticDeleted ? (
         <Button
           variant="ghost"
           size="icon"
           className="w-8 h-8 text-primary"
+          disabled={pendingAction === "restore"}
           onClick={handleRestore}
           title="Restore"
         >
-          <RotateCcw className="w-4 h-4" />
+          {pendingAction === "restore" ? (
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          ) : (
+            <RotateCcw className="w-4 h-4" />
+          )}
         </Button>
       ) : (
         <Button
           variant="ghost"
           size="icon"
           className="w-8 h-8 text-destructive"
+          disabled={pendingAction === "delete"}
           onClick={handleSoftDelete}
           title="Move to trash"
         >
-          <Trash2 className="w-4 h-4" />
+          {pendingAction === "delete" ? (
+            <Loader2 className="w-4 h-4 animate-spin text-destructive" />
+          ) : (
+            <Trash2 className="w-4 h-4" />
+          )}
         </Button>
       )}
     </div>
   );
 }
+

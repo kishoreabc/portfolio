@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Project } from "@prisma/client";
 import {
   deleteProject,
@@ -27,23 +27,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit, Trash2, RefreshCw, Eye, EyeOff, Star } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, RefreshCw, Eye, EyeOff, Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function ProjectRowActions({ project }: { project: Project }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const [optimisticPublished, setOptimisticPublished] = useState(project.published);
+  const [optimisticFeatured, setOptimisticFeatured] = useState(project.featured);
 
   const handleDelete = async () => {
     setLoading(true);
     try {
       await deleteProject(project.id);
       toast.success("Project deleted");
+      setDeleteOpen(false);
     } catch {
       toast.error("Failed to delete project");
     } finally {
       setLoading(false);
-      setDeleteOpen(false);
     }
   };
 
@@ -55,22 +59,32 @@ export function ProjectRowActions({ project }: { project: Project }) {
     });
   };
 
-  const handleTogglePublished = async () => {
-    try {
-      await toggleProjectPublished(project.id, !project.published);
-      toast.success(project.published ? "Project hidden" : "Project published");
-    } catch {
-      toast.error("Failed to update status");
-    }
+  const handleTogglePublished = () => {
+    const nextVal = !optimisticPublished;
+    setOptimisticPublished(nextVal);
+    startTransition(async () => {
+      try {
+        await toggleProjectPublished(project.id, nextVal);
+        toast.success(nextVal ? "Project published" : "Project hidden");
+      } catch {
+        setOptimisticPublished(!nextVal); // revert
+        toast.error("Failed to update status");
+      }
+    });
   };
 
-  const handleToggleFeatured = async () => {
-    try {
-      await toggleProjectFeatured(project.id, !project.featured);
-      toast.success(project.featured ? "Removed from featured" : "Set as featured");
-    } catch {
-      toast.error("Failed to update featured status");
-    }
+  const handleToggleFeatured = () => {
+    const nextVal = !optimisticFeatured;
+    setOptimisticFeatured(nextVal);
+    startTransition(async () => {
+      try {
+        await toggleProjectFeatured(project.id, nextVal);
+        toast.success(nextVal ? "Set as featured" : "Removed from featured");
+      } catch {
+        setOptimisticFeatured(!nextVal); // revert
+        toast.error("Failed to update featured status");
+      }
+    });
   };
 
   return (
@@ -88,14 +102,18 @@ export function ProjectRowActions({ project }: { project: Project }) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" className="w-8 h-8">
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+              <Button variant="ghost" size="icon" className="w-8 h-8" disabled={isPending}>
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                )}
               </Button>
             }
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleTogglePublished}>
-              {project.published ? (
+              {optimisticPublished ? (
                 <>
                   <EyeOff className="w-4 h-4 mr-2" /> Unpublish
                 </>
@@ -107,8 +125,8 @@ export function ProjectRowActions({ project }: { project: Project }) {
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleToggleFeatured}>
-              <Star className="w-4 h-4 mr-2" />
-              {project.featured ? "Unfeature" : "Make Featured"}
+              <Star className={`w-4 h-4 mr-2 ${optimisticFeatured ? "fill-amber-500 text-amber-500" : ""}`} />
+              {optimisticFeatured ? "Unfeature" : "Make Featured"}
             </DropdownMenuItem>
 
             {project.githubUrl && (
@@ -138,13 +156,17 @@ export function ProjectRowActions({ project }: { project: Project }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Project
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading ? "Deleting..." : "Delete Project"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -152,3 +174,4 @@ export function ProjectRowActions({ project }: { project: Project }) {
     </>
   );
 }
+

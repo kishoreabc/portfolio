@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { BlogPost } from "@prisma/client";
 import {
   deleteBlogPost,
@@ -26,43 +26,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Star, ExternalLink } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Star, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export function BlogRowActions({ blog }: { blog: BlogPost }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const [optimisticPublished, setOptimisticPublished] = useState(blog.published);
+  const [optimisticFeatured, setOptimisticFeatured] = useState(blog.featured);
 
   const handleDelete = async () => {
     setLoading(true);
     try {
       await deleteBlogPost(blog.id);
       toast.success("Blog post deleted");
+      setDeleteOpen(false);
     } catch {
       toast.error("Failed to delete blog post");
     } finally {
       setLoading(false);
-      setDeleteOpen(false);
     }
   };
 
-  const handleTogglePublished = async () => {
-    try {
-      await toggleBlogPublished(blog.id, !blog.published);
-      toast.success(blog.published ? "Blog un-published" : "Blog published");
-    } catch {
-      toast.error("Failed to update status");
-    }
+  const handleTogglePublished = () => {
+    const nextVal = !optimisticPublished;
+    setOptimisticPublished(nextVal);
+    startTransition(async () => {
+      try {
+        await toggleBlogPublished(blog.id, nextVal);
+        toast.success(nextVal ? "Blog published" : "Blog un-published");
+      } catch {
+        setOptimisticPublished(!nextVal); // revert
+        toast.error("Failed to update status");
+      }
+    });
   };
 
-  const handleToggleFeatured = async () => {
-    try {
-      await toggleBlogFeatured(blog.id, !blog.featured);
-      toast.success(blog.featured ? "Removed from featured" : "Marked as featured");
-    } catch {
-      toast.error("Failed to update featured status");
-    }
+  const handleToggleFeatured = () => {
+    const nextVal = !optimisticFeatured;
+    setOptimisticFeatured(nextVal);
+    startTransition(async () => {
+      try {
+        await toggleBlogFeatured(blog.id, nextVal);
+        toast.success(nextVal ? "Marked as featured" : "Removed from featured");
+      } catch {
+        setOptimisticFeatured(!nextVal); // revert
+        toast.error("Failed to update featured status");
+      }
+    });
   };
 
   return (
@@ -96,14 +110,18 @@ export function BlogRowActions({ blog }: { blog: BlogPost }) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" className="w-8 h-8">
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+              <Button variant="ghost" size="icon" className="w-8 h-8" disabled={isPending}>
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                )}
               </Button>
             }
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={handleTogglePublished}>
-              {blog.published ? (
+              {optimisticPublished ? (
                 <>
                   <EyeOff className="w-4 h-4 mr-2" /> Unpublish
                 </>
@@ -115,8 +133,8 @@ export function BlogRowActions({ blog }: { blog: BlogPost }) {
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={handleToggleFeatured}>
-              <Star className="w-4 h-4 mr-2" />
-              {blog.featured ? "Unfeature" : "Make Featured"}
+              <Star className={`w-4 h-4 mr-2 ${optimisticFeatured ? "fill-amber-500 text-amber-500" : ""}`} />
+              {optimisticFeatured ? "Unfeature" : "Make Featured"}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -140,13 +158,17 @@ export function BlogRowActions({ blog }: { blog: BlogPost }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
               disabled={loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete Post
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading ? "Deleting..." : "Delete Post"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -154,3 +176,4 @@ export function BlogRowActions({ blog }: { blog: BlogPost }) {
     </>
   );
 }
+

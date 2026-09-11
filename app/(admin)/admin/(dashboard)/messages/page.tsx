@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Link from "next/link";
 import { MessageRowActions } from "@/components/admin/MessageRowActions";
 import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
 import { Badge } from "@/components/ui/badge";
@@ -59,8 +60,9 @@ export default async function AdminMessagesPage({
 
         {/* View Filter Tabs: Inbox | Replied | Trash */}
         <div className="flex items-center gap-1.5 text-xs bg-muted/50 p-1 rounded-lg border border-border/80 overflow-x-auto max-w-full">
-          <a
+          <Link
             href="/admin/messages"
+            prefetch={true}
             className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "inbox"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
@@ -77,10 +79,11 @@ export default async function AdminMessagesPage({
             >
               {inboxCount}
             </span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/admin/messages?view=replied"
+            prefetch={true}
             className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "replied"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
@@ -97,10 +100,11 @@ export default async function AdminMessagesPage({
             >
               {repliedCount}
             </span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/admin/messages?view=trash"
+            prefetch={true}
             className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "trash"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
@@ -117,7 +121,7 @@ export default async function AdminMessagesPage({
             >
               {trashCount}
             </span>
-          </a>
+          </Link>
         </div>
       </div>
 

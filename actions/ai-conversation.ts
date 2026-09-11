@@ -10,7 +10,7 @@ import {
 } from "@/lib/ai/concurrency";
 import { AI_CONFIG } from "@/lib/ai/config";
 import { revalidatePath } from "next/cache";
-import type { AgentMode, VoiceQueueData, VoiceQueueItem } from "@/types/ai";
+import type { AgentMode, VoiceQueueData, VoiceQueueItem, ActiveVoiceSessionItem } from "@/types/ai";
 
 const PAGE_SIZE = 20;
 
@@ -236,8 +236,9 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
   await purgeStaleQueueEntries();
 
   const staleThreshold = new Date(Date.now() - 180 * 1000);
+  const activeVoiceThreshold = new Date(Date.now() - AI_CONFIG.maxVoiceSessionSeconds * 2 * 1000);
 
-  const [queueEntries, activeVoiceCount] = await Promise.all([
+  const [queueEntries, activeVoiceCount, activeDbConversations] = await Promise.all([
     prisma.aiQueue.findMany({
       where: {
         lastPolledAt: { gte: staleThreshold },
@@ -245,6 +246,21 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
       orderBy: { joinedAt: "asc" },
     }),
     getActiveVoiceSessionCountFromDb(),
+    prisma.aiConversation.findMany({
+      where: {
+        mode: "voice",
+        endedAt: null,
+        startedAt: { gte: activeVoiceThreshold },
+      },
+      orderBy: { startedAt: "desc" },
+      select: {
+        id: true,
+        sessionId: true,
+        ipHash: true,
+        startedAt: true,
+        messageCount: true,
+      },
+    }),
   ]);
 
   let unpromotedRank = 0;
@@ -268,6 +284,21 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
     };
   });
 
+  const nowMs = Date.now();
+  const activeSessions: ActiveVoiceSessionItem[] = activeDbConversations.map((conv) => {
+    const startedMs = conv.startedAt.getTime();
+    const durationSeconds = Math.max(0, Math.floor((nowMs - startedMs) / 1000));
+    return {
+      id: conv.id,
+      sessionId: conv.sessionId,
+      ip: conv.ipHash,
+      startedAt: conv.startedAt.toISOString(),
+      durationSeconds,
+      messageCount: conv.messageCount,
+      isNew: nowMs - startedMs < 60 * 1000,
+    };
+  });
+
   const waitingCount = queue.filter((q) => !q.promoted).length;
   const promotedCount = queue.filter((q) => q.promoted).length;
 
@@ -277,6 +308,7 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
     promotedCount,
     activeVoiceCount,
     maxConcurrentVoice: AI_CONFIG.maxConcurrentVoice,
+    activeSessions,
   };
 }
 
