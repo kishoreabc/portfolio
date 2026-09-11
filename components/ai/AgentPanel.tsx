@@ -293,7 +293,7 @@ export function AgentPanel({
   const isModelTurnActiveRef = useRef(false);
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionHeartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const handleRemoteRevokeRef = useRef<(reason?: string) => void>(() => {});
+  const isRevokedRef = useRef(false);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -414,7 +414,7 @@ export function AgentPanel({
         }),
       })
         .then((res) => {
-          if (res.status === 403) {
+          if (res.status === 403 && !isRevokedRef.current) {
             handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
@@ -466,7 +466,7 @@ export function AgentPanel({
         }),
       })
         .then((res) => {
-          if (res.status === 403) {
+          if (res.status === 403 && !isRevokedRef.current) {
             handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
@@ -476,6 +476,7 @@ export function AgentPanel({
 
   const handleDisconnect = useCallback(async () => {
     // Invalidate in-flight sessions and callbacks
+    isRevokedRef.current = true;
     sessionGenerationRef.current++;
 
     stopVoiceTimer();
@@ -526,6 +527,10 @@ export function AgentPanel({
    * @param reason - 'REVOKED' (admin), 'IDLE_TIMEOUT', 'DELETED', or undefined.
    */
   const handleRemoteRevoke = useCallback((reason?: string) => {
+    // Guard against duplicate execution (e.g. heartbeat + message flush 403 racing)
+    if (isRevokedRef.current) return;
+    isRevokedRef.current = true;
+
     // Invalidate in-flight sessions and callbacks
     sessionGenerationRef.current++;
 
@@ -570,19 +575,19 @@ export function AgentPanel({
       setVoiceSecondsLeft(null);
     }
 
-    // Show a context-appropriate message — never blame admin for idle timeouts.
+    // Show a context-appropriate message with a fixed toast ID so Sonner deduplicates.
     if (reason === "IDLE_TIMEOUT") {
-      toast.info("Your session ended due to inactivity.", { duration: 7000 });
+      toast.info("Your session ended due to inactivity.", {
+        id: "session-revoked-toast",
+        duration: 7000,
+      });
     } else {
       toast.error("Your session has been ended by the administrator.", {
+        id: "session-revoked-toast",
         duration: 8000,
       });
     }
   }, [stopVoiceTimer, stopSessionHeartbeat, finalizeUserTurn, finalizeAssistantTurn]);
-
-  useEffect(() => {
-    handleRemoteRevokeRef.current = handleRemoteRevoke;
-  }, [handleRemoteRevoke]);
 
   // Keep a stable ref so heartbeat closures can call the latest version
   // without being listed as a dependency (avoids recreating the interval).
@@ -596,10 +601,11 @@ export function AgentPanel({
       stopSessionHeartbeat();
 
       sessionHeartbeatRef.current = setInterval(async () => {
-        // Guard: stop if component unmounted, session changed, or WebSocket closed.
+        // Guard: stop if component unmounted, session changed, revoked, or WebSocket closed.
         if (
           !isMounted.current ||
           !sessionRef.current ||
+          isRevokedRef.current ||
           genId !== sessionGenerationRef.current
         ) {
           stopSessionHeartbeat();
@@ -612,18 +618,18 @@ export function AgentPanel({
             { cache: "no-store" }
           );
 
-          // Re-check generation after the async fetch completes.
-          if (genId !== sessionGenerationRef.current) return;
+          // Re-check generation and revoked status after the async fetch completes.
+          if (genId !== sessionGenerationRef.current || isRevokedRef.current) return;
 
           if (!res.ok) {
-            if (res.status === 403 || res.status === 404) {
+            if ((res.status === 403 || res.status === 404) && !isRevokedRef.current) {
               handleRemoteRevokeLatestRef.current?.("REVOKED");
             }
             return;
           }
 
           const data = await res.json();
-          if (data.active === false || data.revoked) {
+          if ((data.active === false || data.revoked) && !isRevokedRef.current) {
             // Pass the server-provided reason so the UI can show the right message.
             handleRemoteRevokeLatestRef.current?.(data.reason as string | undefined);
           }
@@ -776,7 +782,9 @@ export function AgentPanel({
               }),
             });
             if (res.status === 403) {
-              handleRemoteRevokeLatestRef.current?.("REVOKED");
+              if (!isRevokedRef.current) {
+                handleRemoteRevokeLatestRef.current?.("REVOKED");
+              }
               return {
                 id: call.id,
                 name: call.name as AllowedToolName,
@@ -1230,6 +1238,7 @@ export function AgentPanel({
         sessionRef.current = null;
       }
 
+      isRevokedRef.current = false;
       setMode(targetMode);
       setConnectingStage("requesting");
       if (targetMode === "voice") {
@@ -1337,7 +1346,7 @@ export function AgentPanel({
         }),
       })
         .then((res) => {
-          if (res.status === 403) {
+          if (res.status === 403 && !isRevokedRef.current) {
             handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
