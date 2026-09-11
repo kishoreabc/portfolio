@@ -33,7 +33,7 @@ export function About({ config, educationList }: AboutProps) {
   const aboutText = config?.aboutText || "";
 
   return (
-    <section id="about" className="section-padding bg-card/20 relative border-t border-border/40">
+    <section id="about" className="section-padding bg-card/20 relative border-t border-border/40 overflow-hidden">
       <div className="container-portfolio space-y-12">
         {/* Section Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">

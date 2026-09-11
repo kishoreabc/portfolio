@@ -57,29 +57,29 @@ export function Navbar() {
           : "bg-transparent py-5"
       )}
     >
-      <div className="container-portfolio flex items-center justify-between">
+      <div className="container-portfolio flex items-center justify-between gap-2">
         {/* Brand / Logo */}
-        <Link href="#" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-base shadow-sm group-hover:scale-105 transition-transform">
+        <Link href="#" className="flex items-center gap-2.5 group shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-base shadow-sm group-hover:scale-105 transition-transform shrink-0">
             K
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-base tracking-tight leading-none group-hover:text-primary transition-colors">
+          <div className="flex flex-col shrink-0">
+            <span className="font-bold text-sm sm:text-base tracking-tight leading-none group-hover:text-primary transition-colors whitespace-nowrap">
               Kishore R
             </span>
-            <span className="text-[10px] text-muted-foreground font-mono mt-0.5">
+            <span className="text-[10px] text-muted-foreground font-mono mt-0.5 whitespace-nowrap">
               AI / ML Engineer
             </span>
           </div>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 bg-card/40 backdrop-blur-sm px-4 py-1.5 rounded-full border border-border/50">
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 bg-card/40 backdrop-blur-sm px-3 xl:px-4 py-1.5 rounded-full border border-border/50 shrink-0">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="px-3.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-colors"
+              className="px-2.5 xl:px-3.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-full transition-colors whitespace-nowrap"
             >
               {item.label}
             </a>
@@ -87,7 +87,7 @@ export function Navbar() {
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Site Visitor Counter */}
           <VisitorCounter />
 
@@ -96,7 +96,7 @@ export function Navbar() {
             <Button
               variant="outline"
               size="icon"
-              className="w-9 h-9 rounded-full border-border/60"
+              className="w-9 h-9 rounded-full border-border/60 shrink-0"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label="Toggle theme"
             >
@@ -111,15 +111,15 @@ export function Navbar() {
           {/* "Let's Talk" CTA */}
           <Button
             size="sm"
-            className="hidden sm:inline-flex rounded-full text-xs font-medium px-4 shadow-sm"
+            className="hidden sm:inline-flex rounded-full text-xs font-medium px-3.5 sm:px-4 shadow-sm shrink-0"
             render={<a href="#contact" />}
           >
             <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary-foreground/90 animate-pulse" />
             Let&apos;s Talk
           </Button>
 
-          {/* Mobile Navigation Sheet */}
-          <div className="md:hidden">
+          {/* Mobile & Tablet Navigation Sheet */}
+          <div className="lg:hidden shrink-0">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
                 render={

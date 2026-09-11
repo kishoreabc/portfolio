@@ -51,7 +51,7 @@ export function Journey({ journeyEntries }: JourneyProps) {
   };
 
   return (
-    <section id="journey" className="section-padding bg-background relative border-t border-border/40">
+    <section id="journey" className="section-padding bg-background relative border-t border-border/40 overflow-hidden">
       <div className="container-portfolio space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">

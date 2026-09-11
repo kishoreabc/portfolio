@@ -139,9 +139,14 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
   }
   html {
     @apply font-sans scroll-smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring rounded-sm;
@@ -186,7 +191,7 @@
   }
 
   .container-portfolio {
-    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full min-w-0;
   }
 }
 

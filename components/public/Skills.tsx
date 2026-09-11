@@ -19,7 +19,7 @@ export function Skills({ skills }: SkillsProps) {
   ];
 
   return (
-    <section id="skills" className="section-padding bg-background relative">
+    <section id="skills" className="section-padding bg-background relative overflow-hidden">
       <div className="container-portfolio space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">

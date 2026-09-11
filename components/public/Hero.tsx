@@ -222,7 +222,7 @@ export function Hero({ config, socialLinks }: HeroProps) {
                 <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/35 via-blue-500/25 to-purple-600/30 blur-3xl opacity-80 pointer-events-none" />
 
                 {/* Subtle Decorative Orbital Ring */}
-                <div className="absolute w-[290px] h-[290px] sm:w-[330px] sm:h-[330px] rounded-full border border-primary/20 dark:border-white/10 pointer-events-none" />
+                <div className="absolute w-[260px] h-[260px] sm:w-[330px] sm:h-[330px] rounded-full border border-primary/20 dark:border-white/10 pointer-events-none" />
 
                 {/* Central Studio Portrait with Gradient Halo */}
                 <div className="relative group cursor-pointer">
@@ -245,13 +245,13 @@ export function Hero({ config, socialLinks }: HeroProps) {
                     initial={{ opacity: 0, x: -15, y: -10 }}
                     animate={{ opacity: 1, x: 0, y: 0 }}
                     transition={{ delay: 0.25, duration: 0.5 }}
-                    className="absolute top-2 -left-2 sm:-left-6 z-20"
+                    className="absolute top-2 left-0 sm:-left-6 z-20"
                   >
                     <a
                       href={githubLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3.5 py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-2 text-xs font-semibold hover:border-primary/60 hover:scale-105 transition-all text-foreground group/pill"
+                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-primary/60 hover:scale-105 transition-all text-foreground group/pill"
                       title="GitHub Profile"
                     >
                       <svg className="w-4 h-4 fill-current group-hover/pill:text-primary transition-colors" viewBox="0 0 24 24">
@@ -268,13 +268,13 @@ export function Hero({ config, socialLinks }: HeroProps) {
                     initial={{ opacity: 0, x: 15, y: -10 }}
                     animate={{ opacity: 1, x: 0, y: 0 }}
                     transition={{ delay: 0.35, duration: 0.5 }}
-                    className="absolute top-2 -right-2 sm:-right-6 z-20"
+                    className="absolute top-2 right-0 sm:-right-6 z-20"
                   >
                     <a
                       href={linkedinLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3.5 py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-2 text-xs font-semibold hover:border-blue-500/60 hover:scale-105 transition-all text-foreground group/pill"
+                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-blue-500/60 hover:scale-105 transition-all text-foreground group/pill"
                       title="LinkedIn Profile"
                     >
                       <svg className="w-4 h-4 fill-current text-[#0A66C2]" viewBox="0 0 24 24">

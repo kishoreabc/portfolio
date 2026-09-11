@@ -106,8 +106,8 @@ export function VoiceAgent() {
         <div
           ref={pickerRef}
           className="
-            fixed bottom-24 right-4 z-50
-            w-[320px] sm:w-[350px]
+            fixed bottom-24 right-4 left-4 sm:left-auto z-50
+            w-auto sm:w-[350px] max-w-[calc(100vw-2rem)]
             rounded-2xl border border-border/80
             bg-card/95 backdrop-blur-xl
             p-4 shadow-2xl shadow-black/30

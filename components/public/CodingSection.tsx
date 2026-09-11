@@ -52,7 +52,7 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
   }, []);
 
   return (
-    <section id="coding" className="section-padding bg-card/20 relative border-t border-border/40">
+    <section id="coding" className="section-padding bg-card/20 relative border-t border-border/40 overflow-hidden">
       <div className="container-portfolio space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -97,9 +97,9 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
         </div>
 
         {/* Heatmaps Container — Linear full-width order */}
-        <div className="space-y-8 max-w-5xl mx-auto">
+        <div className="space-y-8 max-w-5xl mx-auto w-full min-w-0">
           {/* GitHub Heatmap Card */}
-          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 space-y-4">
+          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 fill-current text-foreground" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
           </Card>
 
           {/* LeetCode Heatmap Card */}
-          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 space-y-4">
+          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-amber-500" />

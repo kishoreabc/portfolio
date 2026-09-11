@@ -108,10 +108,10 @@ export default async function HomePage() {
   const journeyEntries = sortJourneyEntriesByTimelineDesc(rawJourneyEntries);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground overflow-x-hidden w-full max-w-full">
       <Navbar />
 
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full min-w-0 overflow-x-hidden">
         <Hero config={config} socialLinks={socialLinks} />
         <About config={config} educationList={educationList} />
         <Skills skills={skills} />
