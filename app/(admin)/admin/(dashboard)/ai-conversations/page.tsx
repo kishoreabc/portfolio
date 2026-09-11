@@ -1,10 +1,11 @@
 import { Bot, MessageSquare, Mic, Clock, Hash, Radio } from "lucide-react";
-import { getAiConversations } from "@/actions/ai-conversation";
+import { getAiConversations, getVoiceQueueAction } from "@/actions/ai-conversation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { RevokeSessionButton, RevokeAllActiveSessionsButton } from "@/components/admin/RevokeSessionButton";
 import { DeleteAiConversationButton } from "@/components/admin/DeleteAiConversationButton";
+import { VoiceQueueManager } from "@/components/admin/VoiceQueueManager";
 
 interface PageProps {
   searchParams: Promise<{
@@ -31,13 +32,16 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
   const dateFrom = params.from;
   const dateTo = params.to;
 
-  const { conversations, total, activeCount, totalPages } = await getAiConversations({
-    page,
-    mode,
-    status,
-    dateFrom,
-    dateTo,
-  });
+  const [{ conversations, total, activeCount, totalPages }, queueData] = await Promise.all([
+    getAiConversations({
+      page,
+      mode,
+      status,
+      dateFrom,
+      dateTo,
+    }),
+    getVoiceQueueAction(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,7 +52,7 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
             <Bot className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-bold tracking-tight text-foreground">AI Conversations</h1>
               {activeCount > 0 && (
                 <Badge
@@ -59,6 +63,15 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
                   {activeCount} active
                 </Badge>
               )}
+              {queueData.waitingCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="border-amber-500/40 text-amber-500 bg-amber-500/10 gap-1 text-[11px] font-medium"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  {queueData.waitingCount} in voice queue
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {total} total recorded session{total !== 1 ? "s" : ""} • Raw IP addresses logged
@@ -66,60 +79,71 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        {/* Action / Filter controls */}
+        {/* Global Action controls */}
         <div className="flex items-center gap-2 flex-wrap">
           <RevokeAllActiveSessionsButton activeCount={activeCount} />
+        </div>
+      </div>
 
-          {/* Mode & Status Filters */}
-          <div className="flex items-center gap-1 rounded-lg border border-border p-1 bg-card/60 overflow-x-auto max-w-full">
-            <Link
-              href="/admin/ai-conversations?page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
-                status === "all" && mode === "all"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Bot className="h-3 w-3" />
-              All
-            </Link>
+      {/* Voice Model Concurrency Queue & Waiting List */}
+      <VoiceQueueManager initialData={queueData} />
 
-            <Link
-              href="/admin/ai-conversations?status=active&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
-                status === "active"
-                  ? "bg-emerald-500 text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Radio className="h-3 w-3 text-current" />
-              Active ({activeCount})
-            </Link>
+      {/* Session History & Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Session History</h2>
+          <p className="text-xs text-muted-foreground">Recorded conversation sessions and message transcripts</p>
+        </div>
 
-            <Link
-              href="/admin/ai-conversations?mode=voice&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
-                mode === "voice" && status !== "active"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Mic className="h-3 w-3" />
-              Voice
-            </Link>
+        {/* Mode & Status Filters */}
+        <div className="flex items-center gap-1 rounded-lg border border-border p-1 bg-card/60 overflow-x-auto max-w-full">
+          <Link
+            href="/admin/ai-conversations?page=1"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
+              status === "all" && mode === "all"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Bot className="h-3 w-3" />
+            All
+          </Link>
 
-            <Link
-              href="/admin/ai-conversations?mode=chat&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
-                mode === "chat" && status !== "active"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <MessageSquare className="h-3 w-3" />
-              Chat
-            </Link>
-          </div>
+          <Link
+            href="/admin/ai-conversations?status=active&page=1"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
+              status === "active"
+                ? "bg-emerald-500 text-white"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Radio className="h-3 w-3 text-current" />
+            Active ({activeCount})
+          </Link>
+
+          <Link
+            href="/admin/ai-conversations?mode=voice&page=1"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
+              mode === "voice" && status !== "active"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Mic className="h-3 w-3" />
+            Voice
+          </Link>
+
+          <Link
+            href="/admin/ai-conversations?mode=chat&page=1"
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
+              mode === "chat" && status !== "active"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MessageSquare className="h-3 w-3" />
+            Chat
+          </Link>
         </div>
       </div>
 

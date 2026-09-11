@@ -3,9 +3,14 @@
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/require-admin";
 import { terminateSession } from "@/lib/ai/session-store";
-import { releaseVoiceSlot } from "@/lib/ai/concurrency";
+import {
+  releaseVoiceSlot,
+  purgeStaleQueueEntries,
+  getActiveVoiceSessionCountFromDb,
+} from "@/lib/ai/concurrency";
+import { AI_CONFIG } from "@/lib/ai/config";
 import { revalidatePath } from "next/cache";
-import type { AgentMode } from "@/types/ai";
+import type { AgentMode, VoiceQueueData, VoiceQueueItem } from "@/types/ai";
 
 const PAGE_SIZE = 20;
 
@@ -218,6 +223,115 @@ export async function deleteAiConversation(id: string) {
 
   revalidatePath("/admin/ai-conversations");
   revalidatePath(`/admin/ai-conversations/${id}`);
+
+  return { success: true };
+}
+
+// ── Voice Model Queue Management ─────────────────────────────────────────────
+
+export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
+  await requireAdmin();
+
+  // Purge any stale entries first (> 3 mins without polling)
+  await purgeStaleQueueEntries();
+
+  const staleThreshold = new Date(Date.now() - 180 * 1000);
+
+  const [queueEntries, activeVoiceCount] = await Promise.all([
+    prisma.aiQueue.findMany({
+      where: {
+        lastPolledAt: { gte: staleThreshold },
+      },
+      orderBy: { joinedAt: "asc" },
+    }),
+    getActiveVoiceSessionCountFromDb(),
+  ]);
+
+  let unpromotedRank = 0;
+  const queue: VoiceQueueItem[] = queueEntries.map((entry) => {
+    let position = 0;
+    if (!entry.promoted) {
+      unpromotedRank += 1;
+      position = unpromotedRank;
+    }
+
+    return {
+      id: entry.id,
+      queueId: entry.queueId,
+      ip: entry.ipHash, // raw client IP address
+      joinedAt: entry.joinedAt.toISOString(),
+      lastPolledAt: entry.lastPolledAt.toISOString(),
+      promoted: entry.promoted,
+      promotedAt: entry.promotedAt ? entry.promotedAt.toISOString() : null,
+      position,
+      estimatedWaitSeconds: position * AI_CONFIG.estimatedSessionDurationSeconds,
+    };
+  });
+
+  const waitingCount = queue.filter((q) => !q.promoted).length;
+  const promotedCount = queue.filter((q) => q.promoted).length;
+
+  return {
+    queue,
+    waitingCount,
+    promotedCount,
+    activeVoiceCount,
+    maxConcurrentVoice: AI_CONFIG.maxConcurrentVoice,
+  };
+}
+
+export async function promoteVoiceQueueEntryAction(queueId: string) {
+  await requireAdmin();
+
+  const entry = await prisma.aiQueue.findUnique({
+    where: { queueId },
+  });
+
+  if (!entry) {
+    throw new Error("Queue entry not found");
+  }
+
+  await prisma.aiQueue.update({
+    where: { queueId },
+    data: {
+      promoted: true,
+      promotedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/admin/ai-conversations");
+  return { success: true };
+}
+
+export async function removeFromVoiceQueueAction(queueId: string) {
+  await requireAdmin();
+
+  const entry = await prisma.aiQueue.findUnique({
+    where: { queueId },
+  });
+
+  if (!entry) {
+    return { success: true };
+  }
+
+  await prisma.aiQueue.delete({
+    where: { queueId },
+  });
+
+  // If this entry was already promoted, promote the next waiting visitor
+  if (entry.promoted) {
+    await releaseVoiceSlot();
+  }
+
+  revalidatePath("/admin/ai-conversations");
+  return { success: true };
+}
+
+export async function clearVoiceQueueAction() {
+  await requireAdmin();
+
+  await prisma.aiQueue.deleteMany();
+  revalidatePath("/admin/ai-conversations");
 
   return { success: true };
 }

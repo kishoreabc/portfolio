@@ -42,7 +42,7 @@ const STALE_QUEUE_TIMEOUT_MS = 180 * 1000; // 3 minutes
 /**
  * Clean up stale queue entries (stopped polling > 3m ago, or promoted > 3m ago without claiming).
  */
-async function purgeStaleQueueEntries(): Promise<void> {
+export async function purgeStaleQueueEntries(): Promise<void> {
   try {
     const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);
     await prisma.aiQueue.deleteMany({
@@ -67,7 +67,7 @@ async function purgeStaleQueueEntries(): Promise<void> {
  * This works correctly across multiple serverless instances, unlike the
  * in-memory session map which is isolated per-worker.
  */
-async function getActiveVoiceSessionCountFromDb(): Promise<number> {
+export async function getActiveVoiceSessionCountFromDb(): Promise<number> {
   try {
     return await prisma.aiConversation.count({
       where: {

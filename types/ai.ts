@@ -349,6 +349,26 @@ export interface ConcurrencyStatus {
   hasSlot: boolean;
 }
 
+export interface VoiceQueueItem {
+  id: string;
+  queueId: string;
+  ip: string;
+  joinedAt: string;
+  lastPolledAt: string;
+  promoted: boolean;
+  promotedAt: string | null;
+  position: number;
+  estimatedWaitSeconds: number;
+}
+
+export interface VoiceQueueData {
+  queue: VoiceQueueItem[];
+  waitingCount: number;
+  promotedCount: number;
+  activeVoiceCount: number;
+  maxConcurrentVoice: number;
+}
+
 // ─────────────────────────────────────────────
 // FETCHED ARTIFACTS (for Voice Mode & Resources)
 // ─────────────────────────────────────────────

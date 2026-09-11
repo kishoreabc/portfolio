@@ -1,6 +1,17 @@
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderGit2, BookOpen, Award, Wrench, MessageSquare, ExternalLink, ArrowRight, Milestone, Eye } from "lucide-react";
+import {
+  FolderGit2,
+  BookOpen,
+  Award,
+  Wrench,
+  MessageSquare,
+  ArrowRight,
+  Milestone,
+  Eye,
+  Bot,
+  Mic,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -19,6 +30,8 @@ export default async function AdminDashboardPage() {
     recentMessages,
     config,
     visitorCounter,
+    waitingVoiceQueueCount,
+    activeAiSessionsCount,
   ] = await Promise.all([
     prisma.project.count(),
     prisma.certification.count(),
@@ -33,6 +46,15 @@ export default async function AdminDashboardPage() {
     }),
     prisma.siteConfig.findUnique({ where: { id: "singleton" }, select: { journeyEntries: true } }),
     prisma.siteVisitorCounter.findUnique({ where: { id: "singleton" } }),
+    prisma.aiQueue.count({
+      where: {
+        promoted: false,
+        lastPolledAt: { gte: new Date(Date.now() - 180 * 1000) },
+      },
+    }),
+    prisma.aiConversation.count({
+      where: { endedAt: null },
+    }),
   ]);
 
   const journeyCount = Array.isArray(config?.journeyEntries)
@@ -41,6 +63,7 @@ export default async function AdminDashboardPage() {
 
   const stats = [
     { label: "Total Visits", value: visitorCounter?.totalVisits ?? 0, href: "/", icon: Eye },
+    { label: "Active AI Sessions", value: activeAiSessionsCount, href: "/admin/ai-conversations", icon: Bot, highlight: activeAiSessionsCount > 0 || waitingVoiceQueueCount > 0 },
     { label: "Total Projects", value: projectsCount, href: "/admin/projects", icon: FolderGit2 },
     { label: "Certifications", value: certificationsCount, href: "/admin/certifications", icon: Award },
     { label: "Blog Articles", value: blogsCount, href: "/admin/blogs", icon: BookOpen },
@@ -58,8 +81,33 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
 
+      {/* Voice Model Waiting Queue Alert Banner (if visitors waiting) */}
+      {waitingVoiceQueueCount > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-400">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 border border-amber-500/30">
+              <Mic className="h-4 w-4 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-300">
+                {waitingVoiceQueueCount} visitor{waitingVoiceQueueCount !== 1 ? "s" : ""} waiting in Voice Model Queue
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Voice concurrency capacity reached. View real-time waiting list, IP addresses, and promote visitors.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-amber-500/40 text-amber-400 hover:bg-amber-500/20 text-xs shrink-0 w-full sm:w-auto"
+            render={<Link href="/admin/ai-conversations">Manage Voice Queue →</Link>}
+          />
+        </div>
+      )}
+
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
