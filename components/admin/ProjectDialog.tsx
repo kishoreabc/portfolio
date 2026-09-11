@@ -404,7 +404,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Title *</label>
               <Input
@@ -448,7 +448,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
             <Textarea {...register("fullDescription")} rows={3} placeholder="Detailed project overview..." />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Problem Statement</label>
               <Textarea {...register("problem")} rows={2} placeholder="What problem did this solve?" />
@@ -483,7 +483,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">GitHub URL</label>
@@ -504,7 +504,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
           />
 
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Metrics / Highlight</label>
               <Input {...register("metrics")} placeholder="20K+ items indexed, 98% accuracy" />
@@ -520,8 +520,8 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-border/60">
-            <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-3 border-t border-border/60">
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
               <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <Switch
                   checked={featuredValue}
@@ -547,7 +547,7 @@ export function ProjectDialog({ project, trigger }: ProjectDialogProps) {
               </label>
             </div>
 
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" className="w-full sm:w-auto" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {project ? "Save Changes" : "Create Project"}
             </Button>

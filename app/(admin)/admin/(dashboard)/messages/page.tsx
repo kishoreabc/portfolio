@@ -39,16 +39,16 @@ export default async function AdminMessagesPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {currentView === "trash"
               ? "Trash — Contact Messages"
               : currentView === "replied"
               ? "Replied — Contact Messages"
               : "Inbox — Contact Messages"}
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             {currentView === "trash"
               ? "Soft-deleted inquiries. Can be restored back to inbox at any time."
               : currentView === "replied"
@@ -58,10 +58,10 @@ export default async function AdminMessagesPage({
         </div>
 
         {/* View Filter Tabs: Inbox | Replied | Trash */}
-        <div className="flex items-center gap-1.5 text-xs bg-muted/50 p-1 rounded-lg border border-border/80">
+        <div className="flex items-center gap-1.5 text-xs bg-muted/50 p-1 rounded-lg border border-border/80 overflow-x-auto max-w-full">
           <a
             href="/admin/messages"
-            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "inbox"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
@@ -81,7 +81,7 @@ export default async function AdminMessagesPage({
 
           <a
             href="/admin/messages?view=replied"
-            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "replied"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
@@ -101,7 +101,7 @@ export default async function AdminMessagesPage({
 
           <a
             href="/admin/messages?view=trash"
-            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md font-medium transition-all flex items-center gap-1.5 shrink-0 ${
               currentView === "trash"
                 ? "bg-primary text-primary-foreground shadow-xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
@@ -126,10 +126,10 @@ export default async function AdminMessagesPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Sender</TableHead>
-                <TableHead>Subject & Message</TableHead>
-                <TableHead>Received</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="min-w-[150px]">Sender</TableHead>
+                <TableHead className="min-w-[280px]">Subject & Message</TableHead>
+                <TableHead className="min-w-[120px]">Received</TableHead>
+                <TableHead className="min-w-[90px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

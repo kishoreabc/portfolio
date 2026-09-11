@@ -50,38 +50,38 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
           Manage and update portfolio metrics, projects, skills, blogs, and visitor messages.
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} className="relative overflow-hidden border-border/70 bg-card/60">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3.5 sm:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
                   {stat.label}
                 </CardTitle>
-                <Icon className={`w-4 h-4 ${stat.highlight ? "text-primary" : "text-muted-foreground"}`} />
+                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${stat.highlight ? "text-primary" : "text-muted-foreground"}`} />
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
+              <CardContent className="p-3.5 sm:p-6 pt-0">
+                <div className="text-2xl sm:text-3xl font-bold">
                   {stat.value}
                   {stat.total !== undefined && (
-                    <span className="text-sm font-normal text-muted-foreground ml-1">
-                      / {stat.total} total
+                    <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1">
+                      /{stat.total}
                     </span>
                   )}
                 </div>
                 <Link
                   href={stat.href}
-                  className="mt-3 inline-flex items-center text-xs text-primary font-medium hover:underline gap-1"
+                  className="mt-2 sm:mt-3 inline-flex items-center text-[11px] sm:text-xs text-primary font-medium hover:underline gap-1"
                 >
                   Manage <ArrowRight className="w-3 h-3" />
                 </Link>
@@ -93,13 +93,13 @@ export default async function AdminDashboardPage() {
 
       {/* Recent Contact Messages */}
       <Card className="border-border/70 bg-card/60">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-6">
           <div>
-            <CardTitle>Recent Contact Form Submissions</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Recent Contact Form Submissions</CardTitle>
           </div>
-          <Button variant="outline" size="sm" render={<Link href="/admin/messages">View Inbox</Link>} />
+          <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs" render={<Link href="/admin/messages">View Inbox</Link>} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0">
           {recentMessages.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
               No contact form submissions yet.
@@ -107,24 +107,24 @@ export default async function AdminDashboardPage() {
           ) : (
             <div className="divide-y divide-border/60">
               {recentMessages.map((msg) => (
-                <div key={msg.id} className="py-3 flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                <div key={msg.id} className="py-3 flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       <span className="font-medium text-sm text-foreground">{msg.name}</span>
-                      <span className="text-xs text-muted-foreground">({msg.email})</span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[200px]">({msg.email})</span>
                       {!msg.read && (
-                        <span className="w-2 h-2 rounded-full bg-primary inline-block" title="Unread" />
+                        <span className="w-2 h-2 rounded-full bg-primary inline-block shrink-0" title="Unread" />
                       )}
                       {msg.replied && (
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                           Replied
                         </span>
                       )}
                     </div>
                     <p className="text-xs font-semibold text-foreground/90">{msg.subject}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{msg.message}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 break-words">{msg.message}</p>
                   </div>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0 self-start sm:self-auto">
                     {new Date(msg.createdAt).toLocaleDateString("en-IN")}
                   </span>
                 </div>

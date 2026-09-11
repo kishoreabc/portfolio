@@ -17,10 +17,10 @@ export default async function AdminEducationPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Education</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Education</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Manage academic degrees, school qualifications, CGPA metrics, and timelines.
           </p>
         </div>
@@ -32,11 +32,11 @@ export default async function AdminEducationPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Institution</TableHead>
-                <TableHead>Degree / Field</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Timeline</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="min-w-[150px]">Institution</TableHead>
+                <TableHead className="min-w-[140px]">Degree / Field</TableHead>
+                <TableHead className="min-w-[70px]">Score</TableHead>
+                <TableHead className="min-w-[100px]">Timeline</TableHead>
+                <TableHead className="min-w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

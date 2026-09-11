@@ -70,6 +70,8 @@ export function AgentPanel({
   const [showLeaveQueueConfirm, setShowLeaveQueueConfirm] = useState(false);
   const [voiceArtifacts, setVoiceArtifacts] = useState<FetchedArtifact[]>([]);
   const [isCompletingSentence, setIsCompletingSentence] = useState(false);
+  // Progressive connecting sub-stage: shown while view === 'connecting'
+  const [connectingStage, setConnectingStage] = useState<"requesting" | "audio">("requesting");
   const sessionGenerationRef = useRef(0);
 
   const addVoiceArtifact = useCallback(
@@ -291,7 +293,7 @@ export function AgentPanel({
   const isModelTurnActiveRef = useRef(false);
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionHeartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const handleRemoteRevokeRef = useRef<() => void>(() => {});
+  const handleRemoteRevokeRef = useRef<(reason?: string) => void>(() => {});
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -413,7 +415,7 @@ export function AgentPanel({
       })
         .then((res) => {
           if (res.status === 403) {
-            handleRemoteRevokeRef.current?.();
+            handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
         .catch(() => {});
@@ -465,7 +467,7 @@ export function AgentPanel({
       })
         .then((res) => {
           if (res.status === 403) {
-            handleRemoteRevokeRef.current?.();
+            handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
         .catch(() => {});
@@ -519,7 +521,11 @@ export function AgentPanel({
     void terminateCurrentSession();
   }, [stopVoiceTimer, stopSessionHeartbeat, leaveQueue, terminateCurrentSession, finalizeUserTurn, finalizeAssistantTurn]);
 
-  const handleRemoteRevoke = useCallback(() => {
+  /**
+   * Called when the server signals that the session was ended externally.
+   * @param reason - 'REVOKED' (admin), 'IDLE_TIMEOUT', 'DELETED', or undefined.
+   */
+  const handleRemoteRevoke = useCallback((reason?: string) => {
     // Invalidate in-flight sessions and callbacks
     sessionGenerationRef.current++;
 
@@ -564,21 +570,38 @@ export function AgentPanel({
       setVoiceSecondsLeft(null);
     }
 
-    toast.error("Your session has been ended by the administrator.", {
-      duration: 8000,
-    });
+    // Show a context-appropriate message — never blame admin for idle timeouts.
+    if (reason === "IDLE_TIMEOUT") {
+      toast.info("Your session ended due to inactivity.", { duration: 7000 });
+    } else {
+      toast.error("Your session has been ended by the administrator.", {
+        duration: 8000,
+      });
+    }
   }, [stopVoiceTimer, stopSessionHeartbeat, finalizeUserTurn, finalizeAssistantTurn]);
 
   useEffect(() => {
     handleRemoteRevokeRef.current = handleRemoteRevoke;
   }, [handleRemoteRevoke]);
 
+  // Keep a stable ref so heartbeat closures can call the latest version
+  // without being listed as a dependency (avoids recreating the interval).
+  const handleRemoteRevokeLatestRef = useRef(handleRemoteRevoke);
+  useEffect(() => {
+    handleRemoteRevokeLatestRef.current = handleRemoteRevoke;
+  }, [handleRemoteRevoke]);
+
   const startSessionHeartbeat = useCallback(
-    (sessionId: string, conversationId: string) => {
+    (sessionId: string, conversationId: string, genId: number) => {
       stopSessionHeartbeat();
 
       sessionHeartbeatRef.current = setInterval(async () => {
-        if (!isMounted.current || !sessionRef.current) {
+        // Guard: stop if component unmounted, session changed, or WebSocket closed.
+        if (
+          !isMounted.current ||
+          !sessionRef.current ||
+          genId !== sessionGenerationRef.current
+        ) {
           stopSessionHeartbeat();
           return;
         }
@@ -589,19 +612,23 @@ export function AgentPanel({
             { cache: "no-store" }
           );
 
+          // Re-check generation after the async fetch completes.
+          if (genId !== sessionGenerationRef.current) return;
+
           if (!res.ok) {
             if (res.status === 403 || res.status === 404) {
-              handleRemoteRevokeRef.current?.();
+              handleRemoteRevokeLatestRef.current?.("REVOKED");
             }
             return;
           }
 
           const data = await res.json();
           if (data.active === false || data.revoked) {
-            handleRemoteRevokeRef.current?.();
+            // Pass the server-provided reason so the UI can show the right message.
+            handleRemoteRevokeLatestRef.current?.(data.reason as string | undefined);
           }
         } catch {
-          // Network glitch, will retry on next tick
+          // Network glitch — will retry on next tick.
         }
       }, 2000);
     },
@@ -749,7 +776,7 @@ export function AgentPanel({
               }),
             });
             if (res.status === 403) {
-              handleRemoteRevokeRef.current?.();
+              handleRemoteRevokeLatestRef.current?.("REVOKED");
               return {
                 id: call.id,
                 name: call.name as AllowedToolName,
@@ -1052,6 +1079,8 @@ export function AgentPanel({
             onopen: () => {
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
               console.log("[AgentPanel] Live WebSocket connected");
+              // Advance the connecting UI to the audio setup stage
+              setConnectingStage("audio");
             },
             onmessage: (msg: LiveServerMessage) => {
               if (!isMounted.current || currentGen !== sessionGenerationRef.current) return;
@@ -1065,8 +1094,9 @@ export function AgentPanel({
                   startVoiceTimer(data.voiceTimeoutSeconds, data.voiceWarningSeconds ?? 120);
                 }
 
-                // Start realtime session status heartbeat to detect admin revocation
-                startSessionHeartbeat(data.sessionId, data.conversationId);
+                // Start heartbeat ONLY here (after setupComplete) — starting it
+                // earlier would create duplicate intervals and false revoke signals.
+                startSessionHeartbeat(data.sessionId, data.conversationId, currentGen);
               }
 
               handleMessage(msg, data.conversationId, targetMode);
@@ -1104,7 +1134,11 @@ export function AgentPanel({
         }
 
         sessionRef.current = session;
-        startSessionHeartbeat(data.sessionId, data.conversationId);
+        // NOTE: Do NOT call startSessionHeartbeat here.
+        // It is started inside the setupComplete handler so it only
+        // begins once the session is fully established. Starting it
+        // here would create a duplicate interval and cause false
+        // admin-revoke messages from stale session state.
 
         // Initialize and start audio manager if in voice mode
         if (targetMode === "voice" && isMounted.current && currentGen === sessionGenerationRef.current) {
@@ -1197,6 +1231,7 @@ export function AgentPanel({
       }
 
       setMode(targetMode);
+      setConnectingStage("requesting");
       if (targetMode === "voice") {
         AudioManager.unlock();
       }
@@ -1303,7 +1338,7 @@ export function AgentPanel({
       })
         .then((res) => {
           if (res.status === 403) {
-            handleRemoteRevokeRef.current?.();
+            handleRemoteRevokeLatestRef.current?.("REVOKED");
           }
         })
         .catch(() => {});
@@ -1393,9 +1428,9 @@ export function AgentPanel({
   return (
     <div
       className="
-        fixed bottom-20 right-4 z-50
+        fixed bottom-20 right-3 left-3 sm:left-auto sm:right-4 z-50
         flex flex-col
-        w-[340px] sm:w-[380px] h-[520px]
+        w-auto sm:w-[380px] max-w-[calc(100vw-1.5rem)] h-[520px] max-h-[80vh]
         rounded-2xl border border-border
         bg-background/95 backdrop-blur-md
         shadow-2xl shadow-black/20
@@ -1522,9 +1557,35 @@ export function AgentPanel({
             }}
           />
         ) : view === "connecting" && state === "CONNECTING" ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm text-muted-foreground">Starting chat session...</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            <div className="relative h-10 w-10">
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-3 w-3 rounded-full bg-primary/30 animate-pulse" />
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-1 text-center">
+              <p className="text-sm font-medium text-foreground">
+                {connectingStage === "audio"
+                  ? "Setting up audio..."
+                  : "Starting chat session..."}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {connectingStage === "requesting"
+                  ? "Securing your session"
+                  : "Initialising microphone"}
+              </p>
+            </div>
+            {/* Stage dots */}
+            <div className="flex gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span
+                className={`h-1.5 w-1.5 rounded-full transition-colors duration-500 ${
+                  connectingStage === "audio" ? "bg-primary" : "bg-muted-foreground/30"
+                }`}
+              />
+              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+            </div>
           </div>
         ) : (
           <AgentTranscript entries={transcript} resources={sessionData?.resources} />

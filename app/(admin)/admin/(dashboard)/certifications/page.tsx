@@ -18,10 +18,10 @@ export default async function AdminCertificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Certifications</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Certifications</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Manage course certifications, NPTEL awards, and credential verification links.
           </p>
         </div>
@@ -33,11 +33,11 @@ export default async function AdminCertificationsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[45%] min-w-[240px]">Title & Description</TableHead>
-                <TableHead className="w-[20%] min-w-[140px]">Issuer</TableHead>
-                <TableHead className="w-[13%] min-w-[100px]">Issue Date</TableHead>
-                <TableHead className="w-[10%]">Status</TableHead>
-                <TableHead className="w-[12%] text-right">Actions</TableHead>
+                <TableHead className="min-w-[220px]">Title & Description</TableHead>
+                <TableHead className="min-w-[130px]">Issuer</TableHead>
+                <TableHead className="min-w-[100px]">Issue Date</TableHead>
+                <TableHead className="min-w-[80px]">Status</TableHead>
+                <TableHead className="min-w-[110px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -96,7 +96,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             {errors.heroSubtitle && <p className="text-xs text-destructive">{errors.heroSubtitle.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Availability Status Badge</label>
               <Input {...register("availabilityStatus")} placeholder="Open to opportunities" />
@@ -117,7 +117,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
           <CardDescription>Bio, contact email, avatar image, and downloadable resume link.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Full Name *</label>
               <Input {...register("name")} />
@@ -129,7 +129,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Contact Email *</label>
               <Input {...register("contactEmail")} />
@@ -177,7 +177,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
           <CardDescription>Manually editable problem count shown in Coding section.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold">Total Solved *</label>
               <Input type="number" {...register("leetcodeTotal", { valueAsNumber: true })} />
@@ -316,7 +316,7 @@ export function ProfileForm({ config }: { config: SiteConfig | null }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" size="lg" disabled={loading}>
+        <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={loading}>
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Save All Site Settings
         </Button>

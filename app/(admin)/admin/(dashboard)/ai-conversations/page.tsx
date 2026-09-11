@@ -71,10 +71,10 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
           <RevokeAllActiveSessionsButton activeCount={activeCount} />
 
           {/* Mode & Status Filters */}
-          <div className="flex items-center gap-1 rounded-lg border border-border p-1 bg-card/60">
+          <div className="flex items-center gap-1 rounded-lg border border-border p-1 bg-card/60 overflow-x-auto max-w-full">
             <Link
               href="/admin/ai-conversations?page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
                 status === "all" && mode === "all"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -86,7 +86,7 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
 
             <Link
               href="/admin/ai-conversations?status=active&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
                 status === "active"
                   ? "bg-emerald-500 text-white"
                   : "text-muted-foreground hover:text-foreground"
@@ -98,7 +98,7 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
 
             <Link
               href="/admin/ai-conversations?mode=voice&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
                 mode === "voice" && status !== "active"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -110,7 +110,7 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
 
             <Link
               href="/admin/ai-conversations?mode=chat&page=1"
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors shrink-0 ${
                 mode === "chat" && status !== "active"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -130,8 +130,8 @@ export default async function AiConversationsPage({ searchParams }: PageProps) {
           <p className="text-sm text-muted-foreground">No conversations found.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden bg-card/30">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border overflow-x-auto min-w-0 w-full bg-card/30">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted/40">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground text-xs">Date</th>

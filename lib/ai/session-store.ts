@@ -36,14 +36,35 @@ function purgeExpiredSessions(): void {
         ? AI_CONFIG.maxVoiceSessionSeconds * 1000
         : AI_CONFIG.maxChatSessionSeconds * 1000;
 
-    // Hard limit timeout or idle timeout (no activity for 90s on voice)
-    const isOverMax = now - session.createdAt.getTime() > maxMs + 30_000;
+    // Voice: hard wall-clock limit
+    const isOverMax =
+      session.mode === "voice" &&
+      now - session.createdAt.getTime() > maxMs + 30_000;
+
+    // Voice: idle grace period (no activity for 2 min)
     const isVoiceIdle =
       session.mode === "voice" &&
-      now - session.lastActivity.getTime() > 120_000; // 2 min idle grace
+      now - session.lastActivity.getTime() > 120_000;
 
-    if (isOverMax || isVoiceIdle) {
+    // Chat: idle timeout based on lastActivity (not createdAt)
+    // Uses maxChatSessionSeconds from env (AI_MAX_CHAT_SESSION_SECONDS).
+    const isChatIdle =
+      session.mode === "chat" &&
+      now - session.lastActivity.getTime() > maxMs;
+
+    if (isOverMax || isVoiceIdle || isChatIdle) {
       sessions.delete(sessionId);
+      // Write endedAt to DB so the client heartbeat detects the expiry
+      // and shows the user a friendly "session ended" message.
+      const convId = session.conversationId;
+      void prisma.aiConversation
+        .updateMany({
+          where: { id: convId, endedAt: null },
+          data: { endedAt: new Date() },
+        })
+        .catch((err) =>
+          console.error("[AI:SessionStore] Failed to set endedAt on purge:", err)
+        );
     }
   }
 }

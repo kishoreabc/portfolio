@@ -10,8 +10,9 @@
  *  3. IP rate limit (sessions/IP/day)
  *  4. Daily global budget check
  *  5. Concurrency check + queue (voice only)
- *  6. Gemini ephemeral token creation (server-side, key never leaves)
- *  7. AiConversation DB record created (transcript anchored to session)
+ *  6. AiConversation DB record created (transcript anchored to session)
+ *  7. Gemini ephemeral token creation (server-side, key never leaves)
+ *     → on failure, DB record is rolled back (endedAt set) to prevent zombie sessions
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -111,19 +112,12 @@ export async function POST(request: NextRequest) {
     buildSystemPrompt(),
   ]);
 
-  // ── Create ephemeral Gemini token ───────────────────────────────────────────
-  const tokenResult = await createEphemeralToken(mode);
-  if (!tokenResult) {
-    return NextResponse.json(
-      { error: toSafeErrorMessage("GEMINI_UNAVAILABLE") },
-      { status: 503 }
-    );
-  }
-
   // ── Create session IDs ──────────────────────────────────────────────────────
   const sessionId = crypto.randomUUID();
 
   // ── Create AiConversation DB record ────────────────────────────────────────
+  // Created BEFORE the ephemeral token so we can roll it back (set endedAt)
+  // if token creation fails — preventing zombie "active" sessions in the dashboard.
   let conversationId: string;
   try {
     const conversation = await prisma.aiConversation.create({
@@ -139,6 +133,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: toSafeErrorMessage("INTERNAL_ERROR") },
       { status: 500 }
+    );
+  }
+
+  // ── Create ephemeral Gemini token ───────────────────────────────────────────
+  const tokenResult = await createEphemeralToken(mode);
+  if (!tokenResult) {
+    // Roll back the DB record so it doesn't appear as a zombie active session
+    // in the admin dashboard or inflate the DB-backed concurrency count.
+    await prisma.aiConversation
+      .update({
+        where: { id: conversationId },
+        data: { endedAt: new Date() },
+      })
+      .catch(() => {});
+    return NextResponse.json(
+      { error: toSafeErrorMessage("GEMINI_UNAVAILABLE") },
+      { status: 503 }
     );
   }
 

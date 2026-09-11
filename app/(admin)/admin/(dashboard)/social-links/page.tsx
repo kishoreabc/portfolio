@@ -18,10 +18,10 @@ export default async function AdminSocialLinksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Social & Profile Links</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Social & Profile Links</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Manage links to GitHub, LinkedIn, LeetCode, and contact email.
           </p>
         </div>
@@ -33,10 +33,10 @@ export default async function AdminSocialLinksPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Platform</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="min-w-[120px]">Platform</TableHead>
+                <TableHead className="min-w-[180px]">URL</TableHead>
+                <TableHead className="min-w-[80px]">Status</TableHead>
+                <TableHead className="min-w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -27,13 +27,13 @@ export default async function AdminLayout({
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row">
       <AdminSidebar
         unreadMessagesCount={unreadCount}
         userEmail={session.user.email ?? undefined}
         signOutAction={signOutAction}
       />
-      <main className="flex-1 p-8 overflow-y-auto max-w-7xl">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl w-full min-w-0">
         {children}
       </main>
     </div>

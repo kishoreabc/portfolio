@@ -17,10 +17,10 @@ export default async function AdminProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Projects</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Create, edit, feature, and synchronize GitHub metadata for portfolio projects.
           </p>
         </div>
@@ -32,12 +32,12 @@ export default async function AdminProjectsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40px]">Order</TableHead>
-                <TableHead>Project</TableHead>
-                <TableHead>Technologies</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>GitHub Sync</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[50px] min-w-[50px]">Order</TableHead>
+                <TableHead className="min-w-[180px]">Project</TableHead>
+                <TableHead className="min-w-[140px]">Technologies</TableHead>
+                <TableHead className="min-w-[90px]">Status</TableHead>
+                <TableHead className="min-w-[110px]">GitHub Sync</TableHead>
+                <TableHead className="min-w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

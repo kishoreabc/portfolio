@@ -17,10 +17,10 @@ export default async function AdminBlogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Blog Articles</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Blog Articles</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Publish, edit, and organize technical articles, AI/ML case studies, and engineering blogs.
           </p>
         </div>
@@ -32,12 +32,12 @@ export default async function AdminBlogsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[45px]">Order</TableHead>
-                <TableHead className="w-[45%] min-w-[260px]">Article & Summary</TableHead>
-                <TableHead className="w-[20%] min-w-[140px]">Tags</TableHead>
-                <TableHead className="w-[12%] min-w-[100px]">Read Time</TableHead>
-                <TableHead className="w-[10%]">Status</TableHead>
-                <TableHead className="w-[13%] text-right">Actions</TableHead>
+                <TableHead className="w-[50px] min-w-[50px]">Order</TableHead>
+                <TableHead className="min-w-[240px]">Article & Summary</TableHead>
+                <TableHead className="min-w-[130px]">Tags</TableHead>
+                <TableHead className="min-w-[100px]">Read Time</TableHead>
+                <TableHead className="min-w-[80px]">Status</TableHead>
+                <TableHead className="min-w-[90px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

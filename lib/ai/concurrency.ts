@@ -24,7 +24,7 @@
 import { prisma } from "@/lib/db";
 import { AI_CONFIG } from "./config";
 import { hashIp } from "./security";
-import { getActiveVoiceSessionCount, terminateSessionsForIp } from "./session-store";
+import { terminateSessionsForIp } from "./session-store";
 
 // ── Slot Acquisition ──────────────────────────────────────────────────────────
 
@@ -62,23 +62,52 @@ async function purgeStaleQueueEntries(): Promise<void> {
  * Try to acquire a voice session slot for the given IP.
  * If no slot is available, creates or reuses a queue entry and returns position.
  */
+/**
+ * Count active voice sessions using the DB as the source of truth.
+ * This works correctly across multiple serverless instances, unlike the
+ * in-memory session map which is isolated per-worker.
+ */
+async function getActiveVoiceSessionCountFromDb(): Promise<number> {
+  try {
+    return await prisma.aiConversation.count({
+      where: {
+        mode: "voice",
+        endedAt: null,
+        // Only count sessions started in the last 2× the max duration as a safety bound.
+        // Prevents permanently leaked records from blocking all new sessions.
+        startedAt: {
+          gte: new Date(Date.now() - AI_CONFIG.maxVoiceSessionSeconds * 2 * 1000),
+        },
+      },
+    });
+  } catch (err) {
+    console.error("[AI:Concurrency] Failed to count active voice sessions from DB:", err);
+    // Fall back to 0 on DB error so we don't permanently block new sessions.
+    return 0;
+  }
+}
+
 export async function tryAcquireVoiceSlot(ip: string): Promise<AcquireResult> {
   await purgeStaleQueueEntries();
 
   const ipHash = hashIp(ip);
 
   // If this visitor already has an orphaned active session in memory (e.g. page reload),
-  // clear it so they don't block themselves.
-  terminateSessionsForIp(ipHash);
-
-  const activeCount = getActiveVoiceSessionCount();
+  // clear it so they don't block themselves. We do this AFTER reading the count so we
+  // don't deflate it before the check.
+  const activeCount = await getActiveVoiceSessionCountFromDb();
 
   if (activeCount < AI_CONFIG.maxConcurrentVoice) {
     // Slot available — caller will create the session.
+    // Clear any orphaned in-memory session for this IP (page reload scenario).
+    terminateSessionsForIp(ipHash);
     // Clean up any leftover queue entry for this IP.
     await prisma.aiQueue.deleteMany({ where: { ipHash } }).catch(() => {});
     return { acquired: true };
   }
+
+  // Over limit — also clear the in-memory record to avoid a stale slot accumulation.
+  terminateSessionsForIp(ipHash);
 
   // Check if this visitor already has an active queue entry (prevents race-condition wipes)
   const staleThreshold = new Date(Date.now() - STALE_QUEUE_TIMEOUT_MS);

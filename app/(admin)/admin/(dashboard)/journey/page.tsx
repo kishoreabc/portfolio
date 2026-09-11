@@ -93,12 +93,12 @@ export default async function AdminJourneyPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Journey & Milestones</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Journey & Milestones</h1>
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
             Manage your timeline milestones, education journey, key achievements, and co-curriculars.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <form
             action={async () => {
               "use server";
@@ -124,12 +124,12 @@ export default async function AdminJourneyPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12 text-center">Order</TableHead>
-                <TableHead>Milestone</TableHead>
-                <TableHead>Organization</TableHead>
-                <TableHead>Timeline</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-12 min-w-[48px] text-center">Order</TableHead>
+                <TableHead className="min-w-[200px]">Milestone</TableHead>
+                <TableHead className="min-w-[130px]">Organization</TableHead>
+                <TableHead className="min-w-[100px]">Timeline</TableHead>
+                <TableHead className="min-w-[90px]">Category</TableHead>
+                <TableHead className="min-w-[80px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
