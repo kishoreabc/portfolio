@@ -15,16 +15,19 @@ export default function AdminDashboardLoading() {
       </div>
 
       {/* Stats Cards Skeleton Grid */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8">
+      <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
           <Card key={i} className="border-border/70 bg-card/60">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3.5 sm:p-6">
-              <Skeleton className="h-3.5 w-16 rounded" />
-              <Skeleton className="h-4 w-4 rounded-full" />
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 sm:p-5">
+              <Skeleton className="h-4 w-28 rounded" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
             </CardHeader>
-            <CardContent className="p-3.5 sm:p-6 pt-0 space-y-2">
-              <Skeleton className="h-7 w-12 rounded" />
-              <Skeleton className="h-3 w-14 rounded" />
+            <CardContent className="p-4 sm:p-5 pt-0 space-y-3">
+              <div>
+                <Skeleton className="h-8 w-16 rounded" />
+                <Skeleton className="h-3 w-36 rounded mt-2" />
+              </div>
+              <Skeleton className="h-4 w-20 rounded pt-1" />
             </CardContent>
           </Card>
         ))}

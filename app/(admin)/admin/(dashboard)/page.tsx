@@ -62,14 +62,65 @@ export default async function AdminDashboardPage() {
     : 0;
 
   const stats = [
-    { label: "Total Visits", value: visitorCounter?.totalVisits ?? 0, href: "/", icon: Eye },
-    { label: "Active AI Sessions", value: activeAiSessionsCount, href: "/admin/ai-conversations", icon: Bot, highlight: activeAiSessionsCount > 0 || waitingVoiceQueueCount > 0 },
-    { label: "Total Projects", value: projectsCount, href: "/admin/projects", icon: FolderGit2 },
-    { label: "Certifications", value: certificationsCount, href: "/admin/certifications", icon: Award },
-    { label: "Blog Articles", value: blogsCount, href: "/admin/blogs", icon: BookOpen },
-    { label: "Skills Badges", value: skillsCount, href: "/admin/skills", icon: Wrench },
-    { label: "Journey Milestones", value: journeyCount, href: "/admin/journey", icon: Milestone },
-    { label: "Unread Messages", value: unreadMessagesCount, total: messagesCount, href: "/admin/messages", icon: MessageSquare, highlight: unreadMessagesCount > 0 },
+    {
+      label: "Total Visits",
+      description: "Unique visits recorded",
+      value: visitorCounter?.totalVisits ?? 0,
+      href: "/",
+      icon: Eye,
+    },
+    {
+      label: "Active AI Sessions",
+      description: "Live voice & chat agents",
+      value: activeAiSessionsCount,
+      href: "/admin/ai-conversations",
+      icon: Bot,
+      highlight: activeAiSessionsCount > 0 || waitingVoiceQueueCount > 0,
+    },
+    {
+      label: "Total Projects",
+      description: "Showcased portfolio projects",
+      value: projectsCount,
+      href: "/admin/projects",
+      icon: FolderGit2,
+    },
+    {
+      label: "Certifications",
+      description: "Verified credentials & honors",
+      value: certificationsCount,
+      href: "/admin/certifications",
+      icon: Award,
+    },
+    {
+      label: "Blog Articles",
+      description: "Published technical posts",
+      value: blogsCount,
+      href: "/admin/blogs",
+      icon: BookOpen,
+    },
+    {
+      label: "Skills Badges",
+      description: "Technologies & competencies",
+      value: skillsCount,
+      href: "/admin/skills",
+      icon: Wrench,
+    },
+    {
+      label: "Journey Milestones",
+      description: "Career & academic timeline",
+      value: journeyCount,
+      href: "/admin/journey",
+      icon: Milestone,
+    },
+    {
+      label: "Unread Messages",
+      description: "Visitor contact submissions",
+      value: unreadMessagesCount,
+      total: messagesCount,
+      href: "/admin/messages",
+      icon: MessageSquare,
+      highlight: unreadMessagesCount > 0,
+    },
   ];
 
   return (
@@ -107,31 +158,52 @@ export default async function AdminDashboardPage() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8">
+      <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="relative overflow-hidden border-border/70 bg-card/60">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3.5 sm:p-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-1">
+            <Card
+              key={stat.label}
+              className={`relative overflow-hidden border transition-all duration-200 hover:border-primary/40 hover:shadow-md ${
+                stat.highlight
+                  ? "border-primary/40 bg-primary/5 dark:bg-primary/[0.03]"
+                  : "border-border/70 bg-card/60"
+              }`}
+            >
+              <CardHeader className="flex flex-row items-center justify-between pb-2 p-4 sm:p-5">
+                <CardTitle className="text-sm font-semibold text-foreground tracking-tight">
                   {stat.label}
                 </CardTitle>
-                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${stat.highlight ? "text-primary" : "text-muted-foreground"}`} />
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                    stat.highlight
+                      ? "bg-primary/15 text-primary"
+                      : "bg-muted/80 text-muted-foreground"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
               </CardHeader>
-              <CardContent className="p-3.5 sm:p-6 pt-0">
-                <div className="text-2xl sm:text-3xl font-bold">
-                  {stat.value}
-                  {stat.total !== undefined && (
-                    <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1">
-                      /{stat.total}
-                    </span>
-                  )}
+              <CardContent className="p-4 sm:p-5 pt-0 flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                    {stat.value}
+                    {stat.total !== undefined && (
+                      <span className="text-xs sm:text-sm font-normal text-muted-foreground ml-1.5">
+                        / {stat.total} total
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                    {stat.description}
+                  </p>
                 </div>
                 <Link
                   href={stat.href}
-                  className="mt-2 sm:mt-3 inline-flex items-center text-[11px] sm:text-xs text-primary font-medium hover:underline gap-1"
+                  className="inline-flex items-center text-xs font-medium text-primary hover:text-primary/80 transition-colors gap-1 pt-1 self-start group"
                 >
-                  Manage <ArrowRight className="w-3 h-3" />
+                  <span>Manage</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </CardContent>
             </Card>
