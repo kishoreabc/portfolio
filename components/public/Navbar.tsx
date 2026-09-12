@@ -210,12 +210,12 @@ export function Navbar() {
 
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] bg-transparent transition-all duration-300 pointer-events-none",
-          scrolled ? "py-2.5 sm:py-3" : "py-4 sm:py-5"
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 pointer-events-none",
+          scrolled ? "bg-background/40 backdrop-blur-xs py-2.5 sm:py-3" : "bg-transparent py-4 sm:py-5"
         )}
       >
         <div className="container-portfolio flex items-center justify-between gap-2 pointer-events-auto">
-          {/* Brand / Logo with micro-animation */}
+          {/* Brand / Logo with matching slightly transparent glass pill */}
           <Link
             href="/"
             onClick={(e) => {
@@ -226,20 +226,20 @@ export function Navbar() {
                 window.history.pushState(null, "", "/");
               }
             }}
-            className="flex items-center gap-2.5 group shrink-0"
+            className="flex items-center gap-2.5 group shrink-0 bg-card/60 dark:bg-card/30 backdrop-blur-md px-2.5 sm:px-3 py-1.5 rounded-full border border-border/60 shadow-2xs hover:border-primary/50 transition-all cursor-pointer"
           >
             <motion.div
               whileHover={{ scale: 1.08, rotate: 3 }}
               whileTap={{ scale: 0.94 }}
-              className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-base shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow shrink-0 cursor-pointer"
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm group-hover:shadow-primary/30 group-hover:shadow-md transition-shadow shrink-0"
             >
               K
             </motion.div>
-            <div className="flex flex-col shrink-0">
-              <span className="font-bold text-sm sm:text-base tracking-tight leading-none group-hover:text-primary transition-colors whitespace-nowrap">
+            <div className="flex flex-col shrink-0 pr-1">
+              <span className="font-bold text-xs sm:text-sm tracking-tight leading-none group-hover:text-primary transition-colors whitespace-nowrap">
                 Kishore R
               </span>
-              <span className="text-[10px] text-muted-foreground font-mono mt-0.5 whitespace-nowrap">
+              <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono mt-0.5 whitespace-nowrap">
                 AI / ML Engineer
               </span>
             </div>
