@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, MapPin, Mail } from "lucide-react";
@@ -10,12 +9,16 @@ import { SiteConfig, Education } from "@prisma/client";
 interface AboutProps {
   config: SiteConfig | null;
   educationList: Education[];
+  initialSolvedCount?: number;
 }
 
-export function About({ config, educationList }: AboutProps) {
-  const [solvedCount, setSolvedCount] = useState<number>(config?.leetcodeTotal ?? 0);
+export function About({ config, educationList, initialSolvedCount }: AboutProps) {
+  const [solvedCount, setSolvedCount] = useState<number>(
+    initialSolvedCount ?? config?.leetcodeTotal ?? 0
+  );
 
   useEffect(() => {
+    if (initialSolvedCount !== undefined) return;
     async function fetchLatestStats() {
       try {
         const res = await fetch("/api/leetcode/heatmap");
@@ -28,7 +31,7 @@ export function About({ config, educationList }: AboutProps) {
       }
     }
     fetchLatestStats();
-  }, []);
+  }, [initialSolvedCount]);
 
   const aboutText = config?.aboutText || "";
 
@@ -50,21 +53,17 @@ export function About({ config, educationList }: AboutProps) {
 
         <div className="grid gap-8 lg:grid-cols-12 items-start">
           {/* Personal Bio Card */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="lg:col-span-6 space-y-6"
-          >
-            <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 sm:p-8 space-y-6">
+          <div className="lg:col-span-6 space-y-6 scroll-reveal" data-delay="1">
+            <Card className="card-glow-border border-border/70 bg-card/90 p-6 sm:p-8 space-y-6 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
               {config?.avatarUrl && (
                 <div className="flex items-center gap-4 pb-4 border-b border-border/60">
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-primary/40 shadow-md shrink-0 bg-muted">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-primary/40 shadow-md shrink-0 bg-muted group">
                     <img
                       src={config.avatarUrl}
                       alt={config.name || "Kishore R"}
-                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <div className="space-y-1 min-w-0">
@@ -101,26 +100,19 @@ export function About({ config, educationList }: AboutProps) {
 
             {/* Core Metrics */}
             <div className="grid grid-cols-2 gap-4">
-              <Card className="border-border/70 bg-card/60 p-4 text-center">
-                <p className="text-2xl font-bold text-gradient">8.33</p>
+              <Card className="card-glow-border border-border/70 bg-card/90 p-4 text-center hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group">
+                <p className="text-2xl font-bold text-gradient group-hover:scale-105 transition-transform">8.33</p>
                 <p className="text-xs text-muted-foreground mt-0.5">B.Tech CGPA</p>
               </Card>
-              <Card className="border-border/70 bg-card/60 p-4 text-center">
-                <p className="text-2xl font-bold text-gradient">{solvedCount}+</p>
+              <Card className="card-glow-border border-border/70 bg-card/90 p-4 text-center hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group">
+                <p className="text-2xl font-bold text-gradient group-hover:scale-105 transition-transform">{solvedCount}+</p>
                 <p className="text-xs text-muted-foreground mt-0.5">LeetCode Solved</p>
               </Card>
             </div>
-          </motion.div>
-
+          </div>
 
           {/* Education Timeline */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="lg:col-span-6 space-y-4"
-          >
+          <div className="lg:col-span-6 space-y-4 scroll-reveal" data-delay="2">
             <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
               <GraduationCap className="w-5 h-5 text-primary" />
               Education Timeline
@@ -129,8 +121,11 @@ export function About({ config, educationList }: AboutProps) {
             <div className="space-y-4 relative before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-border/80">
               {educationList.map((edu) => (
                 <div key={edu.id} className="relative pl-8 space-y-1 group">
-                  <span className="absolute left-1.5 top-1.5 w-3 h-3 rounded-full bg-primary ring-4 ring-background group-hover:scale-125 transition-transform" />
-                  <Card className="border-border/70 bg-card/60 p-4 transition-all hover:border-primary/40">
+                  <span className="absolute left-1.5 top-2 flex h-3 w-3 items-center justify-center">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/60 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary ring-2 ring-background group-hover:scale-125 transition-transform duration-300" />
+                  </span>
+                  <Card className="card-glow-border border-border/70 bg-card/90 p-4 transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:-translate-y-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h4 className="font-semibold text-sm text-foreground">{edu.institution}</h4>
@@ -153,7 +148,7 @@ export function About({ config, educationList }: AboutProps) {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

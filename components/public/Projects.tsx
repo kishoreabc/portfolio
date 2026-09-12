@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
 import { Project } from "@prisma/client";
 import { ProjectModal } from "@/components/public/ProjectModal";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -43,15 +42,12 @@ export function Projects({ projects }: ProjectsProps) {
         {/* Projects Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {publishedProjects.map((project, idx) => (
-            <motion.div
+            <div
               key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.1 }}
-              className="flex"
+              className="flex scroll-reveal"
+              data-delay={((idx % 3) + 1).toString()}
             >
-              <Card className="border-border/70 bg-card/60 backdrop-blur-sm flex flex-col justify-between hover:border-primary/50 hover:shadow-lg transition-all group w-full">
+              <Card className="card-glow-border border-border/70 bg-card/90 flex flex-col justify-between hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-300 group w-full">
                 <CardHeader className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <Badge variant={project.featured ? "default" : "secondary"} className="text-[10px] px-2 py-0.5">
@@ -85,7 +81,7 @@ export function Projects({ projects }: ProjectsProps) {
                   {/* Tech Badges */}
                   <div className="flex flex-wrap gap-1.5">
                     {project.technologies.slice(0, 4).map((tech) => (
-                      <Badge key={tech} variant="outline" className="text-[10px] px-2 py-0.5 border-border/80">
+                      <Badge key={tech} variant="outline" className="text-[10px] px-2 py-0.5 border-border/80 hover:border-primary/40 hover:scale-105 transition-transform">
                         {tech}
                       </Badge>
                     ))}
@@ -107,10 +103,10 @@ export function Projects({ projects }: ProjectsProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-xs font-medium text-primary hover:text-primary hover:bg-primary/10 px-3"
+                    className="text-xs font-medium text-primary hover:text-primary hover:bg-primary/10 px-3 group/btn"
                     onClick={() => handleOpenModal(project)}
                   >
-                    View Details <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                    View Details <ArrowUpRight className="w-3.5 h-3.5 ml-1 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
                   </Button>
 
                   {project.githubUrl && (
@@ -128,7 +124,7 @@ export function Projects({ projects }: ProjectsProps) {
                   )}
                 </CardFooter>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

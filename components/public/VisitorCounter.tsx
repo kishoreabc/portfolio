@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useSyncExternalStore } from "react";
-import { motion } from "motion/react";
 
 const emptySubscribe = () => () => {};
 function useMounted() {
@@ -92,12 +91,8 @@ export function VisitorCounter() {
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: -2 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      whileHover={{ scale: 1.04, y: -1 }}
-      className="relative group inline-flex items-center gap-1.5 sm:gap-2 h-9 px-2.5 sm:px-3 rounded-full bg-card/60 hover:bg-card/90 backdrop-blur-md border border-border/70 hover:border-primary/50 shadow-xs hover:shadow-md hover:shadow-primary/10 transition-all duration-300 select-none cursor-default overflow-hidden shrink-0"
+    <div
+      className="relative group inline-flex items-center gap-1.5 sm:gap-2 h-9 px-2.5 sm:px-3 rounded-full bg-card/60 hover:bg-card/90 backdrop-blur-md border border-border/70 hover:border-primary/50 shadow-xs hover:shadow-md hover:shadow-primary/10 hover:scale-[1.02] transition-all duration-300 select-none cursor-default overflow-hidden shrink-0"
       title={`Total Site Visitors: ${count !== null ? count.toLocaleString() : "Loading..."}`}
       aria-label="Total site visitors counter"
     >
@@ -116,14 +111,9 @@ export function VisitorCounter() {
       {/* Live animated numeric counter */}
       <div className="flex items-baseline gap-1 font-mono shrink-0">
         {mounted && count !== null ? (
-          <motion.span
-            key="counter"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="font-bold text-xs sm:text-[13px] tracking-tight text-foreground whitespace-nowrap"
-          >
+          <span className="font-bold text-xs sm:text-[13px] tracking-tight text-foreground whitespace-nowrap">
             {animatedCount.toLocaleString()}
-          </motion.span>
+          </span>
         ) : (
           <span className="inline-block w-5 h-3.5 bg-muted/60 rounded-xs animate-pulse" />
         )}
@@ -135,6 +125,6 @@ export function VisitorCounter() {
       </div>
 
       {/* Pulsing live radar beacon */}
-    </motion.div>
+    </div>
   );
 }

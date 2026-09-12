@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { JourneyEntry } from "@/types";
@@ -73,29 +72,29 @@ export function Journey({ journeyEntries }: JourneyProps) {
             const isEven = idx % 2 === 0;
 
             return (
-              <motion.div
+              <div
                 key={entry.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
-                className={`relative flex items-center mb-8 ${
+                className={`relative flex items-center mb-8 group scroll-reveal ${
                   isEven ? "sm:flex-row-reverse" : ""
                 }`}
+                data-delay={((idx % 3) + 1).toString()}
               >
-                {/* Timeline node icon */}
-                <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md z-10">
-                  <Icon className="w-4 h-4" />
+                {/* Timeline node icon with pulsing beacon ring */}
+                <div className="absolute left-4 sm:left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
+                  <span className="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-primary/30 opacity-70 pointer-events-none group-hover:scale-150 transition-transform" />
+                  <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md group-hover:scale-125 group-hover:ring-4 group-hover:ring-primary/40 transition-all duration-300">
+                    <Icon className="w-4 h-4" />
+                  </div>
                 </div>
 
                 {/* Content Card */}
                 <div className={`w-full pl-12 sm:pl-0 sm:w-1/2 ${isEven ? "sm:pr-10 sm:text-right" : "sm:pl-10"}`}>
-                  <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-5 space-y-2 hover:border-primary/40 transition-all">
+                  <Card className="card-glow-border border-border/70 bg-card/90 p-5 space-y-2 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1.5 transition-all duration-300">
                     <div className={`flex flex-col gap-1 ${isEven ? "sm:items-end" : ""}`}>
                       <Badge variant="secondary" className="w-fit text-[10px] font-mono px-2 py-0.5">
                         {entry.period}
                       </Badge>
-                      <h3 className="font-bold text-base text-foreground mt-1">{entry.title}</h3>
+                      <h3 className="font-bold text-base text-foreground mt-1 group-hover:text-primary transition-colors">{entry.title}</h3>
                       <p className="text-xs font-semibold text-primary">{entry.organization}</p>
                     </div>
 
@@ -104,7 +103,7 @@ export function Journey({ journeyEntries }: JourneyProps) {
                     </p>
                   </Card>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>

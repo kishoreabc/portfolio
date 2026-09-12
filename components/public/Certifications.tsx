@@ -44,13 +44,17 @@ export function Certifications({ certifications }: CertificationsProps) {
 
         {/* Certifications Grid */}
         <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-          {publishedCerts.map((cert) => (
-            <div key={cert.id} className="flex">
-              <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/50 hover:shadow-lg transition-all p-6 flex flex-col justify-between space-y-4 w-full overflow-hidden min-w-0">
+          {publishedCerts.map((cert, idx) => (
+            <div
+              key={cert.id}
+              className="flex scroll-reveal"
+              data-delay={((idx % 2) + 1).toString()}
+            >
+              <Card className="card-glow-border border-border/70 bg-card/90 h-full hover:border-primary/50 hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-2 transition-all duration-300 p-6 flex flex-col justify-between space-y-4 w-full overflow-hidden min-w-0 group">
                 <div className="space-y-4 min-w-0">
                   {/* Card Top: Award Icon + Actions */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0 group-hover:rotate-12 group-hover:scale-115 transition-transform duration-300 shadow-2xs">
                       <Award className="w-6 h-6" />
                     </div>
 
@@ -60,7 +64,7 @@ export function Certifications({ certifications }: CertificationsProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => handleOpenModal(cert)}
-                          className="h-7 text-xs px-2.5 rounded-full border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
+                          className="h-7 text-xs px-2.5 rounded-full border-primary/30 bg-primary/10 hover:bg-primary/20 hover:scale-105 text-primary hover:text-primary gap-1.5 font-medium transition-all shadow-xs cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           View Certificate

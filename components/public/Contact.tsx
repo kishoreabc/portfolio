@@ -73,16 +73,16 @@ export function Contact({ config }: ContactProps) {
 
         <div className="grid gap-8 lg:grid-cols-12 max-w-5xl mx-auto items-start">
           {/* Info Card */}
-          <div className="lg:col-span-5 space-y-6">
-            <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 space-y-6">
+          <div className="lg:col-span-5 space-y-6 scroll-reveal" data-delay="1">
+            <Card className="card-glow-border border-border/70 bg-card/90 p-6 space-y-6 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
               <h3 className="font-bold text-lg text-foreground">Contact Information</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Feel free to send a message regarding AI/ML engineer roles, project collaborations, or technical questions.
               </p>
 
               <div className="space-y-4 pt-2 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <div className="flex items-center gap-3 group">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
@@ -93,8 +93,8 @@ export function Contact({ config }: ContactProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <div className="flex items-center gap-3 group">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
@@ -109,8 +109,8 @@ export function Contact({ config }: ContactProps) {
           </div>
 
           {/* Contact Form */}
-          <div className="lg:col-span-7">
-            <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-6 sm:p-8">
+          <div className="lg:col-span-7 scroll-reveal" data-delay="2">
+            <Card className="card-glow-border border-border/70 bg-card/90 p-6 sm:p-8 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
               {sentSuccess ? (
                 <div className="text-center py-12 space-y-4">
                   <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
@@ -123,7 +123,7 @@ export function Contact({ config }: ContactProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-full mt-4"
+                    className="rounded-full mt-4 cursor-pointer"
                     onClick={() => setSentSuccess(false)}
                   >
                     Send Another Message
@@ -170,7 +170,7 @@ export function Contact({ config }: ContactProps) {
                     {errors.message && <p className="text-xs text-destructive">{errors.message.message}</p>}
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full rounded-full" disabled={loading}>
+                  <Button type="submit" size="lg" className="w-full rounded-full btn-shimmer hover:scale-[1.01] transition-transform cursor-pointer" disabled={loading}>
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending Message...

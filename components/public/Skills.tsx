@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skill } from "@prisma/client";
@@ -41,20 +40,18 @@ export function Skills({ skills }: SkillsProps) {
             const catSkills = skills.filter((s) => s.category === cat.categoryKey && s.published);
 
             return (
-              <motion.div
+              <div
                 key={cat.categoryKey}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                className="scroll-reveal"
+                data-delay={((idx % 2) + 1).toString()}
               >
-                <Card className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-primary/40 transition-all shadow-xs">
+                <Card className="card-glow-border border-border/70 bg-card/90 h-full hover:border-primary/50 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 shadow-xs group">
                   <CardHeader className="flex flex-row items-center gap-3 pb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300 shrink-0">
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-base font-semibold">{cat.title}</CardTitle>
+                      <CardTitle className="text-base font-semibold group-hover:text-primary transition-colors">{cat.title}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -63,7 +60,7 @@ export function Skills({ skills }: SkillsProps) {
                         <Badge
                           key={skill.id}
                           variant="secondary"
-                          className="px-3 py-1.5 text-xs font-medium bg-accent/60 hover:bg-primary hover:text-primary-foreground transition-all cursor-default shadow-xs"
+                          className="px-3 py-1.5 text-xs font-medium bg-accent/60 hover:bg-primary hover:text-primary-foreground hover:scale-110 hover:shadow-md transition-all duration-200 cursor-default shadow-2xs select-none"
                         >
                           {skill.name}
                         </Badge>
@@ -71,7 +68,7 @@ export function Skills({ skills }: SkillsProps) {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             );
           })}
         </div>

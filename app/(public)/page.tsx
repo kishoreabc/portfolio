@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fetchGitHubHeatmap } from "@/lib/github";
+import { getLeetCodeHeatmap } from "@/lib/leetcode";
 import { Navbar } from "@/components/public/Navbar";
 import { Hero } from "@/components/public/Hero";
 import { About } from "@/components/public/About";
@@ -11,7 +12,8 @@ import { CodingSection } from "@/components/public/CodingSection";
 import { Journey } from "@/components/public/Journey";
 import { Contact } from "@/components/public/Contact";
 import { Footer } from "@/components/public/Footer";
-import { JourneyEntry } from "@/types";
+import { ScrollRevealObserver } from "@/components/public/ScrollRevealObserver";
+import { JourneyEntry, LeetCodeHeatmapData } from "@/types";
 import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
 import type { Metadata } from "next";
@@ -74,6 +76,7 @@ export default async function HomePage() {
   let educationList: Education[] = [];
   let socialLinks: SocialLink[] = [];
   let githubHeatmap: ContributionCalendar | null = null;
+  let leetcodeHeatmap: LeetCodeHeatmapData | null = null;
 
   try {
     const results = await Promise.all([
@@ -85,6 +88,7 @@ export default async function HomePage() {
       prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
       prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
       fetchGitHubHeatmap(),
+      getLeetCodeHeatmap(),
     ]);
     config = results[0];
     skills = results[1];
@@ -94,6 +98,7 @@ export default async function HomePage() {
     educationList = results[5];
     socialLinks = results[6];
     githubHeatmap = results[7];
+    leetcodeHeatmap = results[8];
   } catch (error) {
     console.warn(
       "[HomePage] Database or external fetch error during render/build:",
@@ -108,17 +113,27 @@ export default async function HomePage() {
   const journeyEntries = sortJourneyEntriesByTimelineDesc(rawJourneyEntries);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground overflow-x-clip w-full max-w-full">
+      <ScrollRevealObserver />
       <Navbar />
 
-      <main className="flex-1 w-full max-w-full min-w-0 overflow-x-hidden">
+      <main className="flex-1 w-full max-w-full min-w-0">
         <Hero config={config} socialLinks={socialLinks} />
-        <About config={config} educationList={educationList} />
+        <About
+          config={config}
+          educationList={educationList}
+          initialSolvedCount={leetcodeHeatmap?.solvedTotal ?? config?.leetcodeTotal ?? 0}
+        />
         <Skills skills={skills} />
         <Projects projects={projects} />
         <Certifications certifications={certifications} />
         <Blogs blogs={blogs} socialLinks={socialLinks} />
-        <CodingSection config={config} githubHeatmap={githubHeatmap} socialLinks={socialLinks} />
+        <CodingSection
+          config={config}
+          githubHeatmap={githubHeatmap}
+          socialLinks={socialLinks}
+          initialLeetCodeHeatmap={leetcodeHeatmap}
+        />
         <Journey journeyEntries={journeyEntries} />
         <Contact config={config} />
       </main>

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDown, ArrowRight, FileText, Sparkles, Code2, Mail, ExternalLink } from "lucide-react";
@@ -68,7 +67,6 @@ export function Hero({ config, socialLinks }: HeroProps) {
   const hasAvatar = Boolean(avatarUrl);
   const name = config?.name || "Kishore R";
 
-
   const githubLink =
     socialLinks.find(
       (l) => l.platform.toLowerCase() === "github" || (l.iconSlug ?? "").toLowerCase() === "github"
@@ -100,15 +98,10 @@ export function Hero({ config, socialLinks }: HeroProps) {
             {/* Left Column: Content */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Availability Badge & Direct "View Projects" Prompt */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-wrap items-center justify-center lg:justify-start gap-3"
-              >
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 hero-enter">
                 <Badge
                   variant="outline"
-                  className="px-3.5 py-1.5 rounded-full border-primary/30 bg-primary/5 backdrop-blur-sm text-xs font-medium text-foreground gap-2 shadow-xs"
+                  className="px-3.5 py-1.5 rounded-full border-primary/30 bg-primary/5 backdrop-blur-sm text-xs font-medium text-foreground gap-2 shadow-xs hover:border-primary/50 transition-colors"
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -120,56 +113,41 @@ export function Hero({ config, socialLinks }: HeroProps) {
                 {/* Direct "View Projects" prompt beside opening message */}
                 <a
                   href="#projects"
-                  className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md cursor-pointer"
+                  className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md hover:scale-105 cursor-pointer"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+                  <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground group-hover:rotate-12 transition-all" />
                   <span>View Projects</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                 </a>
-              </motion.div>
+              </div>
 
               {/* Headline & Greeting */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="space-y-3"
-              >
+              <div className="space-y-3 hero-enter-delay-1">
                 <p className="text-sm sm:text-base font-semibold text-primary font-mono tracking-wide uppercase flex items-center justify-center lg:justify-start gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
                   <span>Hi, I&apos;m Kishore R</span>
                 </p>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.12] text-foreground">
                   Building <span className="text-gradient">Intelligent Systems</span> That Solve Real Problems.
                 </h1>
-              </motion.div>
+              </div>
 
               {/* Subtitle */}
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed"
-              >
+              <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 leading-relaxed hero-enter-delay-2">
                 {heroSubtitle}
-              </motion.p>
+              </p>
 
               {/* Action Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1"
-              >
-                <Button size="lg" className="rounded-full px-7 shadow-md gap-2" render={<a href="#projects" />}>
-                  <Sparkles className="w-4 h-4" />
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 hero-enter-delay-3">
+                <Button size="lg" className="rounded-full px-7 shadow-md gap-2 hover:scale-105 transition-all group btn-shimmer cursor-pointer" render={<a href="#projects" />}>
+                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
                   View Projects
                 </Button>
 
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-7 border-border/80 gap-2"
+                  className="rounded-full px-7 border-border/80 gap-2 hover:border-primary/50 hover:bg-primary/5 hover:scale-105 transition-all cursor-pointer"
                   render={<a href="#contact" />}
                 >
                   Contact Me
@@ -179,22 +157,17 @@ export function Hero({ config, socialLinks }: HeroProps) {
                   <Button
                     size="lg"
                     variant="secondary"
-                    className="rounded-full px-6 gap-2"
+                    className="rounded-full px-6 gap-2 hover:scale-105 transition-all cursor-pointer"
                     render={<a href={resumeUrl} target="_blank" rel="noreferrer" />}
                   >
                     <FileText className="w-4 h-4" />
                     Resume
                   </Button>
                 )}
-              </motion.div>
+              </div>
 
               {/* Social Icons Bar */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="flex items-center justify-center lg:justify-start gap-3.5 pt-3"
-              >
+              <div className="flex items-center justify-center lg:justify-start gap-3.5 pt-3 hero-enter-delay-3">
                 {socialLinks.map((link) => (
                   <a
                     key={link.id}
@@ -207,51 +180,44 @@ export function Hero({ config, socialLinks }: HeroProps) {
                     {renderSocialIcon(link)}
                   </a>
                 ))}
-              </motion.div>
+              </div>
             </div>
 
             {/* Right Column: Modern Tech Showcase with Floating Glass Badges */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="lg:col-span-5 flex justify-center lg:justify-end"
-            >
+            <div className="lg:col-span-5 flex justify-center lg:justify-end hero-enter-delay-1">
               <div className="relative w-full max-w-xs sm:max-w-sm flex items-center justify-center py-6">
-                {/* Ambient Multidimensional Glow Aura */}
-                <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/35 via-blue-500/25 to-purple-600/30 blur-3xl opacity-80 pointer-events-none" />
+                {/* Ambient Multidimensional Glow Aura with subtle breathing pulse */}
+                <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-primary/35 via-blue-500/25 to-purple-600/30 blur-3xl opacity-80 pointer-events-none animate-pulse-halo" />
 
-                {/* Subtle Decorative Orbital Ring */}
-                <div className="absolute w-[260px] h-[260px] sm:w-[330px] sm:h-[330px] rounded-full border border-primary/20 dark:border-white/10 pointer-events-none" />
-
-                {/* Central Studio Portrait with Gradient Halo */}
+                {/* Central Studio Portrait with Rotating Gradient Halo */}
                 <div className="relative group cursor-pointer">
-                  {/* Glowing Animated Ring */}
-                  <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-primary via-blue-500 to-purple-600 opacity-70 blur-sm group-hover:opacity-100 transition-opacity duration-500" />
+                  {/* Rotating Gradient Ring */}
+                  <div className="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-primary via-blue-500 to-purple-600 opacity-75 blur-md group-hover:opacity-100 transition-opacity duration-500 animate-spin-slow pointer-events-none" />
+
+                  {/* Inner Subtle Glow Ring */}
+                  <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-primary to-cyan-400 opacity-60 pointer-events-none" />
 
                   {/* Portrait Image Frame */}
                   <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden border-2 border-background shadow-2xl bg-muted/30">
                     <img
                       src={avatarUrl}
                       alt={name}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
                       className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
                 </div>
 
-                {/* Floating Badge 1: GitHub (Top-Left) */}
+                {/* Floating Badge 1: GitHub (Top-Left) with gentle float */}
                 {githubLink && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -15, y: -10 }}
-                    animate={{ opacity: 1, x: 0, y: 0 }}
-                    transition={{ delay: 0.25, duration: 0.5 }}
-                    className="absolute top-2 left-0 sm:-left-6 z-20"
-                  >
+                  <div className="absolute top-2 left-0 sm:-left-6 z-20 animate-float">
                     <a
                       href={githubLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-primary/60 hover:scale-105 transition-all text-foreground group/pill"
+                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-primary/60 hover:scale-105 hover:shadow-primary/20 transition-all text-foreground group/pill"
                       title="GitHub Profile"
                     >
                       <svg className="w-4 h-4 fill-current group-hover/pill:text-primary transition-colors" viewBox="0 0 24 24">
@@ -259,22 +225,17 @@ export function Hero({ config, socialLinks }: HeroProps) {
                       </svg>
                       <span>GitHub</span>
                     </a>
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* Floating Badge 2: LinkedIn (Top-Right) */}
+                {/* Floating Badge 2: LinkedIn (Top-Right) with delayed float */}
                 {linkedinLink && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 15, y: -10 }}
-                    animate={{ opacity: 1, x: 0, y: 0 }}
-                    transition={{ delay: 0.35, duration: 0.5 }}
-                    className="absolute top-2 right-0 sm:-right-6 z-20"
-                  >
+                  <div className="absolute top-2 right-0 sm:-right-6 z-20 animate-float-delayed">
                     <a
                       href={linkedinLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-blue-500/60 hover:scale-105 transition-all text-foreground group/pill"
+                      className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-1.5 sm:gap-2 text-xs font-semibold hover:border-blue-500/60 hover:scale-105 hover:shadow-blue-500/20 transition-all text-foreground group/pill"
                       title="LinkedIn Profile"
                     >
                       <svg className="w-4 h-4 fill-current text-[#0A66C2]" viewBox="0 0 24 24">
@@ -282,32 +243,26 @@ export function Hero({ config, socialLinks }: HeroProps) {
                       </svg>
                       <span>LinkedIn</span>
                     </a>
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* Floating Badge 3: LeetCode (Bottom-Center) */}
+                {/* Floating Badge 3: LeetCode (Bottom-Center) with gentle float */}
                 {leetcodeLink && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45, duration: 0.5 }}
-                    className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20"
-                  >
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 animate-float-slow">
                     <a
                       href={leetcodeLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3.5 py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-2 text-xs font-semibold hover:border-amber-500/60 hover:scale-105 transition-all text-foreground group/pill whitespace-nowrap"
+                      className="px-3.5 py-1.5 rounded-full bg-background/90 dark:bg-card/90 backdrop-blur-md border border-border/80 shadow-lg flex items-center gap-2 text-xs font-semibold hover:border-amber-500/60 hover:scale-105 hover:shadow-amber-500/20 transition-all text-foreground group/pill whitespace-nowrap"
                       title="LeetCode Profile"
                     >
                       <Code2 className="w-4 h-4 text-amber-500 shrink-0" />
                       <span>LeetCode</span>
-
                     </a>
-                  </motion.div>
+                  </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Scroll indicator */}
@@ -322,18 +277,16 @@ export function Hero({ config, socialLinks }: HeroProps) {
         <div className="container-portfolio relative z-10 text-center space-y-8 max-w-4xl">
           {/* Centered Avatar (when style is centered) */}
           {hasAvatar && imageStyle === "centered" && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex justify-center"
-            >
+            <div className="flex justify-center animate-float">
               <div className="relative group cursor-pointer">
-                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary via-blue-500 to-purple-600 opacity-60 blur-md group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-primary via-blue-500 to-purple-600 opacity-60 blur-md group-hover:opacity-100 transition-opacity duration-500 animate-pulse-halo" />
                 <div className="relative w-32 h-32 sm:w-36 sm:h-36 rounded-full overflow-hidden border-3 border-black dark:border-white shadow-2xl ring-2 ring-primary/40 bg-card">
                   <img
                     src={avatarUrl}
                     alt={name}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                     className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
@@ -342,16 +295,11 @@ export function Hero({ config, socialLinks }: HeroProps) {
                   title={availability}
                 />
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Availability Badge & Direct "View Projects" Prompt */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-wrap items-center justify-center gap-3"
-          >
+          <div className="flex flex-wrap items-center justify-center gap-3 hero-enter">
             <Badge
               variant="outline"
               className="px-3.5 py-1.5 rounded-full border-primary/30 bg-primary/5 backdrop-blur-sm text-xs font-medium text-foreground gap-2 shadow-sm"
@@ -365,55 +313,40 @@ export function Hero({ config, socialLinks }: HeroProps) {
 
             <a
               href="#projects"
-              className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md cursor-pointer"
+              className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary hover:text-primary-foreground backdrop-blur-sm text-xs font-semibold text-primary transition-all shadow-xs hover:shadow-md hover:scale-105 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+              <Sparkles className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground group-hover:rotate-12 transition-all" />
               <span>View Projects</span>
               <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
             </a>
-          </motion.div>
+          </div>
 
           {/* Main Headline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-3"
-          >
+          <div className="space-y-3 hero-enter-delay-1">
             <p className="text-sm sm:text-base font-semibold text-primary tracking-wide uppercase font-mono">
               Hi, I&apos;m Kishore R
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.15] text-foreground">
               Building <span className="text-gradient">Intelligent Systems</span> That Solve Real Problems.
             </h1>
-          </motion.div>
+          </div>
 
           {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
-          >
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed hero-enter-delay-2">
             {heroSubtitle}
-          </motion.p>
+          </p>
 
           {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-wrap items-center justify-center gap-4 pt-2"
-          >
-            <Button size="lg" className="rounded-full px-7 shadow-md gap-2" render={<a href="#projects" />}>
-              <Sparkles className="w-4 h-4" />
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 hero-enter-delay-3">
+            <Button size="lg" className="rounded-full px-7 shadow-md gap-2 hover:scale-105 transition-all group btn-shimmer cursor-pointer" render={<a href="#projects" />}>
+              <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" />
               View Projects
             </Button>
 
             <Button
               size="lg"
               variant="outline"
-              className="rounded-full px-7 border-border/80 gap-2"
+              className="rounded-full px-7 border-border/80 gap-2 hover:border-primary/50 hover:bg-primary/5 hover:scale-105 transition-all"
               render={<a href="#contact" />}
             >
               Contact Me
@@ -423,22 +356,17 @@ export function Hero({ config, socialLinks }: HeroProps) {
               <Button
                 size="lg"
                 variant="secondary"
-                className="rounded-full px-6 gap-2"
+                className="rounded-full px-6 gap-2 hover:scale-105 transition-all"
                 render={<a href={resumeUrl} target="_blank" rel="noreferrer" />}
               >
                 <FileText className="w-4 h-4" />
                 Resume
               </Button>
             )}
-          </motion.div>
+          </div>
 
           {/* Social Icons Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="flex items-center justify-center gap-4 pt-6"
-          >
+          <div className="flex items-center justify-center gap-4 pt-6 hero-enter-delay-3">
             {socialLinks.map((link) => (
               <a
                 key={link.id}
@@ -451,7 +379,7 @@ export function Hero({ config, socialLinks }: HeroProps) {
                 {renderSocialIcon(link)}
               </a>
             ))}
-          </motion.div>
+          </div>
 
           {/* Scroll indicator */}
           <div className="pt-10 flex justify-center">

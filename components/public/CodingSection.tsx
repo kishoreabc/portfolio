@@ -12,11 +12,19 @@ interface CodingSectionProps {
   config: SiteConfig | null;
   githubHeatmap: GitHubHeatmapData | null;
   socialLinks?: SocialLink[];
+  initialLeetCodeHeatmap?: LeetCodeHeatmapData | null;
 }
 
-export function CodingSection({ config, githubHeatmap, socialLinks = [] }: CodingSectionProps) {
-  const [lcHeatmap, setLcHeatmap] = useState<LeetCodeHeatmapData | null>(null);
-  const [lcLoading, setLcLoading] = useState(true);
+export function CodingSection({
+  config,
+  githubHeatmap,
+  socialLinks = [],
+  initialLeetCodeHeatmap,
+}: CodingSectionProps) {
+  const [lcHeatmap, setLcHeatmap] = useState<LeetCodeHeatmapData | null>(
+    initialLeetCodeHeatmap ?? null
+  );
+  const [lcLoading, setLcLoading] = useState(initialLeetCodeHeatmap === undefined);
 
   const totalLeetCode = lcHeatmap?.solvedTotal ?? config?.leetcodeTotal ?? 0;
 
@@ -33,8 +41,8 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
   )?.url;
   const leetcodeUsername = leetcodeLink ? leetcodeLink.replace(/\/$/, "").split("/").pop() : null;
 
-
   useEffect(() => {
+    if (initialLeetCodeHeatmap !== undefined) return;
     async function fetchLeetCodeData() {
       try {
         const res = await fetch("/api/leetcode/heatmap");
@@ -49,7 +57,7 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
       }
     }
     fetchLeetCodeData();
-  }, []);
+  }, [initialLeetCodeHeatmap]);
 
   return (
     <section id="coding" className="section-padding bg-card/20 relative border-t border-border/40 overflow-hidden">
@@ -69,29 +77,29 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
 
         {/* LeetCode Main Metrics Card */}
         <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
-          <Card className="border-border/70 bg-card/60 p-6 text-center space-y-2">
-            <div className="mx-auto w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+          <Card className="card-glow-border border-border/70 bg-card/90 p-6 text-center space-y-2 hover:-translate-y-1.5 hover:border-amber-500/50 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 group scroll-reveal" data-delay="1">
+            <div className="mx-auto w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 group-hover:rotate-6 transition-transform">
               <Trophy className="w-5 h-5" />
             </div>
-            <p className="text-3xl font-extrabold text-gradient">{totalLeetCode}+</p>
+            <p className="text-3xl font-extrabold text-gradient group-hover:scale-105 transition-transform">{totalLeetCode}+</p>
             <p className="text-xs text-muted-foreground font-medium">LeetCode Problems Solved</p>
           </Card>
 
-          <Card className="border-border/70 bg-card/60 p-6 text-center space-y-2">
-            <div className="mx-auto w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <Card className="card-glow-border border-border/70 bg-card/90 p-6 text-center space-y-2 hover:-translate-y-1.5 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group scroll-reveal" data-delay="2">
+            <div className="mx-auto w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:rotate-6 transition-transform">
               <Code2 className="w-5 h-5" />
             </div>
-            <p className="text-3xl font-extrabold text-foreground">
+            <p className="text-3xl font-extrabold text-foreground group-hover:text-primary transition-colors">
               {githubHeatmap?.totalContributions ?? 0}
             </p>
             <p className="text-xs text-muted-foreground font-medium">GitHub Contributions (Year)</p>
           </Card>
 
-          <Card className="border-border/70 bg-card/60 p-6 text-center space-y-2">
-            <div className="mx-auto w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+          <Card className="card-glow-border border-border/70 bg-card/90 p-6 text-center space-y-2 hover:-translate-y-1.5 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 group scroll-reveal" data-delay="3">
+            <div className="mx-auto w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 group-hover:rotate-6 transition-transform">
               <Flame className="w-5 h-5" />
             </div>
-            <p className="text-3xl font-extrabold text-emerald-500">DSA</p>
+            <p className="text-3xl font-extrabold text-emerald-500 group-hover:scale-105 transition-transform">DSA</p>
             <p className="text-xs text-muted-foreground font-medium">Core Focus Area</p>
           </Card>
         </div>
@@ -99,7 +107,7 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
         {/* Heatmaps Container — Linear full-width order */}
         <div className="space-y-8 max-w-5xl mx-auto w-full min-w-0">
           {/* GitHub Heatmap Card */}
-          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden">
+          <Card className="card-glow-border border-border/70 bg-card/90 p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden scroll-reveal hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1 transition-all duration-300" data-delay="1">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 fill-current text-foreground" viewBox="0 0 24 24">
@@ -210,7 +218,7 @@ export function CodingSection({ config, githubHeatmap, socialLinks = [] }: Codin
           </Card>
 
           {/* LeetCode Heatmap Card */}
-          <Card className="border-border/70 bg-card/60 backdrop-blur-sm p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden">
+          <Card className="card-glow-border border-border/70 bg-card/90 p-4 sm:p-6 space-y-4 min-w-0 max-w-full overflow-hidden scroll-reveal hover:border-amber-500/50 hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1 transition-all duration-300" data-delay="2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-amber-500" />

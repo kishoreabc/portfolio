@@ -80,13 +80,14 @@ export function Blogs({ blogs, socialLinks = [] }: BlogsProps) {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {displayBlogs.map((blog) => {
+            {displayBlogs.map((blog, idx) => {
               const articleUrl = blog.canonicalUrl || `/blog/${blog.slug}`;
 
               return (
                 <Card
                   key={blog.id}
-                  className="border-border/70 bg-card/60 backdrop-blur-sm h-full hover:border-[#0A66C2]/50 hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden"
+                  className="card-glow-border border-border/70 bg-card/90 h-full hover:border-[#0A66C2]/70 hover:shadow-2xl hover:shadow-[#0A66C2]/15 hover:-translate-y-2 transition-all duration-300 p-6 flex flex-col justify-between space-y-5 rounded-2xl group relative overflow-hidden scroll-reveal"
+                  data-delay={((idx % 3) + 1).toString()}
                 >
                   <div className="space-y-4">
                     {/* Top Bar: Badges & Reading Info */}

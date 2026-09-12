@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -22,6 +24,9 @@ const nextConfig: NextConfig = {
   },
   // Ensure server-only code never leaks to the client
   serverExternalPackages: ["@prisma/client"],
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
 };
 
 export default nextConfig;
