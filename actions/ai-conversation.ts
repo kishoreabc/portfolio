@@ -53,7 +53,7 @@ export async function getAiConversations({
     };
   }
 
-  const [conversations, total, activeCount] = await Promise.all([
+  const [conversations, total, activeCountResult] = await Promise.all([
     prisma.aiConversation.findMany({
       where,
       orderBy: { startedAt: "desc" },
@@ -70,8 +70,12 @@ export async function getAiConversations({
       },
     }),
     prisma.aiConversation.count({ where }),
-    prisma.aiConversation.count({ where: { endedAt: null } }),
+    status === "active"
+      ? Promise.resolve(null)
+      : prisma.aiConversation.count({ where: { endedAt: null } }),
   ]);
+
+  const activeCount = status === "active" ? total : (activeCountResult ?? 0);
 
   return {
     conversations: conversations.map((c) => ({
@@ -235,14 +239,14 @@ export async function deleteAiConversation(id: string) {
 export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
   await requireAdmin();
 
-  // Reconcile and auto-promote any eligible waiting visitors whenever admin monitor checks
-  await autoPromoteWaitingVisitors();
-
   const waitingThreshold = new Date(Date.now() - WAITING_STALE_TIMEOUT_MS);
   const claimThreshold = new Date(Date.now() - PROMOTED_CLAIM_TIMEOUT_MS);
-  const activeVoiceThreshold = new Date(Date.now() - (AI_CONFIG.maxVoiceSessionSeconds * 1000 + 30_000));
+  const activeVoiceThreshold = new Date(
+    Date.now() - (AI_CONFIG.maxVoiceSessionSeconds * 1000 + 30_000)
+  );
 
-  const [queueEntries, activeVoiceCount, activeDbConversations] = await Promise.all([
+  // Fast single parallel read of active voice sessions and queue entries
+  const [queueEntries, activeDbConversations] = await Promise.all([
     prisma.aiQueue.findMany({
       where: {
         OR: [
@@ -252,7 +256,6 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
       },
       orderBy: { joinedAt: "asc" },
     }),
-    getActiveVoiceSessionCountFromDb(),
     prisma.aiConversation.findMany({
       where: {
         mode: "voice",
@@ -269,6 +272,14 @@ export async function getVoiceQueueAction(): Promise<VoiceQueueData> {
       },
     }),
   ]);
+
+  const activeVoiceCount = activeDbConversations.length;
+
+  // Auto-promote in background only if there are visitors waiting and slots are free
+  const hasWaiting = queueEntries.some((e) => !e.promoted);
+  if (hasWaiting && activeVoiceCount < AI_CONFIG.maxConcurrentVoice) {
+    autoPromoteWaitingVisitors().catch(() => {});
+  }
 
   let unpromotedRank = 0;
   const queue: VoiceQueueItem[] = queueEntries.map((entry) => {

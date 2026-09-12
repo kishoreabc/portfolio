@@ -162,17 +162,21 @@ model SocialLink {
 // soft-deleted via deletedAt — never hard delete
 // ─────────────────────────────────────────────
 model ContactMessage {
-  id        String    @id @default(cuid())
-  name      String
-  email     String
-  subject   String
-  message   String    @db.Text
-  read      Boolean   @default(false)
-  replied   Boolean   @default(false)
-  repliedAt DateTime?
-  deletedAt DateTime? // soft delete
-  createdAt DateTime  @default(now())
+  id         String    @id @default(cuid())
+  name       String
+  email      String
+  subject    String
+  message    String    @db.Text
+  draftReply String?   @db.Text
+  read       Boolean   @default(false)
+  replied    Boolean   @default(false)
+  repliedAt  DateTime?
+  deletedAt  DateTime? // soft delete
+  createdAt  DateTime  @default(now())
 
+  @@index([deletedAt, replied, createdAt(sort: Desc)])
+  @@index([read, deletedAt, replied])
+  @@index([createdAt(sort: Desc)])
   @@map("contact_messages")
 }
 
@@ -244,6 +248,9 @@ model AiConversation {
   messageCount Int         @default(0)
   messages     AiMessage[]
 
+  @@index([mode, endedAt, startedAt(sort: Desc)])
+  @@index([endedAt])
+  @@index([startedAt(sort: Desc)])
   @@map("ai_conversations")
 }
 
@@ -279,6 +286,9 @@ model AiQueue {
   promoted     Boolean   @default(false)
   promotedAt   DateTime?
 
+  @@index([promoted, lastPolledAt])
+  @@index([promoted, promotedAt])
+  @@index([joinedAt(sort: Asc)])
   @@map("ai_queue")
 }
 

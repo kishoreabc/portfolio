@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fetchGitHubHeatmap } from "@/lib/github";
 import { getLeetCodeHeatmap } from "@/lib/leetcode";
-import { Navbar } from "@/components/public/Navbar";
 import { Hero } from "@/components/public/Hero";
 import { About } from "@/components/public/About";
 import { Skills } from "@/components/public/Skills";
@@ -115,7 +114,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground overflow-x-clip w-full max-w-full">
       <ScrollRevealObserver />
-      <Navbar />
 
       <main className="flex-1 w-full max-w-full min-w-0">
         <Hero config={config} socialLinks={socialLinks} />

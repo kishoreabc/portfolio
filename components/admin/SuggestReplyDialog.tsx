@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ interface SuggestReplyDialogProps {
     read: boolean;
     replied?: boolean;
     repliedAt?: Date | string | null;
+    draftReply?: string | null;
   };
   trigger?: React.ReactNode;
 }
@@ -91,9 +93,10 @@ function SuggestReplyDialogContent({
   message: SuggestReplyDialogProps["message"];
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [tone, setTone] = useState<ToneType>("professional");
   const [customInstruction, setCustomInstruction] = useState("");
-  const [replyText, setReplyText] = useState("");
+  const [replyText, setReplyText] = useState(message.draftReply || "");
   const [generating, setGenerating] = useState(false);
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -207,8 +210,10 @@ function SuggestReplyDialogContent({
       });
 
       if (res.success) {
-        toast.success(`Email reply sent directly to ${message.email} and moved to Replied tab!`);
+        toast.success(`Reply sent directly to ${message.email} via Resend! Moved to Replied tab.`);
         onClose();
+        router.refresh();
+        router.push("/admin/messages?view=replied");
       } else {
         toast.error(res.error || "Direct send failed. You can use 'Open Mail App' instead.");
       }
@@ -231,6 +236,12 @@ function SuggestReplyDialogContent({
           : "Marked as Replied & moved to Replied tab"
       );
       onClose();
+      router.refresh();
+      if (!message.replied) {
+        router.push("/admin/messages?view=replied");
+      } else {
+        router.push("/admin/messages");
+      }
     } catch {
       toast.error("Failed to update reply status");
     } finally {
@@ -569,7 +580,7 @@ function SuggestReplyDialogContent({
                   </>
                 ) : (
                   <>
-                    <Send className="w-3.5 h-3.5" /> Send Direct Email
+                    <Send className="w-3.5 h-3.5" /> Send Reply (via Resend)
                   </>
                 )}
               </Button>

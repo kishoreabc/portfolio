@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { Navbar } from "@/components/public/Navbar";
 import { Footer } from "@/components/public/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,8 +59,6 @@ export default async function BlogDetailPage({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Navbar />
-
       <main className="flex-1 container-portfolio pt-32 pb-20 space-y-8 max-w-4xl">
         <Button variant="ghost" size="sm" render={<Link href="/#blogs" />} className="gap-2 text-xs">
           <ArrowLeft className="w-4 h-4" /> Back to All Blogs

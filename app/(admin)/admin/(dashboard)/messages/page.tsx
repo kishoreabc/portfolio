@@ -20,12 +20,6 @@ export default async function AdminMessagesPage({
   const currentView =
     params.view === "trash" ? "trash" : params.view === "replied" ? "replied" : "inbox";
 
-  const [inboxCount, repliedCount, trashCount] = await Promise.all([
-    prisma.contactMessage.count({ where: { deletedAt: null, replied: false } }),
-    prisma.contactMessage.count({ where: { deletedAt: null, replied: true } }),
-    prisma.contactMessage.count({ where: { deletedAt: { not: null } } }),
-  ]);
-
   const whereClause =
     currentView === "trash"
       ? { deletedAt: { not: null } }
@@ -33,10 +27,26 @@ export default async function AdminMessagesPage({
       ? { deletedAt: null, replied: true }
       : { deletedAt: null, replied: false };
 
-  const messages = await prisma.contactMessage.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-  });
+  // Fetch counts and messages list concurrently in a single round-trip
+  const [countsResult, messages] = await Promise.all([
+    prisma.$queryRaw<{ inbox_count: bigint; replied_count: bigint; trash_count: bigint }[]>`
+      SELECT 
+        COUNT(*) FILTER (WHERE "deletedAt" IS NULL AND "replied" = false) AS inbox_count,
+        COUNT(*) FILTER (WHERE "deletedAt" IS NULL AND "replied" = true) AS replied_count,
+        COUNT(*) FILTER (WHERE "deletedAt" IS NOT NULL) AS trash_count
+      FROM "contact_messages"
+    `,
+    prisma.contactMessage.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }),
+  ]);
+
+  const counts = countsResult[0];
+  const inboxCount = Number(counts?.inbox_count ?? 0);
+  const repliedCount = Number(counts?.replied_count ?? 0);
+  const trashCount = Number(counts?.trash_count ?? 0);
 
   return (
     <div className="space-y-6">
@@ -195,6 +205,7 @@ export default async function AdminMessagesPage({
                                 read: m.read,
                                 replied: m.replied,
                                 repliedAt: m.repliedAt,
+                                draftReply: m.draftReply,
                               }}
                               trigger={
                                 <button
@@ -245,6 +256,7 @@ export default async function AdminMessagesPage({
                         name={m.name}
                         messageText={m.message}
                         createdAt={m.createdAt}
+                        draftReply={m.draftReply}
                       />
                     </TableCell>
                   </TableRow>

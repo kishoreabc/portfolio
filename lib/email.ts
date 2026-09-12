@@ -31,11 +31,15 @@ export interface ContactEmailPayload {
   senderEmail: string;
   subject: string;
   message: string;
+  draftReply?: string;
+  replyUrl?: string;
+  adminUrl?: string;
 }
 
 /**
  * Sends a contact form email to the portfolio owner.
  * Sets reply-to to the visitor's email for easy replies.
+ * Includes AI auto-drafted professional reply and Resend send buttons.
  */
 export async function sendContactEmail(payload: ContactEmailPayload): Promise<void> {
   let from = process.env.CONTACT_FROM_EMAIL?.trim();
@@ -48,6 +52,7 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
   const safeEmail = escapeHtml(payload.senderEmail);
   const safeSubject = escapeHtml(payload.subject);
   const safeMessage = escapeHtml(payload.message);
+  const safeDraftReply = payload.draftReply ? escapeHtml(payload.draftReply) : "";
 
   const { error } = await getResend().emails.send({
     from,
@@ -60,19 +65,25 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
         <head>
           <meta charset="utf-8" />
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; }
-            .container { max-width: 600px; margin: 0 auto; padding: 32px 24px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a1a1a; margin: 0; padding: 0; }
+            .container { max-width: 620px; margin: 0 auto; padding: 32px 24px; }
             .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 24px; }
-            .label { font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+            .label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
             .value { font-size: 15px; color: #111827; margin-bottom: 20px; }
-            .message-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 8px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+            .message-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-top: 6px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+            .reply-section { margin-top: 28px; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; }
+            .reply-badge { font-size: 11px; font-weight: 700; color: #15803d; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+            .reply-box { background: #ffffff; border: 1px solid #dcfce7; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.65; color: #1e293b; white-space: pre-wrap; }
+            .actions-bar { margin-top: 18px; }
+            .btn-primary { display: inline-block; background: #16a34a; color: #ffffff !important; font-weight: 600; font-size: 13px; padding: 11px 22px; border-radius: 6px; text-decoration: none; margin-right: 8px; margin-bottom: 8px; }
+            .btn-secondary { display: inline-block; background: #ffffff; color: #15803d !important; border: 1px solid #16a34a; font-weight: 600; font-size: 13px; padding: 10px 20px; border-radius: 6px; text-decoration: none; margin-bottom: 8px; }
             .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h2 style="margin:0;font-size:20px;">New message from your portfolio</h2>
+              <h2 style="margin:0;font-size:20px;color:#111827;">New message from your portfolio</h2>
             </div>
 
             <div class="label">From</div>
@@ -83,6 +94,30 @@ export async function sendContactEmail(payload: ContactEmailPayload): Promise<vo
 
             <div class="label">Message</div>
             <div class="message-box">${safeMessage}</div>
+
+            ${
+              safeDraftReply
+                ? `
+            <div class="reply-section">
+              <div class="reply-badge">🤖 AI Auto-Drafted Professional Reply</div>
+              <div class="reply-box">${safeDraftReply}</div>
+
+              <div class="actions-bar">
+                ${
+                  payload.replyUrl
+                    ? `<a href="${payload.replyUrl}" class="btn-primary">✉️ Send This Reply (via Resend)</a>`
+                    : ""
+                }
+                ${
+                  payload.adminUrl
+                    ? `<a href="${payload.adminUrl}" class="btn-secondary">📝 Open in Admin Panel</a>`
+                    : ""
+                }
+              </div>
+            </div>
+            `
+                : ""
+            }
 
             <div class="footer">
               <p>Sent from your portfolio contact form • ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</p>
@@ -100,7 +135,18 @@ Subject: ${payload.subject}
 
 Message:
 ${payload.message}
+${
+  payload.draftReply
+    ? `
+---
+AI Auto-Drafted Reply (Professional):
+${payload.draftReply}
 
+Send Reply via Resend: ${payload.replyUrl ?? "N/A"}
+Open in Admin Panel: ${payload.adminUrl ?? "N/A"}
+`
+    : ""
+}
 ---
 Sent from your portfolio contact form
 Reply to: ${payload.senderEmail}

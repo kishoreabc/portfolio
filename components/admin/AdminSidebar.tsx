@@ -134,35 +134,37 @@ export function AdminSidebar({
   return (
     <>
       {/* ── DESKTOP SIDEBAR (Visible on lg and larger viewports) ── */}
-      <aside className="hidden lg:flex w-64 border-r border-border/80 bg-card/40 flex-col justify-between h-screen sticky top-0 shrink-0">
-        <div className="overflow-y-auto">
-          {/* Brand header */}
-          <div className="p-6 border-b border-border/60 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-xs">
-                K
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm leading-none">CMS Portal</h2>
-                <span className="text-xs text-muted-foreground">Kishore R</span>
-              </div>
+      <aside className="hidden lg:flex w-64 border-r border-border/80 bg-card/40 flex-col h-full shrink-0 select-none z-30">
+        {/* Brand header - fixed at top of sidebar */}
+        <div className="p-5 border-b border-border/60 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-xs">
+              K
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              render={<Link href="/" target="_blank" />}
-              title="View Public Portfolio"
-            >
-              <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-            </Button>
+            <div>
+              <h2 className="font-semibold text-sm leading-none">CMS Portal</h2>
+              <span className="text-xs text-muted-foreground">Kishore R</span>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            render={<Link href="/" target="_blank" />}
+            title="View Public Portfolio"
+          >
+            <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+          </Button>
+        </div>
 
-          {/* Desktop Navigation Links */}
+        {/* Desktop Navigation Links - flex-1 min-h-0 enables smooth scrolling inside nav if viewport is short */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {renderNavLinks()}
         </div>
 
-        {/* Desktop Footer / Auth Info */}
-        {renderFooter()}
+        {/* Desktop Footer / Auth Info - shrink-0 mt-auto ensures it is always fully visible at bottom */}
+        <div className="shrink-0 mt-auto">
+          {renderFooter()}
+        </div>
       </aside>
 
       {/* ── MOBILE / TABLET TOP BAR (Visible on < lg viewports) ── */}
@@ -209,33 +211,35 @@ export function AdminSidebar({
             />
             <SheetContent
               side="right"
-              className="w-[84vw] max-w-xs p-0 flex flex-col justify-between h-full bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
+              className="w-[84vw] max-w-xs p-0 flex flex-col h-full bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
             >
               <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
               <SheetDescription className="sr-only">
                 Navigate CMS Portal management sections and perform administrative actions.
               </SheetDescription>
 
-              <div className="overflow-y-auto">
-                {/* Brand header */}
-                <div className="p-5 pr-12 border-b border-border/60 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-xs">
-                      K
-                    </div>
-                    <div>
-                      <h2 className="font-semibold text-sm leading-none">CMS Portal</h2>
-                      <span className="text-xs text-muted-foreground font-mono">Kishore R Admin</span>
-                    </div>
+              {/* Brand header */}
+              <div className="p-5 pr-12 border-b border-border/60 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-xs">
+                    K
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-sm leading-none">CMS Portal</h2>
+                    <span className="text-xs text-muted-foreground font-mono">Kishore R Admin</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Mobile Navigation Links */}
+              {/* Mobile Navigation Links */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
                 {renderNavLinks(() => setMobileOpen(false))}
               </div>
 
               {/* Mobile Footer */}
-              {renderFooter()}
+              <div className="shrink-0 mt-auto">
+                {renderFooter()}
+              </div>
             </SheetContent>
           </Sheet>
         </div>

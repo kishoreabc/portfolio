@@ -17,6 +17,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── TEMPORARY MANUAL TESTING AUTH BYPASS ──────────────────────────────────────
+  // Set to false to revoke/re-enable admin security
+  const TEMPORARY_DISABLE_ADMIN_AUTH = false;
+  if (TEMPORARY_DISABLE_ADMIN_AUTH) {
+    return NextResponse.next();
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // Protect all /admin routes
   if (pathname.startsWith("/admin")) {
     const session = await auth();

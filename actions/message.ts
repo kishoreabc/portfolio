@@ -81,12 +81,16 @@ export async function generateMessageReplySuggestion({
     };
   }
 
-  const effectiveModel = (
+  let effectiveModel = (
     model?.trim() ||
     config?.geminiModel?.trim() ||
     process.env.GEMINI_MODEL?.trim() ||
-    "gemini-2.5-flash"
+    "gemini-3.6-flash"
   ).toLowerCase();
+
+  if (effectiveModel.includes("live") || effectiveModel.includes("2.5")) {
+    effectiveModel = "gemini-3.6-flash";
+  }
 
   const toneGuidelines: Record<string, string> = {
     professional:
@@ -184,11 +188,16 @@ export async function sendReplyEmailAction({
         read: true,
         replied: true,
         repliedAt: new Date(),
+        draftReply: replyText.trim(),
       },
     });
 
-    revalidatePath("/admin/messages");
-    revalidatePath("/admin");
+    try {
+      revalidatePath("/admin/messages");
+      revalidatePath("/admin");
+    } catch {
+      // Ignored outside Next.js request context
+    }
     return { success: true };
   } catch (err: unknown) {
     console.warn("Direct Resend email sending failed:", err);
@@ -214,7 +223,79 @@ export async function markMessageReplied(id: string, replied: boolean = true) {
     },
   });
 
-  revalidatePath("/admin/messages");
-  revalidatePath("/admin");
+  try {
+    revalidatePath("/admin/messages");
+    revalidatePath("/admin");
+  } catch {
+    // Ignored outside Next.js request context
+  }
   return { success: true };
+}
+
+/**
+ * Sends a direct reply via Resend using a cryptographically verified token.
+ * Used by 1-click reply buttons in contact notification emails.
+ */
+export async function sendQuickReplyAction({
+  messageId,
+  token,
+  replyText,
+}: {
+  messageId: string;
+  token: string;
+  replyText: string;
+}) {
+  const message = await prisma.contactMessage.findUnique({
+    where: { id: messageId },
+  });
+
+  if (!message) {
+    return { success: false, error: "Message record not found." };
+  }
+
+  const { verifyReplyToken } = await import("@/lib/ai/reply-drafter");
+  const isValid = verifyReplyToken(message.id, message.email, token);
+  if (!isValid) {
+    return { success: false, error: "Unauthorized: Invalid or expired reply token." };
+  }
+
+  if (!replyText || replyText.trim() === "") {
+    return { success: false, error: "Reply text cannot be empty." };
+  }
+
+  try {
+    await sendDirectReplyEmail({
+      recipientName: message.name,
+      recipientEmail: message.email,
+      subject: message.subject,
+      message: replyText.trim(),
+    });
+
+    await prisma.contactMessage.update({
+      where: { id: messageId },
+      data: {
+        read: true,
+        replied: true,
+        repliedAt: new Date(),
+        draftReply: replyText.trim(),
+      },
+    });
+
+    try {
+      revalidatePath("/admin/messages");
+      revalidatePath("/admin");
+    } catch {
+      // Ignored outside Next.js request context
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    console.error("[QuickReply] Resend email send failed:", err);
+    return {
+      success: false,
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to send email via Resend. Please check your Resend configuration.",
+    };
+  }
 }

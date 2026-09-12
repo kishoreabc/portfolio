@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { markMessageRead, markMessageReplied, softDeleteMessage, restoreMessage } from "@/actions/message";
 import { Button } from "@/components/ui/button";
 import { Mail, MailOpen, Trash2, RotateCcw, Reply, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
@@ -17,6 +18,7 @@ export function MessageRowActions({
   name = "Visitor",
   messageText = "",
   createdAt = new Date(),
+  draftReply = null,
 }: {
   id: string;
   read: boolean;
@@ -27,7 +29,9 @@ export function MessageRowActions({
   name?: string;
   messageText?: string;
   createdAt?: Date;
+  draftReply?: string | null;
 }) {
+  const router = useRouter();
   const [optimisticRead, setOptimisticRead] = useState(read);
   const [optimisticReplied, setOptimisticReplied] = useState(replied);
   const [optimisticDeleted, setOptimisticDeleted] = useState(!!deletedAt);
@@ -42,6 +46,7 @@ export function MessageRowActions({
       try {
         await markMessageRead(id, nextRead);
         toast.success(nextRead ? "Marked as read" : "Marked as unread");
+        router.refresh();
       } catch {
         setOptimisticRead(!nextRead);
         toast.error("Failed to update message status");
@@ -58,6 +63,7 @@ export function MessageRowActions({
       try {
         await softDeleteMessage(id);
         toast.success("Message moved to trash");
+        router.refresh();
       } catch {
         setOptimisticDeleted(false);
         toast.error("Failed to move to trash");
@@ -74,6 +80,7 @@ export function MessageRowActions({
       try {
         await restoreMessage(id);
         toast.success("Message restored");
+        router.refresh();
       } catch {
         setOptimisticDeleted(true);
         toast.error("Failed to restore message");
@@ -91,6 +98,7 @@ export function MessageRowActions({
       try {
         await markMessageReplied(id, nextReplied);
         toast.success(nextReplied ? "Marked as Replied & moved to Replied tab" : "Moved back to Inbox");
+        router.refresh();
       } catch {
         setOptimisticReplied(!nextReplied);
         toast.error("Failed to update reply status");
@@ -136,13 +144,14 @@ export function MessageRowActions({
             createdAt,
             read: optimisticRead,
             replied: optimisticReplied,
+            draftReply,
           }}
           trigger={
             <Button
               variant="ghost"
               size="icon"
               className="w-8 h-8 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 cursor-pointer"
-              title="✨ Suggest AI Reply"
+              title="✨ Suggest AI Reply (Sends via Resend)"
             >
               <Sparkles className="w-4 h-4" />
             </Button>
@@ -150,22 +159,32 @@ export function MessageRowActions({
         />
       )}
 
-      {/* Reply button opens mailto: */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="w-8 h-8"
-        title="Reply via email"
-        render={
-          <a
-            href={`mailto:${email}?subject=Re: ${encodeURIComponent(subject)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Reply className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-          </a>
-        }
-      />
+      {/* Reply button triggers Resend Reply Dialog */}
+      {!optimisticDeleted && (
+        <SuggestReplyDialog
+          message={{
+            id,
+            name,
+            email,
+            subject,
+            message: messageText,
+            createdAt,
+            read: optimisticRead,
+            replied: optimisticReplied,
+            draftReply,
+          }}
+          trigger={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              title="Reply via Resend (moves to Replied tab)"
+            >
+              <Reply className="w-4 h-4" />
+            </Button>
+          }
+        />
+      )}
 
       <Button
         variant="ghost"

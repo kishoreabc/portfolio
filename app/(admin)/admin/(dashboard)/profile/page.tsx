@@ -1,14 +1,23 @@
 import { prisma } from "@/lib/db";
 import { ProfileForm } from "@/components/admin/ProfileForm";
+import { unstable_cache } from "next/cache";
 
 export const metadata = {
   title: "Profile & Site Settings | Admin",
 };
 
+const getCachedSiteConfig = unstable_cache(
+  async () => {
+    return prisma.siteConfig.findUnique({
+      where: { id: "singleton" },
+    });
+  },
+  ["site-config"],
+  { tags: ["site-config"], revalidate: 60 }
+);
+
 export default async function AdminProfilePage() {
-  const config = await prisma.siteConfig.findUnique({
-    where: { id: "singleton" },
-  });
+  const config = await getCachedSiteConfig();
 
   return (
     <div className="space-y-6">

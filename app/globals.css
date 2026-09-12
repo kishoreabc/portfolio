@@ -147,14 +147,58 @@
     @apply font-sans;
     overflow-x: clip;
     max-width: 100vw;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
   }
-  @media (prefers-reduced-motion: no-preference) {
-    html:focus-within {
-      scroll-behavior: smooth;
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto !important;
     }
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring rounded-sm;
+  }
+}
+
+@keyframes sectionHighlightGlow {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.65 0.22 264 / 0.5);
+    outline: 2px solid oklch(0.65 0.22 264 / 0.8);
+  }
+  50% {
+    box-shadow: 0 0 35px 8px oklch(0.65 0.22 264 / 0.25);
+    outline: 2px solid oklch(0.65 0.22 264 / 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.65 0.22 264 / 0);
+    outline: 2px solid transparent;
+  }
+}
+
+.section-highlight-pulse {
+  animation: sectionHighlightGlow 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-radius: 1.5rem;
+}
+
+/* ── THEME SPREAD ANIMATION (VIEW TRANSITIONS API) ───────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 }
 
