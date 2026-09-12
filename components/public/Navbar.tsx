@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -150,9 +151,10 @@ export function Navbar() {
       return;
     }
 
+    // Always anchor the animation origin to the exact center of the button
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX || rect.left + rect.width / 2;
-    const y = e.clientY || rect.top + rect.height / 2;
+    const x = Math.round(rect.left + rect.width / 2);
+    const y = Math.round(rect.top + rect.height / 2);
 
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
@@ -167,7 +169,11 @@ export function Navbar() {
     };
 
     const transition = doc.startViewTransition(() => {
-      setTheme(nextTheme);
+      // flushSync forces React to synchronously apply the DOM change (<html class="...">)
+      // before startViewTransition captures the new view state snapshot
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
     });
 
     transition.ready.then(() => {
@@ -179,7 +185,7 @@ export function Navbar() {
           ],
         },
         {
-          duration: 520,
+          duration: 480,
           easing: "cubic-bezier(0.22, 1, 0.36, 1)",
           pseudoElement: "::view-transition-new(root)",
         }
