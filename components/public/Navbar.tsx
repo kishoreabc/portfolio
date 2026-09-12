@@ -156,10 +156,13 @@ export function Navbar() {
     const x = Math.round(rect.left + rect.width / 2);
     const y = Math.round(rect.top + rect.height / 2);
 
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
+    const endRadius =
+      Math.ceil(
+        Math.hypot(
+          Math.max(x, window.innerWidth - x),
+          Math.max(y, window.innerHeight - y)
+        )
+      ) + 40;
 
     const doc = document as Document & {
       startViewTransition: (updateCallback: () => void | Promise<void>) => {
@@ -185,8 +188,8 @@ export function Navbar() {
           ],
         },
         {
-          duration: 480,
-          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          duration: 650,
+          easing: "cubic-bezier(0.35, 0, 0.25, 1)",
           pseudoElement: "::view-transition-new(root)",
         }
       );
@@ -207,13 +210,11 @@ export function Navbar() {
 
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300",
-          scrolled
-            ? "bg-background/90 backdrop-blur-md border-b border-border/70 py-3 shadow-xs"
-            : "bg-background/40 backdrop-blur-xs py-4 sm:py-5"
+          "fixed top-0 left-0 right-0 z-[100] bg-transparent transition-all duration-300 pointer-events-none",
+          scrolled ? "py-2.5 sm:py-3" : "py-4 sm:py-5"
         )}
       >
-        <div className="container-portfolio flex items-center justify-between gap-2">
+        <div className="container-portfolio flex items-center justify-between gap-2 pointer-events-auto">
           {/* Brand / Logo with micro-animation */}
           <Link
             href="/"
@@ -306,10 +307,10 @@ export function Navbar() {
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={theme}
-                      initial={{ rotate: -90, scale: 0.4, opacity: 0 }}
+                      initial={{ rotate: -120, scale: 0.5, opacity: 0 }}
                       animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: 90, scale: 0.4, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: "easeOut" }}
+                      exit={{ rotate: 120, scale: 0.5, opacity: 0 }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                       className="flex items-center justify-center"
                     >
                       {theme === "dark" ? (
