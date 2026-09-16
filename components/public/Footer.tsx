@@ -17,14 +17,14 @@ export function Footer({ socialLinks }: FooterProps) {
         </div>
 
         {/* Social Links */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           {socialLinks.map((link) => (
             <a
               key={link.id}
               href={link.url}
               target="_blank"
               rel="noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              className="text-muted-foreground hover:text-foreground transition-colors font-medium whitespace-nowrap"
             >
               {link.platform}
             </a>

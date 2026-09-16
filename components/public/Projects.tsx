@@ -54,12 +54,12 @@ export function Projects({ projects }: ProjectsProps) {
                       {project.featured ? "Featured" : "Project"}
                     </Badge>
 
-                    {project.githubStars !== null && (
+                    {(project.githubStars ?? 0) > 0 && (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                         <span className="flex items-center gap-1 text-amber-500 font-medium">
                           <Star className="w-3.5 h-3.5 fill-amber-500" /> {project.githubStars}
                         </span>
-                        {project.githubForks !== null && (
+                        {(project.githubForks ?? 0) > 0 && (
                           <span className="flex items-center gap-1">
                             <GitFork className="w-3 h-3" /> {project.githubForks}
                           </span>

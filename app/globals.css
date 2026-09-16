@@ -181,6 +181,10 @@
 }
 
 /* ── THEME SPREAD ANIMATION (VIEW TRANSITIONS API) ───────────── */
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -188,7 +192,7 @@
 }
 
 ::view-transition-old(root) {
-  z-index: 1;
+  z-index: 0;
 }
 
 ::view-transition-new(root) {

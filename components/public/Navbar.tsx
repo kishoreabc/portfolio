@@ -188,9 +188,10 @@ export function Navbar() {
           ],
         },
         {
-          duration: 650,
-          easing: "cubic-bezier(0.35, 0, 0.25, 1)",
+          duration: 800,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
           pseudoElement: "::view-transition-new(root)",
+          fill: "forwards",
         }
       );
     });
@@ -210,8 +211,10 @@ export function Navbar() {
 
       <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 pointer-events-none",
-          scrolled ? "bg-background/40 backdrop-blur-xs py-2.5 sm:py-3" : "bg-transparent py-4 sm:py-5"
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-500 pointer-events-none",
+          scrolled
+            ? "bg-background/70 backdrop-blur-md shadow-sm py-2.5 sm:py-3"
+            : "bg-transparent py-4 sm:py-5"
         )}
       >
         <div className="container-portfolio flex items-center justify-between gap-2 pointer-events-auto">
@@ -291,8 +294,8 @@ export function Navbar() {
 
           {/* Action Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Site Visitor Counter */}
-            <VisitorCounter />
+            {/* Site Visitor Counter — hidden on very small screens to avoid overflow */}
+            <div className="hidden sm:block"><VisitorCounter /></div>
 
             {/* Theme Toggle with Circular View Transition Spread */}
             {mounted && (

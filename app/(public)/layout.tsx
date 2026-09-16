@@ -8,7 +8,7 @@ export default function PublicLayout({
   return (
     <div className="relative min-h-screen flex flex-col w-full max-w-full">
       <Navbar />
-      <div className="flex-1 flex flex-col w-full">{children}</div>
+      <main className="flex-1 flex flex-col w-full">{children}</main>
     </div>
   );
 }
