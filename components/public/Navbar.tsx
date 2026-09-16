@@ -356,7 +356,7 @@ export function Navbar() {
                 />
                 <SheetContent
                   side="right"
-                  className="w-[84vw] max-w-sm sm:max-w-md p-6 pt-10 flex flex-col justify-between h-full bg-card/95 backdrop-blur-2xl border-l border-border/80 shadow-2xl"
+                  className="w-[85vw] max-w-sm sm:max-w-md p-6 pt-6 flex flex-col justify-between h-full bg-card/98 backdrop-blur-2xl border-l border-border/80 shadow-2xl z-[200]"
                 >
                   <SheetTitle className="sr-only">Mobile Navigation Menu</SheetTitle>
                   <SheetDescription className="sr-only">
@@ -365,20 +365,37 @@ export function Navbar() {
 
                   {/* Top Section: Brand Info & Status */}
                   <div>
-                    <div className="flex items-center gap-3 pb-4 border-b border-border/70">
-                      <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
+                    <div className="flex items-center gap-3 pb-4 border-b border-border/70 pr-10">
+                      <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm shrink-0">
                         K
                       </div>
-                      <div>
-                        <p className="font-bold text-base leading-tight">Kishore R</p>
-                        <p className="text-xs text-muted-foreground font-mono">AI / ML & GenAI Engineer</p>
+                      <div className="min-w-0">
+                        <p className="font-bold text-base leading-tight truncate">Kishore R</p>
+                        <p className="text-xs text-muted-foreground font-mono truncate">AI / ML & GenAI Engineer</p>
                       </div>
                     </div>
 
-                    {/* Availability Badge */}
-                    <div className="mt-3.5 flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium w-fit">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      Open to opportunities
+                    {/* Availability Badge & Theme Toggle */}
+                    <div className="mt-3.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium w-fit">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        Open to opportunities
+                      </div>
+                      {mounted && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="w-8 h-8 rounded-full border-border/60 hover:border-primary/50 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                          onClick={handleToggleTheme}
+                          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                        >
+                          {theme === "dark" ? (
+                            <Sun className="w-4 h-4 text-amber-400" />
+                          ) : (
+                            <Moon className="w-4 h-4 text-indigo-500" />
+                          )}
+                        </Button>
+                      )}
                     </div>
 
                     {/* Navigation Links with staggered animation */}
