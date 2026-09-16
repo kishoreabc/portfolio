@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RevokeSessionButton } from "@/components/admin/RevokeSessionButton";
 import { DeleteAiConversationButton } from "@/components/admin/DeleteAiConversationButton";
+import { LocalTimestamp } from "@/components/ui/local-timestamp";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -91,10 +92,7 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
             <div className="mt-1.5 flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {new Date(conversation.startedAt).toLocaleString([], {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                })}
+                <LocalTimestamp date={conversation.startedAt} format="full" />
               </span>
               {conversation.durationSeconds != null && (
                 <span>{formatDuration(conversation.durationSeconds)} session</span>
@@ -164,11 +162,7 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
                   {/* Meta: timestamp + tools */}
                   <div className={`flex items-center gap-1.5 px-1 flex-wrap ${isUser ? "flex-row-reverse" : "flex-row"}`}>
                     <span className="text-[10px] text-muted-foreground/50">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                      })}
+                      <LocalTimestamp date={msg.createdAt} format="time" />
                     </span>
                     {tools.map((tool) => (
                       <span

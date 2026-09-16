@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { MessageRowActions } from "@/components/admin/MessageRowActions";
 import { SuggestReplyDialog } from "@/components/admin/SuggestReplyDialog";
+import { LocalTimestamp } from "@/components/ui/local-timestamp";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -227,21 +228,12 @@ export default async function AdminMessagesPage({
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       <div>
-                        {new Date(m.createdAt).toLocaleString("en-IN", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        <LocalTimestamp date={m.createdAt} format="short" />
                       </div>
                       {m.repliedAt && (
                         <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
                           Replied:{" "}
-                          {new Date(m.repliedAt).toLocaleDateString("en-IN", {
-                            month: "short",
-                            day: "numeric",
-                          })}
+                          <LocalTimestamp date={m.repliedAt} format="date" />
                         </div>
                       )}
                     </TableCell>

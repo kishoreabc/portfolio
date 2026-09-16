@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RevokeSessionButton } from "@/components/admin/RevokeSessionButton";
 import { DeleteAiConversationButton } from "@/components/admin/DeleteAiConversationButton";
+import { LocalTimestamp } from "@/components/ui/local-timestamp";
 import type { getAiConversations } from "@/actions/ai-conversation";
 
 type ConversationItem = Awaited<ReturnType<typeof getAiConversations>>["conversations"][number];
@@ -158,12 +159,7 @@ export function SessionHistory({
                   >
                     <td className="px-4 py-3 text-foreground">
                       <span className="text-xs font-mono text-foreground/90">
-                        {new Date(conv.startedAt).toLocaleString([], {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        <LocalTimestamp date={conv.startedAt} format="short" />
                       </span>
                     </td>
                     <td className="px-4 py-3">

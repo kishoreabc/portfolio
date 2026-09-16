@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { LocalTimestamp } from "@/components/ui/local-timestamp";
 
 interface VoiceQueueManagerProps {
   initialData: VoiceQueueData;
@@ -530,11 +531,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                               {formatTimeAgo(session.startedAt)}
                             </div>
                             <div className="text-[10px] text-muted-foreground font-mono">
-                              {new Date(session.startedAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                              })}
+                              <LocalTimestamp date={session.startedAt} format="time" />
                             </div>
                           </td>
 
@@ -702,11 +699,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                               {formatTimeAgo(item.joinedAt)}
                             </div>
                             <div className="text-[10px] text-muted-foreground font-mono">
-                              {new Date(item.joinedAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                              })}
+                              <LocalTimestamp date={item.joinedAt} format="time" />
                             </div>
                           </td>
 
