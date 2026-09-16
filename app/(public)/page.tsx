@@ -13,7 +13,6 @@ import { Contact } from "@/components/public/Contact";
 import { Footer } from "@/components/public/Footer";
 import { ScrollRevealObserver } from "@/components/public/ScrollRevealObserver";
 import { JourneyEntry, LeetCodeHeatmapData } from "@/types";
-import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 
 import type { Metadata } from "next";
 import type { SiteConfig, Skill, Project, Certification, BlogPost, Education, SocialLink } from "@prisma/client";
@@ -105,11 +104,9 @@ export default async function HomePage() {
     );
   }
 
-  const rawJourneyEntries = (Array.isArray(config?.journeyEntries)
+  const journeyEntries = (Array.isArray(config?.journeyEntries)
     ? config.journeyEntries
     : []) as unknown as JourneyEntry[];
-
-  const journeyEntries = sortJourneyEntriesByTimelineDesc(rawJourneyEntries);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-primary-foreground overflow-x-clip w-full max-w-full">

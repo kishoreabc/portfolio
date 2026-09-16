@@ -625,7 +625,7 @@ export function VoiceVisualizer({
             <span>Establishing Live Voice Channel</span>
           </div>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Connecting to Gemini Live WebSocket & starting audio pipeline. You will be able to speak freely in moments.
+            Connecting to voice agent WebSocket & starting audio pipeline. You will be able to speak freely in moments.
           </p>
           <div className="flex items-center gap-1.5 pt-0.5">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-ping" />

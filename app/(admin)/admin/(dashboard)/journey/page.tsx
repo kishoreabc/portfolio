@@ -2,20 +2,17 @@ import { prisma } from "@/lib/db";
 import { JourneyDialog } from "@/components/admin/JourneyDialog";
 import {
   deleteJourneyEntry,
-  moveJourneyEntry,
   sortAllJourneyEntriesByTimelineDesc,
 } from "@/actions/journey";
 import { AdminRowDeleteButton } from "@/components/admin/AdminRowDeleteButton";
+import { JourneyReorderButtons } from "@/components/admin/JourneyReorderButtons";
 import { JourneyEntry } from "@/types";
-import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Edit,
-  ChevronUp,
-  ChevronDown,
   ArrowDownNarrowWide,
   GraduationCap,
   Cpu,
@@ -83,11 +80,9 @@ export default async function AdminJourneyPage() {
     select: { journeyEntries: true },
   });
 
-  const rawEntries = Array.isArray(config?.journeyEntries)
+  const entries = Array.isArray(config?.journeyEntries)
     ? (config.journeyEntries as unknown as JourneyEntry[])
     : [];
-
-  const entries = sortJourneyEntriesByTimelineDesc(rawEntries);
 
   return (
     <div className="space-y-6">
@@ -148,45 +143,11 @@ export default async function AdminJourneyPage() {
                     <TableRow key={entry.id || idx}>
                       {/* Reorder Buttons */}
                       <TableCell className="text-center p-2">
-                        <div className="flex flex-col items-center justify-center">
-                          <form
-                            action={async () => {
-                              "use server";
-                              await moveJourneyEntry(entry.id, "up");
-                            }}
-                          >
-                            <Button
-                              type="submit"
-                              variant="ghost"
-                              size="icon-xs"
-                              disabled={idx === 0}
-                              className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                              title="Move Up"
-                            >
-                              <ChevronUp className="w-3.5 h-3.5" />
-                            </Button>
-                          </form>
-                          <span className="text-[11px] font-mono text-muted-foreground font-semibold">
-                            {idx + 1}
-                          </span>
-                          <form
-                            action={async () => {
-                              "use server";
-                              await moveJourneyEntry(entry.id, "down");
-                            }}
-                          >
-                            <Button
-                              type="submit"
-                              variant="ghost"
-                              size="icon-xs"
-                              disabled={idx === entries.length - 1}
-                              className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                              title="Move Down"
-                            >
-                              <ChevronDown className="w-3.5 h-3.5" />
-                            </Button>
-                          </form>
-                        </div>
+                        <JourneyReorderButtons
+                          id={entry.id}
+                          index={idx}
+                          total={entries.length}
+                        />
                       </TableCell>
 
                       {/* Milestone Title + Icon */}

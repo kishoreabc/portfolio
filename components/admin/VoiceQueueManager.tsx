@@ -288,7 +288,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
               </CardTitle>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Real-time active check &amp; concurrency monitor for Gemini Live Voice Agent. Detects newly arrived voice users and waiting queue live.
+              Real-time active check &amp; concurrency monitor for Voice Agent. Detects newly arrived voice users and waiting queue live.
             </p>
           </div>
 
@@ -427,7 +427,7 @@ export function VoiceQueueManager({ initialData }: VoiceQueueManagerProps) {
                     No active voice agent users right now
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Active check is live. When a visitor taps the microphone or starts a Gemini Live Voice session on your portfolio, their live IP, elapsed duration, and session controls will pop up here instantly.
+                    Active check is live. When a visitor taps the microphone or starts a Voice session on your portfolio, their live IP, elapsed duration, and session controls will pop up here instantly.
                   </p>
                 </div>
               </div>

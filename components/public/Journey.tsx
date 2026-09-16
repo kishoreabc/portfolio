@@ -3,7 +3,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { JourneyEntry } from "@/types";
-import { sortJourneyEntriesByTimelineDesc } from "@/lib/utils";
 import {
   GraduationCap,
   Cpu,
@@ -67,7 +66,7 @@ export function Journey({ journeyEntries }: JourneyProps) {
 
         {/* Timeline Container */}
         <div className="max-w-3xl mx-auto relative before:absolute before:left-4 sm:before:left-1/2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/80">
-          {sortJourneyEntriesByTimelineDesc(journeyEntries).map((entry, idx) => {
+          {journeyEntries.map((entry, idx) => {
             const Icon = getIcon(entry.icon);
             const isEven = idx % 2 === 0;
 
