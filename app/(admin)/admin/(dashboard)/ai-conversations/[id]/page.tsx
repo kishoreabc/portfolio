@@ -127,6 +127,34 @@ export default async function AiConversationDetailPage({ params }: PageProps) {
       ) : (
         <div className="flex flex-col gap-3">
           {conversation.messages.map((msg) => {
+            if (msg.role === "system") {
+              const isRevoked = msg.content === "REVOKED_BY_ADMIN";
+              const isTimeLimit = msg.content === "TIME_LIMIT";
+              return (
+                <div key={msg.id} className="flex justify-center my-2">
+                  <div
+                    className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${
+                      isRevoked
+                        ? "border-destructive/30 bg-destructive/10 text-destructive"
+                        : "border-amber-500/30 bg-amber-500/10 text-amber-500"
+                    }`}
+                  >
+                    <span>{isRevoked ? "⚠️" : isTimeLimit ? "⏳" : "⏱️"}</span>
+                    <span>
+                      {isRevoked
+                        ? "Session ended by administrator"
+                        : isTimeLimit
+                        ? "Voice time limit reached"
+                        : "Session closed due to inactivity"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground ml-1">
+                      <LocalTimestamp date={msg.createdAt} format="time" />
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+
             const isUser = msg.role === "user";
             const tools = msg.toolsUsed ?? [];
 

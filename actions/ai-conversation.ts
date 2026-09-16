@@ -156,6 +156,17 @@ export async function revokeAiSession(id: string) {
     data: { endedAt: now },
   });
 
+  // Record admin revoke notice so client status polling identifies the exact reason
+  await prisma.aiMessage
+    .create({
+      data: {
+        conversationId: id,
+        role: "system",
+        content: "REVOKED_BY_ADMIN",
+      },
+    })
+    .catch((err) => console.error("[AI:Revoke] Failed to create system message:", err));
+
   // 2. Terminate in-memory session entry
   terminateSession(conversation.sessionId);
 
@@ -190,6 +201,17 @@ export async function revokeAllActiveAiSessions() {
     where: { endedAt: null },
     data: { endedAt: now },
   });
+
+  // Record admin revoke notices
+  await prisma.aiMessage
+    .createMany({
+      data: activeConversations.map((c) => ({
+        conversationId: c.id,
+        role: "system",
+        content: "REVOKED_BY_ADMIN",
+      })),
+    })
+    .catch((err) => console.error("[AI:RevokeAll] Failed to create system messages:", err));
 
   // 2. Terminate each in memory
   for (const conv of activeConversations) {

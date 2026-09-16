@@ -596,6 +596,20 @@ export function AgentPanel({
         id: "session-revoked-toast",
         duration: 7000,
       });
+    } else if (reason === "TIME_LIMIT") {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `timelimit-${Date.now()}`,
+          role: "assistant",
+          content: "The voice session maximum time limit was reached. Feel free to start a new session anytime.",
+          timestamp: new Date(),
+        },
+      ]);
+      toast.info("Voice session time limit reached.", {
+        id: "session-revoked-toast",
+        duration: 7000,
+      });
     } else {
       setTranscript((prev) => [
         ...prev,

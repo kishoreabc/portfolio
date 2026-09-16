@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         messages: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: { createdAt: true },
+          select: { role: true, content: true, createdAt: true },
         },
       },
     });
@@ -65,8 +65,35 @@ export async function GET(request: NextRequest) {
       if (conv.mode === "voice") {
         await releaseVoiceSlot();
       }
+
+      const lastMsg = conv.messages[0];
+      const isRevokedByAdmin =
+        lastMsg?.role === "system" && lastMsg?.content === "REVOKED_BY_ADMIN";
+      const isExplicitIdle =
+        lastMsg?.role === "system" && lastMsg?.content === "IDLE_TIMEOUT";
+      const isExplicitTimeLimit =
+        lastMsg?.role === "system" && lastMsg?.content === "TIME_LIMIT";
+
+      const voiceHardLimitMs = AI_CONFIG.maxVoiceSessionSeconds * 1000;
+      const totalDurationMs = conv.endedAt.getTime() - conv.startedAt.getTime();
+      const isTimeLimit =
+        isExplicitTimeLimit ||
+        (conv.mode === "voice" && totalDurationMs >= voiceHardLimitMs - 5000);
+
+      // If an admin ended the session, it must return "REVOKED", not "IDLE_TIMEOUT"
+      let reason = "REVOKED";
+      if (isRevokedByAdmin) {
+        reason = "REVOKED";
+      } else if (isExplicitIdle) {
+        reason = "IDLE_TIMEOUT";
+      } else if (isTimeLimit) {
+        reason = "TIME_LIMIT";
+      } else {
+        reason = "REVOKED";
+      }
+
       return NextResponse.json(
-        { active: false, revoked: true, reason: "IDLE_TIMEOUT", endedAt: conv.endedAt },
+        { active: false, revoked: true, reason, endedAt: conv.endedAt },
         { status: 200, headers: NO_CACHE }
       );
     }
@@ -84,6 +111,7 @@ export async function GET(request: NextRequest) {
       const voiceIdleLimitMs = 180 * 1000;
 
       if (elapsedMs > voiceHardLimitMs || idleMs > voiceIdleLimitMs) {
+        const timeoutReason = elapsedMs > voiceHardLimitMs ? "TIME_LIMIT" : "IDLE_TIMEOUT";
         await prisma.aiConversation
           .update({
             where: { id: conv.id },
@@ -91,10 +119,20 @@ export async function GET(request: NextRequest) {
           })
           .catch(() => {});
 
+        await prisma.aiMessage
+          .create({
+            data: {
+              conversationId: conv.id,
+              role: "system",
+              content: timeoutReason,
+            },
+          })
+          .catch(() => {});
+
         terminateSession(conv.sessionId);
         await releaseVoiceSlot();
         return NextResponse.json(
-          { active: false, revoked: true, reason: "IDLE_TIMEOUT" },
+          { active: false, revoked: true, reason: timeoutReason },
           { status: 200, headers: NO_CACHE }
         );
       }
@@ -120,6 +158,16 @@ export async function GET(request: NextRequest) {
           .update({
             where: { id: conv.id },
             data: { endedAt: new Date() },
+          })
+          .catch(() => {});
+
+        await prisma.aiMessage
+          .create({
+            data: {
+              conversationId: conv.id,
+              role: "system",
+              content: "IDLE_TIMEOUT",
+            },
           })
           .catch(() => {});
 
