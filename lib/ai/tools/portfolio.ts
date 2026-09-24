@@ -237,13 +237,16 @@ export async function getMyCertifications(): Promise<PortfolioCertification[]> {
   try {
     const list = await withTimeout(
       prisma.certification.findMany({
-        where: { published: true },
+        // No published filter — return all available certifications
         orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }],
         select: {
           title: true,
           issuer: true,
           issueDate: true,
+          expiryDate: true,
+          credentialId: true,
           credentialUrl: true,
+          imageUrl: true,
           description: true,
         },
       }),
@@ -254,7 +257,10 @@ export async function getMyCertifications(): Promise<PortfolioCertification[]> {
       title: c.title,
       issuer: c.issuer,
       issueDate: c.issueDate?.toISOString().slice(0, 10) ?? null,
+      expiryDate: c.expiryDate?.toISOString().slice(0, 10) ?? null,
+      credentialId: c.credentialId ?? null,
       credentialUrl: c.credentialUrl,
+      imageUrl: c.imageUrl ?? null,
       description: c.description,
     }));
   } catch (err) {
@@ -262,6 +268,7 @@ export async function getMyCertifications(): Promise<PortfolioCertification[]> {
     return [];
   }
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // get_my_social_links

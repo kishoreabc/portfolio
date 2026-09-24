@@ -294,7 +294,10 @@ export interface PortfolioCertification {
   title: string;
   issuer: string;
   issueDate: string | null;
+  expiryDate: string | null;
+  credentialId: string | null;
   credentialUrl: string | null;
+  imageUrl: string | null;
   description: string | null;
 }
 

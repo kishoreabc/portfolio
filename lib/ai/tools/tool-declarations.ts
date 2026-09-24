@@ -62,7 +62,7 @@ export const PORTFOLIO_TOOL_DECLARATIONS: Tool[] = [
       {
         name: "get_my_certifications",
         description:
-          "Get Kishore's verified certifications — titles, issuers, dates, and credential links.",
+          "Get all of Kishore's certifications — titles, issuers, issue/expiry dates, credential IDs, credential links, and Cloudinary certificate image URLs.",
         parameters: {
           type: Type.OBJECT,
           properties: {},
