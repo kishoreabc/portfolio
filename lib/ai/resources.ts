@@ -11,7 +11,7 @@ import type { KnownPortfolioResources } from "@/types/ai";
 
 export async function getKnownPortfolioResources(): Promise<KnownPortfolioResources> {
   try {
-    const [config, projects, socials, blogPosts] = await Promise.all([
+    const [config, projects, socials, blogPosts, certifications] = await Promise.all([
       prisma.siteConfig
         .findUnique({ where: { id: "singleton" }, select: { resumeUrl: true } })
         .catch(() => null),
@@ -49,6 +49,12 @@ export async function getKnownPortfolioResources(): Promise<KnownPortfolioResour
             canonicalUrl: true,
             publishedAt: true,
           },
+        })
+        .catch(() => []),
+      prisma.certification
+        .findMany({
+          orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }],
+          select: { title: true, issuer: true, credentialUrl: true, imageUrl: true },
         })
         .catch(() => []),
     ]);
@@ -90,12 +96,22 @@ export async function getKnownPortfolioResources(): Promise<KnownPortfolioResour
         url: b.canonicalUrl || `/blog/${b.slug}`,
         publishedAt: b.publishedAt ? b.publishedAt.toISOString().slice(0, 10) : null,
       })),
+      certifications: certifications
+        .filter((c) => c.credentialUrl)
+        .map((c) => ({
+          title: c.title,
+          issuer: c.issuer,
+          credentialUrl: c.credentialUrl,
+          imageUrl: c.imageUrl,
+        })),
     };
   } catch (err) {
     console.error("[AI:Resources] Error getting portfolio resources:", err);
     return {
       projects: [],
       blogPosts: [],
+      certifications: [],
     };
   }
 }
+

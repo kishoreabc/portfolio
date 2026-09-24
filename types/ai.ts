@@ -66,6 +66,13 @@ export interface KnownPortfolioBlogPost {
   publishedAt?: string | null;
 }
 
+export interface KnownPortfolioCertification {
+  title: string;
+  issuer: string;
+  credentialUrl: string | null;
+  imageUrl: string | null;
+}
+
 export interface KnownPortfolioResources {
   resumeUrl?: string;
   githubUrl?: string;
@@ -73,6 +80,7 @@ export interface KnownPortfolioResources {
   linkedinUrl?: string;
   projects?: KnownPortfolioProject[];
   blogPosts?: KnownPortfolioBlogPost[];
+  certifications?: KnownPortfolioCertification[];
 }
 
 /** Response returned by POST /api/ai/session when slot is available. */

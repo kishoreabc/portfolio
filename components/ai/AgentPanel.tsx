@@ -227,6 +227,32 @@ export function AgentPanel({
         }
       }
 
+      // 5c. Certifications
+      if (res?.certifications && res.certifications.length > 0) {
+        for (const cert of res.certifications) {
+          if (!cert.credentialUrl) continue;
+          const certTitleLower = cert.title.toLowerCase();
+          const certIssuerLower = cert.issuer.toLowerCase();
+          // Match if the text mentions the cert title, issuer, or the word "certificate/certification"
+          const firstWord = certTitleLower.split(/[\s:—–]/)[0];
+          const isMatch =
+            lower.includes(certTitleLower) ||
+            lower.includes(certIssuerLower) ||
+            (firstWord && firstWord.length > 3 && lower.includes(firstWord) &&
+              (lower.includes("cert") || lower.includes("credential") || lower.includes("course")));
+
+          if (isMatch) {
+            addVoiceArtifact({
+              type: "link",
+              title: cert.title,
+              description: cert.issuer,
+              meta: `${cert.issuer} · Verified Credential`,
+              url: cert.credentialUrl,
+            });
+          }
+        }
+      }
+
       // 6. Markdown links [Title](url) in text
       const mdRegex = /\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g;
       let match: RegExpExecArray | null;
@@ -256,6 +282,18 @@ export function AgentPanel({
       while ((urlMatch = rawUrlRegex.exec(text)) !== null) {
         const url = urlMatch[1].replace(/[).,]+$/, "");
         if (url.includes("api/ai") || url.includes("localhost")) continue;
+        // Derive a readable name from the domain rather than "External Resource"
+        let derivedTitle = "Verified Link";
+        try {
+          const hostname = new URL(url).hostname.replace(/^www\./, "");
+          derivedTitle = url.includes("github")
+            ? "GitHub Repository"
+            : url.includes("leetcode")
+            ? "LeetCode Profile"
+            : url.includes(".pdf")
+            ? "Resume (PDF)"
+            : hostname.charAt(0).toUpperCase() + hostname.slice(1);
+        } catch {}
         addVoiceArtifact({
           type: url.includes("github")
             ? "github"
@@ -264,15 +302,9 @@ export function AgentPanel({
             : url.includes(".pdf")
             ? "resume"
             : "link",
-          title: url.includes("github")
-            ? "GitHub Repository"
-            : url.includes("leetcode")
-            ? "LeetCode Profile"
-            : url.includes(".pdf")
-            ? "Resume (PDF)"
-            : "External Resource",
+          title: derivedTitle,
           url: url,
-          meta: "Verified Link",
+          meta: "Official Resource",
         });
       }
     },
