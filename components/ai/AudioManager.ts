@@ -144,6 +144,7 @@ export class AudioManager {
 
   private stopped = false;
   private onPlaybackCompleteCallbacks: Set<() => void> = new Set();
+  private _visibilityCleanup?: () => void;
 
   constructor(session: Session, onStateChange: (state: SessionState) => void) {
     this.session = session;
@@ -191,6 +192,23 @@ export class AudioManager {
     this.clearPlaybackQueue();
     this.leftoverByte = null;
     this.lastResampleSample = 0;
+
+    // ── Auto-resume AudioContext on page visibility restore ─────────────────
+    // Browsers auto-suspend AudioContext when the tab goes to background.
+    // Without this, the first few audio chunks after returning to the tab
+    // are scheduled into a suspended context and play silently.
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !this.stopped) {
+        const ctx = AudioManager.sharedPlaybackContext;
+        if (ctx && ctx.state === "suspended") {
+          void ctx.resume().catch(() => {});
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    // Store cleanup so stop() can remove it
+    this._visibilityCleanup = () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
 
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -416,6 +434,25 @@ export class AudioManager {
       source.connect(this.playbackContext.destination);
     }
 
+    // ── Final guard: if context still not running, skip silently ────────────────
+    // The AudioContext can be suspended between the earlier resume() attempt
+    // and here (e.g. browser policy mid-chunk). Rather than schedule audio
+    // into a suspended context (where it plays silently), attempt one more
+    // resume. If still suspended/closed, drop this chunk.
+    if (this.playbackContext.state === "suspended") {
+      try { await this.playbackContext.resume(); } catch {}
+    }
+    if (this.playbackContext.state !== "running") {
+      console.warn("[AudioManager] Context not running, dropping audio chunk.");
+      return;
+    }
+    // Recalculate startTime with a fresh timestamp post-resume
+    const freshNow = this.playbackContext.currentTime;
+    if (startTime < freshNow) {
+      startTime = freshNow + 0.06;
+      this.nextPlayTime = 0;
+    }
+
     source.start(startTime);
     this.nextPlayTime = startTime + buffer.duration;
     this.isPlaying = true;
@@ -485,11 +522,14 @@ export class AudioManager {
     if (this.playbackContext && this.masterPlaybackGain) {
       const now = this.playbackContext.currentTime;
       try {
-        // Quick 8ms smooth fade to zero eliminates cutoff clicks
+        // Cancel any pending gain automation (prevents stacking ramps from
+        // rapid interrupt events leaving gain permanently near-zero).
+        this.masterPlaybackGain.gain.cancelScheduledValues(now);
         this.masterPlaybackGain.gain.setValueAtTime(
           this.masterPlaybackGain.gain.value,
           now
         );
+        // Quick 8ms smooth fade to zero eliminates cutoff clicks
         this.masterPlaybackGain.gain.linearRampToValueAtTime(0.0001, now + 0.008);
       } catch {}
 
@@ -497,10 +537,9 @@ export class AudioManager {
         this.clearPlaybackQueue();
         if (this.masterPlaybackGain && this.playbackContext) {
           try {
-            this.masterPlaybackGain.gain.setValueAtTime(
-              1.0,
-              this.playbackContext.currentTime
-            );
+            const t = this.playbackContext.currentTime;
+            this.masterPlaybackGain.gain.cancelScheduledValues(t);
+            this.masterPlaybackGain.gain.setValueAtTime(1.0, t);
           } catch {}
         }
       }, 10);
@@ -526,6 +565,10 @@ export class AudioManager {
   stop(): void {
     this.stopped = true;
     this.clearPlaybackQueue();
+
+    // Remove visibility listener registered in start()
+    this._visibilityCleanup?.();
+    this._visibilityCleanup = undefined;
 
     this.workletNode?.disconnect();
     this.sourceNode?.disconnect();
