@@ -16,7 +16,8 @@ export function Certifications({ certifications }: CertificationsProps) {
   const [selectedCert, setSelectedCert] = useState<Certification | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const publishedCerts = certifications.filter((c) => c.published);
+  // All certifications passed from the page are displayed.
+  // Filtering by published status is handled at the DB query level if needed.
 
   const handleOpenModal = (cert: Certification) => {
     setSelectedCert(cert);
@@ -44,7 +45,7 @@ export function Certifications({ certifications }: CertificationsProps) {
 
         {/* Certifications Grid */}
         <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
-          {publishedCerts.map((cert, idx) => (
+          {certifications.map((cert, idx) => (
             <div
               key={cert.id}
               className="flex scroll-reveal"
