@@ -11,52 +11,42 @@ import type { KnownPortfolioResources } from "@/types/ai";
 
 export async function getKnownPortfolioResources(): Promise<KnownPortfolioResources> {
   try {
-    const [config, projects, socials, blogPosts, certifications] = await Promise.all([
-      prisma.siteConfig
-        .findUnique({ where: { id: "singleton" }, select: { resumeUrl: true } })
-        .catch(() => null),
-      prisma.project
-        .findMany({
-          where: { published: true },
-          orderBy: [{ featured: "desc" }, { displayOrder: "asc" }],
-          select: {
-            title: true,
-            slug: true,
-            shortDescription: true,
-            technologies: true,
-            githubUrl: true,
-            liveUrl: true,
-          },
-        })
-        .catch(() => []),
-      prisma.socialLink
-        .findMany({
-          where: { enabled: true },
-          orderBy: { displayOrder: "asc" },
-          select: { platform: true, url: true },
-        })
-        .catch(() => []),
-      prisma.blogPost
-        .findMany({
-          where: { published: true },
-          orderBy: [{ featured: "desc" }, { displayOrder: "asc" }, { publishedAt: "desc" }],
-          select: {
-            title: true,
-            slug: true,
-            summary: true,
-            tags: true,
-            readTime: true,
-            canonicalUrl: true,
-            publishedAt: true,
-          },
-        })
-        .catch(() => []),
-      prisma.certification
-        .findMany({
-          orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }],
-          select: { title: true, issuer: true, credentialUrl: true, imageUrl: true },
-        })
-        .catch(() => []),
+    const [config, projects, socials, blogPosts, certifications] = await prisma.$transaction([
+      prisma.siteConfig.findUnique({ where: { id: "singleton" }, select: { resumeUrl: true } }),
+      prisma.project.findMany({
+        where: { published: true },
+        orderBy: [{ featured: "desc" }, { displayOrder: "asc" }],
+        select: {
+          title: true,
+          slug: true,
+          shortDescription: true,
+          technologies: true,
+          githubUrl: true,
+          liveUrl: true,
+        },
+      }),
+      prisma.socialLink.findMany({
+        where: { enabled: true },
+        orderBy: { displayOrder: "asc" },
+        select: { platform: true, url: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { published: true },
+        orderBy: [{ featured: "desc" }, { displayOrder: "asc" }, { publishedAt: "desc" }],
+        select: {
+          title: true,
+          slug: true,
+          summary: true,
+          tags: true,
+          readTime: true,
+          canonicalUrl: true,
+          publishedAt: true,
+        },
+      }),
+      prisma.certification.findMany({
+        orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }],
+        select: { title: true, issuer: true, credentialUrl: true, imageUrl: true },
+      }),
     ]);
 
     const resumeUrl: string | undefined = config?.resumeUrl?.trim() || undefined;

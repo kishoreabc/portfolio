@@ -142,7 +142,7 @@ export default async function RootLayout({
   let config = null;
   let socialLinks: { platform: string; url: string }[] = [];
   try {
-    const results = await Promise.all([
+    const results = await prisma.$transaction([
       prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
       prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
     ]);

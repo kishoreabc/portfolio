@@ -22,16 +22,31 @@ import type { ContributionCalendar } from "@/lib/github";
 export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const config = await prisma.siteConfig.findUnique({
-    where: { id: "singleton" },
-    select: {
-      seoTitle: true,
-      seoDescription: true,
-      seoKeywords: true,
-      ogImageUrl: true,
-      avatarUrl: true,
-    },
-  });
+  let config: {
+    seoTitle: string | null;
+    seoDescription: string | null;
+    seoKeywords: string | null;
+    ogImageUrl: string | null;
+    avatarUrl: string | null;
+  } | null = null;
+
+  try {
+    config = await prisma.siteConfig.findUnique({
+      where: { id: "singleton" },
+      select: {
+        seoTitle: true,
+        seoDescription: true,
+        seoKeywords: true,
+        ogImageUrl: true,
+        avatarUrl: true,
+      },
+    });
+  } catch (error) {
+    console.warn(
+      "[generateMetadata] Failed to fetch siteConfig:",
+      error instanceof Error ? error.message : error
+    );
+  }
 
   const title = config?.seoTitle?.trim() || "Kishore R";
   const description =
@@ -77,26 +92,28 @@ export default async function HomePage() {
   let leetcodeHeatmap: LeetCodeHeatmapData | null = null;
 
   try {
-    const results = await Promise.all([
-      prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
-      prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
-      prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
-      prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
-      prisma.blogPost.findMany({ where: { published: true }, orderBy: [{ featured: "desc" }, { displayOrder: "asc" }, { publishedAt: "desc" }] }),
-      prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
-      prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
+    const [dbData, ghData, lcData] = await Promise.all([
+      prisma.$transaction([
+        prisma.siteConfig.findUnique({ where: { id: "singleton" } }),
+        prisma.skill.findMany({ orderBy: [{ category: "asc" }, { displayOrder: "asc" }] }),
+        prisma.project.findMany({ orderBy: { displayOrder: "asc" } }),
+        prisma.certification.findMany({ orderBy: [{ issueDate: "desc" }, { displayOrder: "asc" }] }),
+        prisma.blogPost.findMany({ where: { published: true }, orderBy: [{ featured: "desc" }, { displayOrder: "asc" }, { publishedAt: "desc" }] }),
+        prisma.education.findMany({ orderBy: { displayOrder: "asc" } }),
+        prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { displayOrder: "asc" } }),
+      ]),
       fetchGitHubHeatmap(),
       getLeetCodeHeatmap(),
     ]);
-    config = results[0];
-    skills = results[1];
-    projects = results[2];
-    certifications = results[3];
-    blogs = results[4];
-    educationList = results[5];
-    socialLinks = results[6];
-    githubHeatmap = results[7];
-    leetcodeHeatmap = results[8];
+    config = dbData[0];
+    skills = dbData[1];
+    projects = dbData[2];
+    certifications = dbData[3];
+    blogs = dbData[4];
+    educationList = dbData[5];
+    socialLinks = dbData[6];
+    githubHeatmap = ghData;
+    leetcodeHeatmap = lcData;
   } catch (error) {
     console.warn(
       "[HomePage] Database or external fetch error during render/build:",
