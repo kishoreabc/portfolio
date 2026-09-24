@@ -516,7 +516,11 @@ export function AgentPanel({
     // Immediately update UI state without waiting for network calls
     if (isMounted.current) {
       isManualDisconnectRef.current = true;
-      setDisconnectReason(null);
+      // Only reset the disconnect reason when there isn't one already set.
+      // If the voice timer (or another caller) already set "TIME_LIMIT" and
+      // then called handleDisconnect, we must NOT overwrite it with null —
+      // that would cause the "Closed (Admin)" badge / wrong message to appear.
+      setDisconnectReason((prev) => prev ?? null);
       setIsCompletingSentence(false);
       setState("DISCONNECTED");
       setVoiceSecondsLeft(null);
