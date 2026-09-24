@@ -72,7 +72,7 @@ export function AgentPanel({
   const [isCompletingSentence, setIsCompletingSentence] = useState(false);
   // Progressive connecting sub-stage: shown while view === 'connecting'
   const [connectingStage, setConnectingStage] = useState<"requesting" | "audio">("requesting");
-  const [disconnectReason, setDisconnectReason] = useState<"IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | null>(null);
+  const [disconnectReason, setDisconnectReason] = useState<"IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | "DISCONNECTED" | null>(null);
   const isManualDisconnectRef = useRef(false);
   const sessionGenerationRef = useRef(0);
 
@@ -575,7 +575,17 @@ export function AgentPanel({
     setSessionData(null);
 
     if (isMounted.current) {
-      setDisconnectReason(reason === "IDLE_TIMEOUT" ? "IDLE_TIMEOUT" : "REVOKED");
+      // Map the server reason to the UI reason. "DISCONNECTED" is a neutral
+      // reason for normal/self-termination — it must NOT be shown as "REVOKED".
+      const uiReason: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | "DISCONNECTED" =
+        reason === "IDLE_TIMEOUT"
+          ? "IDLE_TIMEOUT"
+          : reason === "TIME_LIMIT"
+          ? "TIME_LIMIT"
+          : reason === "DISCONNECTED" || reason === "DELETED"
+          ? "DISCONNECTED"
+          : "REVOKED";
+      setDisconnectReason(uiReason);
       setIsCompletingSentence(false);
       setState("DISCONNECTED");
       setVoiceSecondsLeft(null);
@@ -610,7 +620,22 @@ export function AgentPanel({
         id: "session-revoked-toast",
         duration: 7000,
       });
+    } else if (reason === "DISCONNECTED" || reason === "DELETED") {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `disconnected-${Date.now()}`,
+          role: "assistant",
+          content: "Voice session disconnected. Tap Reconnect below to resume speaking.",
+          timestamp: new Date(),
+        },
+      ]);
+      toast.info("Voice session disconnected.", {
+        id: "session-revoked-toast",
+        duration: 5000,
+      });
     } else {
+      // Explicit REVOKED — admin ended this session
       setTranscript((prev) => [
         ...prev,
         {

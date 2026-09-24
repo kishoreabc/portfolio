@@ -80,8 +80,11 @@ export async function GET(request: NextRequest) {
         isExplicitTimeLimit ||
         (conv.mode === "voice" && totalDurationMs >= voiceHardLimitMs - 5000);
 
-      // If an admin ended the session, it must return "REVOKED", not "IDLE_TIMEOUT"
-      let reason = "REVOKED";
+      // Only mark as REVOKED if there's an explicit admin-revoke marker.
+      // Any other ended session (user closed tab, Live API dropped, normal
+      // self-termination) gets a neutral "DISCONNECTED" reason so the client
+      // does NOT show the misleading "Session ended by admin" message.
+      let reason: string;
       if (isRevokedByAdmin) {
         reason = "REVOKED";
       } else if (isExplicitIdle) {
@@ -89,7 +92,7 @@ export async function GET(request: NextRequest) {
       } else if (isTimeLimit) {
         reason = "TIME_LIMIT";
       } else {
-        reason = "REVOKED";
+        reason = "DISCONNECTED";
       }
 
       return NextResponse.json(

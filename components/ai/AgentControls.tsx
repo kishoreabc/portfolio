@@ -30,7 +30,7 @@ import type { SessionState, AgentMode } from "@/types/ai";
 interface AgentControlsProps {
   mode: AgentMode;
   state: SessionState;
-  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | string | null;
+  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | "DISCONNECTED" | string | null;
   isMuted: boolean;
   disabled: boolean;
   onToggleMute: () => void;

@@ -11,7 +11,7 @@ import type { SessionState } from "@/types/ai";
 
 interface AgentStatusBadgeProps {
   state: SessionState;
-  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | string | null;
+  disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | "DISCONNECTED" | string | null;
   compact?: boolean; // If true, show dot + text. If false, show full badge.
 }
 
