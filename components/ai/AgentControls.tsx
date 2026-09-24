@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Mic,
   MicOff,
@@ -33,6 +33,7 @@ interface AgentControlsProps {
   disconnectReason?: "IDLE_TIMEOUT" | "REVOKED" | "TIME_LIMIT" | "DISCONNECTED" | string | null;
   isMuted: boolean;
   disabled: boolean;
+  voiceMaxSeconds?: number | null;
   onToggleMute: () => void;
   onSwitchMode: (mode: AgentMode) => void;
   onSendText: (text: string) => void;
@@ -47,6 +48,7 @@ export function AgentControls({
   disconnectReason,
   isMuted,
   disabled,
+  voiceMaxSeconds,
   onToggleMute,
   onSwitchMode,
   onSendText,
@@ -56,6 +58,28 @@ export function AgentControls({
 }: AgentControlsProps) {
   const [textInput, setTextInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dynamicLimit, setDynamicLimit] = useState<number | null>(voiceMaxSeconds ?? null);
+
+  useEffect(() => {
+    if (voiceMaxSeconds) {
+      setDynamicLimit(voiceMaxSeconds);
+      return;
+    }
+    let active = true;
+    fetch("/api/ai/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.maxVoiceSessionSeconds) {
+          setDynamicLimit(data.maxVoiceSessionSeconds);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [voiceMaxSeconds]);
+
+  const limitMinutes = dynamicLimit ? Math.round(dynamicLimit / 60) : 10;
 
   const isDisconnected = state === "DISCONNECTED" || state === "ERROR";
   const isConnecting = state === "CONNECTING";
@@ -176,7 +200,9 @@ export function AgentControls({
               ) : disconnectReason === "REVOKED" ? (
                 <span className="text-destructive font-medium">Session ended by admin</span>
               ) : disconnectReason === "TIME_LIMIT" ? (
-                <span className="text-amber-400 font-medium">Session limit reached (10 min)</span>
+                <span className="text-amber-400 font-medium">
+                  Session limit reached ({limitMinutes} min)
+                </span>
               ) : (
                 "Session disconnected"
               )

@@ -126,7 +126,7 @@ export function toSafeErrorMessage(code: string): string {
     MIC_DENIED:
       "Microphone access was denied. Switching to text mode — you can type your questions instead.",
     VOICE_TIME_LIMIT_REACHED:
-      "Your voice session has ended (10-minute limit). You can start a new session anytime.",
+      `Your voice session has ended (${Math.round(AI_CONFIG.maxVoiceSessionSeconds / 60)}-minute limit). You can start a new session anytime.`,
     INTERNAL_ERROR: "Something went wrong. Please try again.",
   };
   return messages[code] ?? messages.INTERNAL_ERROR;

@@ -191,7 +191,19 @@ export async function POST(request: NextRequest) {
   );
 }
 
-// Only POST is allowed on this route
+// GET /api/ai/session returns public AI session limits & configuration
 export async function GET() {
-  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
+  return NextResponse.json(
+    {
+      maxVoiceSessionSeconds: AI_CONFIG.maxVoiceSessionSeconds,
+      voiceWarningSeconds: AI_CONFIG.voiceWarningBeforeEndSeconds,
+      maxChatSessionSeconds: AI_CONFIG.maxChatSessionSeconds,
+    },
+    {
+      status: 200,
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    }
+  );
 }

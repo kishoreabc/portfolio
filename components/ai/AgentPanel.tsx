@@ -66,6 +66,22 @@ export function AgentPanel({
   const [queueData, setQueueData] = useState<QueueData | null>(null);
   const [voiceSecondsLeft, setVoiceSecondsLeft] = useState<number | null>(null);
   const [sessionData, setSessionData] = useState<EphemeralTokenResponse | null>(null);
+  const [voiceTimeoutSeconds, setVoiceTimeoutSeconds] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/ai/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data?.maxVoiceSessionSeconds) {
+          setVoiceTimeoutSeconds(data.maxVoiceSessionSeconds);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [showLeaveQueueConfirm, setShowLeaveQueueConfirm] = useState(false);
   const [voiceArtifacts, setVoiceArtifacts] = useState<FetchedArtifact[]>([]);
@@ -788,12 +804,12 @@ export function AgentPanel({
       {
         id: `timelimit-${Date.now()}`,
         role: "assistant",
-        content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+        content: "Voice session limit reached. Click Reconnect below anytime to start a new session.",
         timestamp: new Date(),
       },
     ]);
     toast.info(
-      "Your voice session has ended (10-minute limit). You can start a new session anytime.",
+      "Your voice session has ended. You can start a new session anytime.",
       { duration: 6000 }
     );
     void handleDisconnect();
@@ -851,12 +867,13 @@ export function AgentPanel({
                   {
                     id: `timelimit-${Date.now()}`,
                     role: "assistant",
-                    content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+                    content: "Voice session limit reached. Click Reconnect below anytime to start a new session.",
                     timestamp: new Date(),
                   },
                 ]);
+                const limitMin = voiceTimeoutSeconds ? Math.round(voiceTimeoutSeconds / 60) : 10;
                 toast.info(
-                  "Your voice session has ended (10-minute limit). You can start a new session anytime.",
+                  `Your voice session has ended (${limitMin}-minute limit). You can start a new session anytime.`,
                   { duration: 6000 }
                 );
                 void handleDisconnect();
@@ -871,12 +888,12 @@ export function AgentPanel({
               {
                 id: `timelimit-${Date.now()}`,
                 role: "assistant",
-                content: "Voice session limit reached (10 minutes). Click Reconnect below anytime to start a new session.",
+                content: "Voice session limit reached. Click Reconnect below anytime to start a new session.",
                 timestamp: new Date(),
               },
             ]);
             toast.info(
-              "Your voice session has ended (10-minute limit). You can start a new session anytime."
+              "Your voice session has ended. You can start a new session anytime."
             );
             void handleDisconnect();
             return 0;
@@ -1185,6 +1202,9 @@ export function AgentPanel({
 
       sessionDataRef.current = data;
       setSessionData(data);
+      if (data.voiceTimeoutSeconds) {
+        setVoiceTimeoutSeconds(data.voiceTimeoutSeconds);
+      }
       queueDataRef.current = null;
       setQueueData(null);
       setMode(targetMode);
@@ -1783,6 +1803,7 @@ export function AgentPanel({
           disconnectReason={disconnectReason}
           isMuted={isMuted}
           disabled={false}
+          voiceMaxSeconds={voiceTimeoutSeconds ?? sessionData?.voiceTimeoutSeconds ?? null}
           onToggleMute={() => {
             if (isCompletingSentence) return;
             const next = !isMuted;
